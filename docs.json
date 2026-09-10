@@ -318,6 +318,10 @@
               "news-api/libraries/typescript",
               "news-api/libraries/java"
             ]
+          },
+          {
+            "group": "Integrations",
+            "pages": ["news-api/integrations/mcp"]
           }
         ]
       },

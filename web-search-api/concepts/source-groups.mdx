@@ -25,22 +25,14 @@ Because domains resolve at run time, a group's current membership always
 applies. When NewsCatcher adds or removes a domain, every later job and monitor
 run picks up the change — you don't need to resubmit anything.
 
+If you want us to add a custom group,
+contact [support@newscatcherapi.com](mailto:support@newscatcherapi.com).
+
 <Note>
   Source groups narrow **where** CatchAll looks. They don't change **how far
   back** it looks — that's still controlled by `start_date` and `end_date`. See
   [Index and search depth](/web-search-api/concepts/index-and-search-depth).
 </Note>
-
-## Visibility
-
-| Visibility | Who can use it |
-| --- | --- |
-| Public | Every organization |
-| Restricted | Only organizations explicitly granted access |
-
-`GET /catchAll/source-groups` returns public groups plus any restricted groups
-your organization has been granted. If you need access to a restricted group,
-contact [support@newscatcherapi.com](mailto:support@newscatcherapi.com).
 
 ## List available source groups
 

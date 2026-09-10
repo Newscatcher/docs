@@ -347,6 +347,10 @@ deleted — it becomes unassigned and continues to exist.
 - [TypeScript SDK](https://www.newscatcherapi.com/docs/news-api/libraries/typescript): TypeScript client library for News API
 - [Java SDK](https://www.newscatcherapi.com/docs/news-api/libraries/java): Java client library for News API
 
+### Integrations
+
+- [News API MCP server](https://www.newscatcherapi.com/docs/news-api/integrations/mcp): Connect News API to any MCP-compatible client for structured news search.
+
 ## Local News API
 
 ### Get started
