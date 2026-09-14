@@ -1,11 +1,11 @@
 ---
 title: "Build a recurring event feed"
 sidebarTitle: "Build an event feed"
-description: "Go from a one-off query to a scheduled monitor that delivers fresh event records to your app every day."
+description: "Go from a one-off query to a scheduled event monitor that delivers fresh event records to your app every day."
 ---
 
 This guide strings together the full pipeline: test a query, create a webhook,
-schedule a monitor, and handle the results your endpoint receives. Each step links
+schedule an event monitor, and handle the results your endpoint receives. Each step links
 to its detailed reference if you need to go deeper.
 
 ## Before you begin
@@ -41,7 +41,7 @@ dependencies {
 <Steps>
   <Step title="Test the query" titleSize="h3">
     Submit your query as a one-off job and review the results before committing it to
-    a schedule. Keep the `job_id`; you reference it when creating the monitor.
+    a schedule. Keep the `job_id`; you reference it when creating the event monitor.
 
     <CodeGroup>
     ```bash cURL
@@ -145,7 +145,7 @@ dependencies {
 
   <Step title="Create a webhook" titleSize="h3">
     A webhook is created once at the organization level, then attached to any number of
-    jobs or monitors. Save the returned `webhook.id`.
+    jobs or event monitors. Save the returned `webhook.id`.
 
     <CodeGroup>
     ```bash cURL
@@ -204,8 +204,8 @@ dependencies {
     </Tip>
   </Step>
 
-  <Step title="Schedule a monitor" titleSize="h3">
-    A monitor re-runs your query on a schedule, deduplicates against previous runs, and
+  <Step title="Schedule an event monitor" titleSize="h3">
+    An event monitor re-runs your query on a schedule, deduplicates against previous runs, and
     delivers each run to the webhooks in `webhook_ids`.
 
     <CodeGroup>
@@ -256,7 +256,7 @@ dependencies {
     <Warning>
       The reference job's `end_date` must be within the last 7 days, and the default minimum
       schedule interval is 24 hours, but can be more frequent depending on your subscription plan. See
-      [Configure monitors](/web-search-api/how-to/configure-monitors).
+      [Configure event monitors](/web-search-api/how-to/configure-event-monitors).
     </Warning>
   </Step>
 
@@ -356,12 +356,12 @@ dependencies {
 
 Swap the query for any event you want to watch: product recalls, executive moves,
 regulatory actions, competitor launches. The pipeline is identical: test the query,
-create a webhook, schedule a monitor, handle the delivery. To change which webhooks a
-monitor notifies, `PATCH /catchAll/monitors/{monitor_id}` with new `webhook_ids`.
+create a webhook, schedule an event monitor, handle the delivery. To change which webhooks an
+event monitor notifies, `PATCH /catchAll/monitors/{monitor_id}` with new `webhook_ids`.
 
 ## See also
 
-- [Monitors](/web-search-api/concepts/monitors): how scheduling, deduplication, and rolling date windows work
+- [Event Monitors](/web-search-api/concepts/event-monitors): how scheduling, deduplication, and rolling date windows work
 - [Set up webhooks](/web-search-api/how-to/set-up-webhooks): webhook types, auth, testing, and delivery history
-- [Configure monitors](/web-search-api/how-to/configure-monitors): schedules, robust webhook handling, updating a monitor
+- [Configure event monitors](/web-search-api/how-to/configure-event-monitors): schedules, robust webhook handling, updating an event monitor
 - [Write effective queries](/web-search-api/how-to/write-effective-queries): get the query right before you schedule it

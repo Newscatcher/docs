@@ -1,17 +1,17 @@
 ---
-title: Troubleshoot monitors
-sidebarTitle: Troubleshoot monitors
-description: Diagnose and fix common monitor issues.
+title: Troubleshoot event monitors
+sidebarTitle: Troubleshoot event monitors
+description: Diagnose and fix common event monitor issues.
 ---
 
-This guide helps you diagnose and resolve common monitor issues.
+This guide helps you diagnose and resolve common event monitor issues.
 
 <Tip>
   For configuration guidance and webhook implementation, see [Configure
-  monitors](/web-search-api/how-to/configure-monitors).
+  event monitors](/web-search-api/how-to/configure-event-monitors).
 </Tip>
 
-## Cannot create monitor from old job
+## Cannot create event monitor from old job
 
 **Symptom**: API returns "Monitor creation is only allowed for jobs with a run 
 window within the last 7 days."
@@ -30,19 +30,19 @@ If older than 7 days, create a new job with `end_date` within the last 7 days
 and use that as your reference.
 
 <Note>
-  Monitors require `end_date` within 7 days to avoid data gaps. The job's 
+  Event Monitors require `end_date` within 7 days to avoid data gaps. The job's 
   `start_date` can be any valid range - only `end_date` must be recent.
 </Note>
 
 ---
 
-## Monitor returns zero records
+## Event monitor returns zero records
 
 **Symptom**: Webhook shows `"records_count": 0` on every execution after the first.
 
 **Possible causes**:
 
-1. Event frequency doesn't match monitor schedule (events occur less frequently than monitor runs).
+1. Event frequency doesn't match event monitor schedule (events occur less frequently than event monitor runs).
 2. Deduplication is working correctly - same events keep appearing across multiple runs.
 3. Reference job had very restrictive validators.
 
@@ -60,20 +60,20 @@ and use that as your reference.
   </Step>
 
   <Step title="Assess event frequency vs schedule">
-    Consider whether events matching your query occur frequently enough for your monitor schedule:
+    Consider whether events matching your query occur frequently enough for your event monitor schedule:
     
-    - ✅ **Good match**: Daily monitor for `"AI startup funding rounds over $10M"` (multiple events per week)
+    - ✅ **Good match**: Daily event monitor for `"AI startup funding rounds over $10M"` (multiple events per week)
     
-    - ❌ **Frequency mismatch**: Daily monitor for `"Unicorn IPOs in biotech sector"` (rare events)
+    - ❌ **Frequency mismatch**: Daily event monitor for `"Unicorn IPOs in biotech sector"` (rare events)
     
     **If events are infrequent:**
-    - Adjust monitor schedule (weekly instead of daily)
+    - Adjust event monitor schedule (weekly instead of daily)
     - Expand geographic or industry scope
     - Lower thresholds (e.g., `$5M+` instead of `$50M+`)
     </Step>
 
-  <Step title="Check monitor execution history">
-    List recent monitor jobs to see the pattern:
+  <Step title="Check event monitor execution history">
+    List recent event monitor jobs to see the pattern:
     ```bash
         curl "https://catchall.newscatcherapi.com/catchAll/monitors/{monitor_id}/jobs" \
           -H "x-api-key: YOUR_API_KEY"
@@ -89,12 +89,12 @@ and use that as your reference.
     
     **Option 2 - Adjust query scope**: Expand to capture more events without losing business value.
     
-    Create new reference job → Create new monitor → Disable old monitor.
+    Create new reference job → Create new event monitor → Disable old event monitor.
   </Step>
 </Steps>
 
 <Tip>
-Monitor deduplication uses a 7-day rolling window. Zero records after the first execution 
+Event monitor deduplication uses a 7-day rolling window. Zero records after the first execution 
 often means the same events keep appearing (correct deduplication), not a problem with 
 your query.
 </Tip>
@@ -124,7 +124,7 @@ executions. If you're seeing duplicates, this indicates a potential issue.
 **Symptoms**:
 
 - No POST requests received at your endpoint.
-- Monitor shows jobs executing but no notifications.
+- Event monitor shows jobs executing but no notifications.
 
 **Troubleshooting steps**:
 
@@ -154,7 +154,7 @@ executions. If you're seeing duplicates, this indicates a potential issue.
 
   <Step title="Test with webhook.site">
     Create a temporary webhook at [webhook.site](https://webhook.site) and update
-    your monitor to verify the issue is with your endpoint.
+    your event monitor to verify the issue is with your endpoint.
   </Step>
 
   <Step title="Review server logs">
@@ -167,7 +167,7 @@ executions. If you're seeing duplicates, this indicates a potential issue.
 
 <Tip>
 For webhook implementation guidance including error handling and retry logic, see 
-[Configure monitors: Implement robust webhooks](/web-search-api/how-to/configure-monitors#implement-robust-webhooks).
+[Configure event monitors: Implement robust webhooks](/web-search-api/how-to/configure-event-monitors#implement-robust-webhooks).
 </Tip>
 
 ---
@@ -177,8 +177,8 @@ For webhook implementation guidance including error handling and retry logic, se
 If you encounter issues not covered in this guide:
 
 1. Check the [Changelog](/web-search-api/get-started/changelog) for recent updates.
-2. Review [Monitors overview](/web-search-api/concepts/monitors) for how monitors work.
-3. Review [Configure monitors](/web-search-api/how-to/configure-monitors) for setup and testing guidance.
+2. Review [Event Monitors overview](/web-search-api/concepts/event-monitors) for how event monitors work.
+3. Review [Configure event monitors](/web-search-api/how-to/configure-event-monitors) for setup and testing guidance.
 4. Contact support at support@newscatcherapi.com with:
    - `monitor_id` or `job_id`
    - Detailed description of the issue

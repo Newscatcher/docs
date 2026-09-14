@@ -1,11 +1,11 @@
 ---
 title: Set up webhooks
 sidebarTitle: Set up webhooks
-description: Create and manage webhooks to receive real-time notifications when jobs and monitors complete.
+description: Create and manage webhooks to receive real-time notifications when jobs and event monitors complete.
 ---
 
 This guide covers how to create, test, and update a webhook, attach it to a job 
-or monitor, and troubleshoot delivery issues.
+or event monitor, and troubleshoot delivery issues.
 
 ## Before you begin
 
@@ -15,7 +15,7 @@ or monitor, and troubleshoot delivery issues.
 
 ## Create webhook
 
-A webhook is created independently of any job or monitor. Once created, you
+A webhook is created independently of any job or event monitor. Once created, you
 attach it to one or more resources.
 
 <CodeGroup>
@@ -211,14 +211,14 @@ Response:
 If `success` is `false`, check `http_status_code` and `response_body` to
 diagnose the issue before proceeding.
 
-## Attach webhook to job or monitor
+## Attach webhook to job or event monitor
 
-You can attach a webhook to a job or monitor at creation time, or assign it to 
+You can attach a webhook to a job or event monitor at creation time, or assign it to 
 an existing resource afterward.
 
 ### At creation time
 
-Pass `webhook_ids` when submitting a job or creating a monitor:
+Pass `webhook_ids` when submitting a job or creating an event monitor:
 
 <CodeGroup>
 ```bash cURL — job
@@ -230,7 +230,7 @@ curl -X POST "https://catchall.newscatcherapi.com/catchAll/submit" \
     "webhook_ids": ["a1b2c3d4-e5f6-7890-abcd-ef1234567890"]
   }'
 ```
-```bash cURL — monitor
+```bash cURL — event monitor
 curl -X POST "https://catchall.newscatcherapi.com/catchAll/monitors/create" \
   -H "x-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
@@ -583,7 +583,7 @@ only ever returned in delivery history; you cannot assign a webhook to it.
 ## Trigger delivery manually
 
 To re-deliver results after a failed delivery — or to push a resource's results
-on demand without waiting for the next job or monitor cycle — trigger a webhook
+on demand without waiting for the next job or event monitor cycle — trigger a webhook
 manually. The webhook must already be assigned to the resource.
 
 <CodeGroup>
@@ -621,4 +621,4 @@ omitted, the latest available results are delivered.
 
 - [Webhook payload](/web-search-api/api-reference/webhooks/webhook-payload)
 - [Webhooks API reference](/web-search-api/api-reference/webhooks/create-webhook)
-- [Configure monitors](/web-search-api/how-to/configure-monitors)
+- [Configure event monitors](/web-search-api/how-to/configure-event-monitors)
