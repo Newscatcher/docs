@@ -75,8 +75,8 @@ operations, while Searches retrieve data.
 | `continue`                    | Expand an existing job to process more records beyond the initial limit | `/catchAll/continue`              |
 | `create-monitor`              | Schedule recurring jobs                                                 | `/catchAll/monitors/create`       |
 | `create-monitor-with-webhook` | Schedule recurring jobs with webhook                                    | `/catchAll/monitors/create`       |
-| `enable-monitor`              | Resume a paused monitor                                                 | `/catchAll/monitors/{id}/enable`  |
-| `disable-monitor`             | Pause a running monitor                                                 | `/catchAll/monitors/{id}/disable` |
+| `enable-monitor`              | Resume a paused event monitor                                           | `/catchAll/monitors/{id}/enable`  |
+| `disable-monitor`             | Pause a running event monitor                                           | `/catchAll/monitors/{id}/disable` |
 
 <Note>
   The `create-monitor-with-webhook` module supports webhook URL and HTTP method. 
@@ -90,8 +90,8 @@ operations, while Searches retrieve data.
 | ---------------------- | ------------------------------ | -------------------------------- |
 | `search-job-id`        | Check job processing status    | `/catchAll/status/{job_id}`      |
 | `pull-data`            | Retrieve completed job results | `/catchAll/pull/{job_id}`        |
-| `get-monitor-schedule` | List monitor execution history | `/catchAll/monitors/{id}/jobs`   |
-| `pull-monitor-results` | Get aggregated monitor records | `/catchAll/monitors/pull/{id}`   |
+| `get-monitor-schedule` | List event monitor execution history | `/catchAll/monitors/{id}/jobs`   |
+| `pull-monitor-results` | Get aggregated event monitor records | `/catchAll/monitors/pull/{id}`   |
 
 ## Jobs workflow
 
@@ -278,21 +278,21 @@ The Router evaluates job status and directs execution to one of two routes.
   Repeater **Repeats** value to 15 or 20.
 </Tip>
 
-## Monitors workflow
+## Event Monitors workflow
 
-Build a scenario that creates a monitor from a completed job, verifies creation, 
+Build a scenario that creates an event monitor from a completed job, verifies creation, 
 and retrieves the initial results.
 
-![Make.com scenario flow diagram showing modules connected in sequence: NewsCatcher CatchAll create-monitor module connects to a Repeater loop containing a Router. The Router splits into two paths - one for successful monitor creation (leading to Sleep, pull-monitor-results, and Gmail success notification) and one for creation failure (leading to Sleep and Gmail error notification).](/images/integrations/make-monitors-demo-workflow.png)
+![Make.com scenario flow diagram showing modules connected in sequence: NewsCatcher CatchAll create-monitor module connects to a Repeater loop containing a Router. The Router splits into two paths - one for successful event monitor creation (leading to Sleep, pull-monitor-results, and Gmail success notification) and one for creation failure (leading to Sleep and Gmail error notification).](/images/integrations/make-monitors-demo-workflow.png)
 
 <Note>
-  Want to skip manual setup? Import the [Monitors demo scenario](https://us2.make.com/public/shared-scenario/sUKDajtqdwB/demo-monitors) directly into your Make.com account.
+  Want to skip manual setup? Import the [Event Monitors demo scenario](https://us2.make.com/public/shared-scenario/sUKDajtqdwB/demo-monitors) directly into your Make.com account.
 </Note>
 
 ### Add modules
 
 <Steps>
-  <Step title="Create monitor">
+  <Step title="Create event monitor">
     Add **NewsCatcher CatchAll > create-monitor**:
 
     - **Connection**: Select your CatchAll connection
@@ -306,7 +306,7 @@ and retrieves the initial results.
     - **Initial value**: `1`
     - **Repeats**: `3`
 
-    The Repeater retries status evaluation up to 3 times if monitor creation is 
+    The Repeater retries status evaluation up to 3 times if event monitor creation is 
     delayed.
   </Step>
 
@@ -317,10 +317,10 @@ and retrieves the initial results.
 
 ### Configure routes
 
-The Router evaluates monitor creation status and directs execution to one of two routes.
+The Router evaluates event monitor creation status and directs execution to one of two routes.
 
 <Steps>
-  <Step title="Route 1: Monitor created">
+  <Step title="Route 1: Event monitor created">
     Configure the first route:
 
     1. Click the route path to open filter settings
@@ -358,7 +358,7 @@ The Router evaluates monitor creation status and directs execution to one of two
     2. Add **NewsCatcher CatchAll > pull-monitor-results**:
        - **Connection**: Select your connection
        - **Monitor ID**: Drag `monitor_id` from **create-monitor** module
-    3. Add **Gmail > Send an Email** to send initial monitor results
+    3. Add **Gmail > Send an Email** to send initial event monitor results
   </Step>
 
   <Step title="Failed route actions">
@@ -370,11 +370,11 @@ The Router evaluates monitor creation status and directs execution to one of two
   </Step>
 </Steps>
 
-## Test monitors workflow
+## Test event monitors workflow
 
 <Steps>
   <Step title="Prepare reference job">
-    You need a completed job ID to create a monitor. If you don't have one, run a 
+    You need a completed job ID to create an event monitor. If you don't have one, run a 
     Jobs workflow first to generate a job ID.
   </Step>
 
@@ -387,12 +387,12 @@ The Router evaluates monitor creation status and directs execution to one of two
   </Step>
 
   <Step title="Check email">
-    You receive an email confirming monitor creation success or failure.
+    You receive an email confirming event monitor creation success or failure.
   </Step>
 </Steps>
 
 <Tip>
-  After creating a monitor, it runs automatically on your schedule. Use 
+  After creating an event monitor, it runs automatically on your schedule. Use 
   `pull-monitor-results` periodically to retrieve aggregated data from all 
   executions.
 </Tip>
@@ -410,5 +410,5 @@ destination system:
 ## See also
 
 - [Quickstart](/web-search-api/get-started/quickstart)
-- [Monitors](/web-search-api/concepts/monitors)
+- [Event Monitors](/web-search-api/concepts/event-monitors)
 - [Write effective queries](/web-search-api/how-to/write-effective-queries)

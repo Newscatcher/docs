@@ -22,7 +22,7 @@ the group by its `slug`.
    fetching to that set.
 
 Because domains resolve at run time, a group's current membership always
-applies. When NewsCatcher adds or removes a domain, every later job and monitor
+applies. When NewsCatcher adds or removes a domain, every later job and event monitor
 run picks up the change — you don't need to resubmit anything.
 
 If you want us to add a custom group,
@@ -171,12 +171,12 @@ group.
 }
 ```
 
-Monitor results report the same information under `reference_job`, so you can
+Event monitor results report the same information under `reference_job`, so you can
 tell which groups a recurring run is scoped to.
 
-## Source groups and monitors
+## Source groups and event monitors
 
-A monitor created from a job scoped to source groups keeps that scoping — every
+An event monitor created from a job scoped to source groups keeps that scoping — every
 recurring run fetches from the same groups, using their membership at the time
 the run happens.
 

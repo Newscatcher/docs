@@ -377,13 +377,13 @@ try {
 ```
 </Accordion>
 
-## Working with monitors
+## Working with event monitors
 
 Automate recurring queries with scheduled execution.
 
 <Tabs>
-  <Tab title="Create monitor">
-    Create a monitor from a completed job:
+  <Tab title="Create event monitor">
+    Create an event monitor from a completed job:
 
     ```typescript
     const monitor = await client.monitors.createMonitor({
@@ -391,17 +391,17 @@ Automate recurring queries with scheduled execution.
       schedule: "every day at 12 PM UTC",
       webhook_ids: ["a1b2c3d4-e5f6-7890-abcd-ef1234567890"],
     });
-    console.log(`Monitor created: ${monitor.monitor_id}`);
+    console.log(`Event monitor created: ${monitor.monitor_id}`);
     ```
 
     <Note>
-      Monitors require a minimum 24-hour interval between executions. Learn more in the
-      [Monitors documentation](/web-search-api/concepts/monitors).
+      Event monitors require a minimum 24-hour interval between executions. Learn more in the
+      [Event Monitors documentation](/web-search-api/concepts/event-monitors).
     </Note>
   </Tab>
 
-  <Tab title="Update monitor">
-    Update webhook configuration for an existing monitor:
+  <Tab title="Update event monitor">
+    Update webhook configuration for an existing event monitor:
 
     ```typescript
     const updated = await client.monitors.updateMonitor({
@@ -409,31 +409,31 @@ Automate recurring queries with scheduled execution.
       webhook_ids: ["b2c3d4e5-f6a7-8901-bcde-f12345678901"],
       limit: 100,
     });
-    console.log(`Monitor updated: ${updated.status}`);
+    console.log(`Event monitor updated: ${updated.status}`);
     ```
   </Tab>
 
   <Tab title="Pause/Resume">
-    Control monitor execution:
+    Control event monitor execution:
 
     ```typescript
-    // Pause monitor
+    // Pause event monitor
     await client.monitors.disableMonitor({ monitor_id: monitor.monitor_id });
-    console.log("Monitor paused");
+    console.log("Event monitor paused");
 
-    // Resume monitor
+    // Resume event monitor
     await client.monitors.enableMonitor({ monitor_id: monitor.monitor_id });
-    console.log("Monitor resumed");
+    console.log("Event monitor resumed");
     ```
   </Tab>
 
-  <Tab title="List monitors">
-    Retrieve all monitors for your account:
+  <Tab title="List event monitors">
+    Retrieve all event monitors for your account:
 
     ```typescript
     const monitors = await client.monitors.listMonitors();
     
-    console.log(`Total monitors: ${monitors.total_monitors}`);
+    console.log(`Total event monitors: ${monitors.total_monitors}`);
     for (const m of monitors.monitors) {
       const status = m.enabled ? "active" : "paused";
       console.log(`${m.monitor_id}: ${status}`);
@@ -442,7 +442,7 @@ Automate recurring queries with scheduled execution.
   </Tab>
 
   <Tab title="Retrieve results">
-    Access aggregated results from all monitor executions:
+    Access aggregated results from all event monitor executions:
 
     ```typescript
     // List execution history
@@ -450,7 +450,7 @@ Automate recurring queries with scheduled execution.
       monitor_id: monitor.monitor_id,
       sort: "desc",
     });
-    console.log(`Monitor executed ${jobs.total_jobs} jobs`);
+    console.log(`Event monitor executed ${jobs.total_jobs} jobs`);
 
     // Get all collected records
     const results = await client.monitors.pullMonitorResults({
@@ -466,14 +466,14 @@ Automate recurring queries with scheduled execution.
   </Tab>
 </Tabs>
 
-<Accordion title="Complete monitor example">
+<Accordion title="Complete event monitor example">
 ```typescript
 import { CatchAllApiClient, CatchAllApiError } from "newscatcher-catchall-sdk";
 
 const client = new CatchAllApiClient({ apiKey: "YOUR_API_KEY" });
 
 try {
-  // Create monitor from completed job
+  // Create event monitor from completed job
   const jobId = "af7a26d6-cf0b-458c-a6ed-4b6318c74da3";
 
   const monitor = await client.monitors.createMonitor({
@@ -482,7 +482,7 @@ try {
     webhook_ids: ["a1b2c3d4-e5f6-7890-abcd-ef1234567890"],
   });
   const monitorId = monitor.monitor_id;
-  console.log(`Monitor created: ${monitorId}`);
+  console.log(`Event monitor created: ${monitorId}`);
 
   // Update webhook
   await client.monitors.updateMonitor({
@@ -491,7 +491,7 @@ try {
     limit: 100,
   });
 
-  // List all monitors
+  // List all event monitors
   const allMonitors = await client.monitors.listMonitors();
   for (const m of allMonitors.monitors) {
     const status = m.enabled ? "active" : "paused";
@@ -507,7 +507,7 @@ try {
     monitor_id: monitorId,
     sort: "desc",
   });
-  console.log(`\nMonitor executed ${jobs.total_jobs} jobs`);
+  console.log(`\nEvent monitor executed ${jobs.total_jobs} jobs`);
   for (const job of jobs.jobs) {
     console.log(`  Job ${job.job_id}: ${job.start_date} to ${job.end_date}`);
   }
@@ -529,9 +529,9 @@ try {
 ```
 </Accordion>
 
-## Company watchlist
+## Company monitors
 
-Company watchlist lets you track specific companies across jobs. Create entities,
+Company monitors let you track specific companies across jobs. Create entities,
 group them into a dataset, then connect the dataset to any job to get per-company
 relevance scores in results.
 
@@ -620,7 +620,7 @@ for (const record of results.all_records) {
 
 <Tip>
   For a full step-by-step walkthrough including batch entity creation and the
-  JSON API path, see [Company Watchlist](/web-search-api/concepts/company-search).
+  JSON API path, see [Company Monitors](/web-search-api/concepts/company-monitors).
 </Tip>
 
 ## Type safety

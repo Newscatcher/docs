@@ -7,8 +7,8 @@ description:
 
 The MCP server exposes CatchAll API tools to any MCP-compatible client. It
 handles authentication, tool routing, and response formatting so the client can
-submit jobs, poll status, retrieve results, manage monitors, configure webhooks,
-build company watchlists with datasets and entities, and organize work into
+submit jobs, poll status, retrieve results, manage event monitors, configure webhooks,
+build company monitors with datasets and entities, and organize work into
 projects.
 
 ## Before you start
@@ -403,19 +403,19 @@ explain this flow yourself.
     | `delete_job` | Delete a job and its results |
   </Tab>
 
-  <Tab title="Monitors">
+  <Tab title="Event Monitors">
     | Tool | Description |
     |------|-------------|
-    | `create_monitor` | Create a recurring monitor from a completed reference job |
-    | `update_monitor` | Update settings (webhook IDs, per-run limit) for an existing monitor |
-    | `list_monitors` | List all monitors for the authenticated user |
-    | `list_monitor_jobs` | List all jobs produced by a specific monitor |
-    | `pull_monitor_results` | Retrieve latest aggregated results from a monitor |
-    | `pull_monitor_csv` | Download the most recent monitor run results as a CSV file |
-    | `get_monitor_status` | Get the full execution history and state changes for a monitor |
-    | `enable_monitor` | Re-enable a previously disabled monitor |
-    | `disable_monitor` | Pause a monitor without deleting it |
-    | `delete_monitor` | Permanently delete a monitor |
+    | `create_monitor` | Create a recurring event monitor from a completed reference job |
+    | `update_monitor` | Update settings (webhook IDs, per-run limit) for an existing event monitor |
+    | `list_monitors` | List all event monitors for the authenticated user |
+    | `list_monitor_jobs` | List all jobs produced by a specific event monitor |
+    | `pull_monitor_results` | Retrieve latest aggregated results from an event monitor |
+    | `pull_monitor_csv` | Download the most recent event monitor run results as a CSV file |
+    | `get_monitor_status` | Get the full execution history and state changes for an event monitor |
+    | `enable_monitor` | Re-enable a previously disabled event monitor |
+    | `disable_monitor` | Pause an event monitor without deleting it |
+    | `delete_monitor` | Permanently delete an event monitor |
   </Tab>
 
   <Tab title="Webhooks">
@@ -426,10 +426,10 @@ explain this flow yourself.
     | `get_webhook` | Get full configuration details for a webhook |
     | `update_webhook` | Update webhook URL, delivery mode, or auth settings |
     | `test_webhook` | Send a test payload to verify endpoint reachability before attaching to a resource |
-    | `assign_webhook_resource` | Attach a webhook to a job or monitor |
-    | `list_webhook_resources` | List all resources (jobs and monitors) assigned to a webhook |
+    | `assign_webhook_resource` | Attach a webhook to a job or event monitor |
+    | `list_webhook_resources` | List all resources (jobs and event monitors) assigned to a webhook |
     | `remove_webhook_resource` | Detach a webhook from a specific resource |
-    | `list_resource_webhooks` | List all webhooks attached to a specific job or monitor |
+    | `list_resource_webhooks` | List all webhooks attached to a specific job or event monitor |
     | `get_webhook_history` | Retrieve delivery history in one of two modes: pass `resource_type` + `resource_id` to see deliveries for a specific job/monitor/monitor_group, or pass `webhook_id` to see all deliveries through one webhook (exactly one mode per call). Manual test deliveries from `test_webhook` only appear in webhook mode and are recorded with `resource_type: "test"` |
     | `trigger_webhook` | Manually trigger webhook delivery for a job, monitor, or monitor_group — dispatch is asynchronous; use `get_webhook_history` to see the outcome |
     | `delete_webhook` | Delete a webhook endpoint |
@@ -469,7 +469,7 @@ explain this flow yourself.
   </Tab>
 
   <Tab title="Projects">
-    Projects group related jobs, monitors, datasets, and webhooks into named
+    Projects group related jobs, event monitors, datasets, and webhooks into named
     containers that can be shared with teammates and filtered across all list
     endpoints.
 
@@ -486,10 +486,10 @@ explain this flow yourself.
     | `get_project` | Get project details and metadata |
     | `update_project` | Update project name or description |
     | `get_project_overview` | Get a resource count breakdown by type and status |
-    | `add_project_resources` | Add jobs, monitors, datasets, monitor groups, or webhooks to a project |
+    | `add_project_resources` | Add jobs, event monitors, datasets, event monitor groups, or webhooks to a project |
     | `list_project_resources` | List all resources inside a project — optionally filter by `resource_type` (`job`, `monitor`, `dataset`, `monitor_group`, or `webhook`) |
     | `remove_project_resource` | Remove a resource from a project without deleting it (webhooks are only detached — they keep existing and remain attached to any other projects) |
-    | `delete_project` | Delete a project — contained jobs, monitors, datasets, and monitor groups are deleted when `delete_resources=true`; webhooks are always only detached, never deleted |
+    | `delete_project` | Delete a project — contained jobs, event monitors, datasets, and event monitor groups are deleted when `delete_resources=true`; webhooks are always only detached, never deleted |
   </Tab>
 
   <Tab title="Source Groups">

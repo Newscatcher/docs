@@ -10,7 +10,7 @@ rss: true
 
 A quality release with no request or response changes. Watchlist-connected jobs
 search the index in a single pass restricted to your watchlist from the start, and
-validator-driven queries judge evidence more literally. Existing jobs and monitors
+validator-driven queries judge evidence more literally. Existing jobs and event monitors
 pick both up automatically.
 
 ### Watchlist search is restricted from the start
@@ -25,7 +25,7 @@ filtering afterwards.
 No changes to
 [`POST /catchAll/submit`](/web-search-api/api-reference/jobs/create-job) — the
 behavior applies to any job submitted with `connected_dataset_ids`. See
-[Company search](/web-search-api/concepts/company-search).
+[Company Monitors](/web-search-api/concepts/company-monitors).
 
 ### Validators apply their criteria literally
 
@@ -68,7 +68,7 @@ domains instead of maintaining a long domain list yourself.
   organization has been granted access to.
 - [`POST /catchAll/submit`](/web-search-api/api-reference/jobs/create-job) accepts
   an optional `source_groups` array of slugs. Maximum 20 per job.
-- Job results echo the attached groups back as `source_groups`, and monitor results
+- Job results echo the attached groups back as `source_groups`, and event monitor results
   do the same under `reference_job`.
 - Domains resolve when the job runs, so adding or removing a domain from a group
   takes effect on every later run with no change on your side.
@@ -89,7 +89,7 @@ Tagging is additive and never filters results. A record the classifier cannot pl
 is still returned, with `unclassifiable` or `other_sector` in place of a taxonomy
 value. Other job types are unaffected and return no `tags`.
 
-See [Event tagging](/web-search-api/concepts/company-search#event-tagging).
+See [Event tagging](/web-search-api/concepts/company-monitors#event-tagging).
 
 ### Authentication and authorization errors are now distinct
 
@@ -113,7 +113,7 @@ permissions problem.
 
 [`GET /catchAll/entities`](/web-search-api/api-reference/entities/list-entities) and
 [`GET /catchAll/webhooks`](/web-search-api/api-reference/webhooks/list-webhooks)
-accept the optional `project_id` query parameter, matching the job, monitor, and
+accept the optional `project_id` query parameter, matching the job, event monitor, and
 dataset lists.
 
 ### Fixes and improvements
@@ -122,7 +122,7 @@ dataset lists.
   event identity rather than article similarity, so materially different events
   stay separate and weak records no longer contaminate merges.
 - Event timeframe validation gained a ±24-hour grace window, so an event reported
-  just outside an exact UTC boundary is no longer dropped. Monitors keep their
+  just outside an exact UTC boundary is no longer dropped. Event monitors keep their
   exact rolling window.
 - Clustering compares monetary amounts, so events with materially different values
   are no longer merged, and oversized clusters are re-split.
@@ -136,7 +136,7 @@ dataset lists.
   and report that, rather than continuing to process. Records already produced are
   kept.
 - Watchlist fetching is bounded per job to keep large watchlists predictable, and
-  monitor scheduling validates state at fire time so disabled monitors stop
+  event monitor scheduling validates state at fire time so disabled event monitors stop
   reliably.
 </Update>
 
@@ -151,7 +151,7 @@ recall, ranking, and clustering improvements to result quality.
 ### Webhooks in projects
 
 Webhooks can now be organized into [projects](/web-search-api/concepts/projects)
-alongside jobs, monitors, and datasets.
+alongside jobs, event monitors, and datasets.
 
 - `resource_type` accepts `webhook` when adding resources to a project via
   [`POST /catchAll/projects/{project_id}/resources`](/web-search-api/api-reference/projects/add-resource).
@@ -183,7 +183,7 @@ jobs that ran in that mode. Omit it to list jobs in both modes.
 
 CSV exports from
 [jobs](/web-search-api/api-reference/jobs/get-job-results-as-csv) and
-[monitors](/web-search-api/api-reference/monitors/get-latest-monitor-results-as-csv)
+[event monitors](/web-search-api/api-reference/event-monitors/get-latest-monitor-results-as-csv)
 now include the `event_associated_entities` and `mention_entities` columns only
 when the job used a connected entity dataset. Previously they were always
 present, often empty. If you parse exports by column position, read columns by
@@ -200,7 +200,7 @@ header name instead.
   records and citations.
 - Beyond News: expanded domain-based fetching, percolation, and entity
   enrichment across all connected-dataset jobs.
-- Monitor scheduler moved to fully asynchronous execution.
+- Event monitor scheduler moved to fully asynchronous execution.
 - Fixed a gateway bug that returned "Invalid Request Received" on valid
   requests.
 - Delivery history records now report `resource_type: test` for manual test
@@ -237,7 +237,7 @@ and returned on webhook objects. See
 
 Dispatch a webhook delivery for a resource on demand — to re-deliver after a
 failed delivery or replay a past run — without waiting for the next job or
-monitor cycle.
+event monitor cycle.
 
 **New endpoint:**
 
@@ -261,7 +261,7 @@ monitor cycle.
 ## External entity IDs, CSV exports, and connected dataset details
 
 Adds support for your own external entity identifiers, CSV downloads for job and
-monitor results, and richer connected-dataset information in pull responses.
+event monitor results, and richer connected-dataset information in pull responses.
 
 ### External entity IDs
 
@@ -278,11 +278,11 @@ characters) and is not enforced as unique.
   and when updating one via
   [`PATCH /catchAll/entities/{entity_id}`](/web-search-api/api-reference/entities/update-entity).
 - Returned on entity responses, dataset entity summaries, and connected entities
-  in Company Watchlist results. Null when not set.
+  in Company Monitors results. Null when not set.
 
 ### CSV export endpoints
 
-Pull job and monitor results directly as a CSV download for spreadsheet-friendly
+Pull job and event monitor results directly as a CSV download for spreadsheet-friendly
 analysis and reporting. Each row is one record, with enrichment fields as
 columns, citations as a JSON column, and connected entities split into
 `event_associated_entities` and `mention_entities` JSON columns.
@@ -291,12 +291,12 @@ columns, citations as a JSON column, and connected entities split into
 
 - [`GET /catchAll/pull/{job_id}/csv`](/web-search-api/api-reference/jobs/get-job-results-as-csv)
   — Download a completed job's results as CSV.
-- [`GET /catchAll/monitors/pull/{monitor_id}/csv`](/web-search-api/api-reference/monitors/get-latest-monitor-results-as-csv)
-  — Download the latest monitor run's results as CSV.
+- [`GET /catchAll/monitors/pull/{monitor_id}/csv`](/web-search-api/api-reference/event-monitors/get-latest-monitor-results-as-csv)
+  — Download the latest event monitor run's results as CSV.
 
 ### Connected dataset details in pull responses
 
-Job and monitor pull responses now include a `connected_datasets` array — each
+Job and event monitor pull responses now include a `connected_datasets` array — each
 entry has the dataset `id`, `name`, and an `is_deleted` flag — alongside an
 `is_all_news_query` boolean indicating whether the query was submitted as an
 all-news (watchlist-generic) query.
@@ -310,9 +310,9 @@ all-news (watchlist-generic) query.
 </Update>
 
 <Update label="1.6.1" description="2026-06-09">
-## Company Watchlist improvements and performance fixes
+## Company Monitors improvements and performance fixes
 
-Adds two new Company Watchlist controls — association-type filtering and
+Adds two new Company Monitors controls — association-type filtering and
 all-news queries — along with performance improvements and API quality fixes.
 
 ### Association type filtering
@@ -346,7 +346,7 @@ You can now submit a connected job without specifying a topic query. Set
 connected watchlist — no topic required. Wildcard queries (`*`) and generic
 phrases like "all news" also trigger this behavior.
 
-Monitors created from an all-news job preserve the behavior: each recurring run
+Event monitors created from an all-news job preserve the behavior: each recurring run
 collects all news for the connected watchlist, not topic-restricted results.
 
 `fetch_all_watchlist_news` without `connected_dataset_ids` returns a validation
@@ -377,20 +377,20 @@ error.
 <Update label="1.6.0" description="2026-05-26">
 ## Centralized webhooks, query validation, and projects
 
-Introduces centralized webhook management to replace per-monitor inline
+Introduces centralized webhook management to replace per-event-monitor inline
 configuration, a pre-submission query validation endpoint, and projects for
 organizing and sharing resources.
 
 ### Centralized webhooks
 
-Replaces the `webhook` inline field on monitor creation and update with a
+Replaces the `webhook` inline field on event monitor creation and update with a
 reusable, resource-agnostic webhook system.
 
 **Features:**
 
 - **Webhook management**: Create named webhook endpoints at the organization
-  level and reuse them across any number of jobs or monitors.
-- **Flexible assignment**: Pass `webhook_ids` at job or monitor creation time,
+  level and reuse them across any number of jobs or event monitors.
+- **Flexible assignment**: Pass `webhook_ids` at job or event monitor creation time,
   or assign webhooks after creation. Each resource supports up to 5 webhooks.
 - **Delivery modes**: `full` sends all records in a single request per trigger.
   `per_record` sends one request per record.
@@ -401,7 +401,7 @@ reusable, resource-agnostic webhook system.
 - **Test delivery**: Verify endpoint reachability and authentication before
   attaching a webhook to a live resource.
 - **Delivery history**: Inspect per-dispatch outcomes, HTTP status codes, and 
-  error messages for any job or monitor.
+  error messages for any job or event monitor.
 
 **New endpoints:**
 
@@ -440,14 +440,14 @@ before creating a job.
 
 ### Projects
 
-Organizes jobs, monitors, and datasets into named containers that can be
+Organizes jobs, event monitors, and datasets into named containers that can be
 shared with teammates.
 
 **Features:**
 
 - **Resource grouping**: Assign resources to a project at creation time via
   `project_id`, or post-hoc using the project resources endpoints.
-- **Project filtering**: Filter jobs, monitors, and datasets by project using
+- **Project filtering**: Filter jobs, event monitors, and datasets by project using
   the `project_id` query parameter on all list endpoints.
 - **Project overview**: Get a resource status breakdown without fetching the
   full resource list.
@@ -476,10 +476,10 @@ shared with teammates.
 </Update>
 
 <Update label="1.5.3" description="2026-05-11">
-## ED score filtering, entity attributes, and monitor timezone
+## ED score filtering, entity attributes, and event monitor timezone
 
-Refines Company Watchlist with relevance threshold control and richer entity 
-data in results; adds timezone support for monitor scheduling.
+Refines Company Monitors with relevance threshold control and richer entity 
+data in results; adds timezone support for event monitor scheduling.
 
 **Features:**
 
@@ -489,7 +489,7 @@ data in results; adds timezone support for monitor scheduling.
 - **Entity attributes in results**: Each matched entity in `connected_entities`
   now includes a `type` field and a `company` object with domain, alternative
   names, and key persons.
-- **Monitor timezone**: Set an explicit IANA timezone on monitor creation with
+- **Event monitor timezone**: Set an explicit IANA timezone on event monitor creation with
   the new `timezone` parameter. Used as the fallback when the schedule string
   does not include one. Defaults to `"UTC"`.
 
@@ -509,40 +509,40 @@ data in results; adds timezone support for monitor scheduling.
 <Update label="1.5.0" description="2026-04-22">
 ## Resource management and sharing
 
-Introduces job and monitor deletion, monitor execution history, resource sharing, 
+Introduces job and event monitor deletion, event monitor execution history, resource sharing, 
 and filtering by ownership across all list endpoints.
 
 **Features:**
 
-- **Delete jobs and monitors**: Remove jobs and monitors you no longer need.
+- **Delete jobs and event monitors**: Remove jobs and event monitors you no longer need.
   Deleted resources no longer appear in list results. Deletion is idempotent —
   deleting an already-deleted resource returns `200`.
-- **Monitor status history**: Inspect the full execution history of a monitor,
+- **Event monitor status history**: Inspect the full execution history of an event monitor,
   including per-run record counts and webhook delivery results.
-- **Resource sharing**: Jobs, monitors, and datasets shared with you by
+- **Resource sharing**: Jobs, event monitors, and datasets shared with you by
   organization members now appear in list responses with a `sharing_info` object
   indicating who shared the resource, when, and with what permission level.
-- **Ownership filter**: All list endpoints for jobs, monitors, and datasets
+- **Ownership filter**: All list endpoints for jobs, event monitors, and datasets
   support a new `ownership` parameter (`all`, `own`, `shared`) to filter results
   by who owns or shared them. Defaults to `all` for backward compatibility.
-- **Search filter**: Filter jobs and monitors by text using the new `search`
+- **Search filter**: Filter jobs and event monitors by text using the new `search`
   parameter on list endpoints.
 
 **Endpoints:**
 
 - [`DELETE /catchAll/jobs/{job_id}`](/web-search-api/api-reference/jobs/delete-job)
   — Delete a job.
-- [`DELETE /catchAll/monitors/{monitor_id}`](/web-search-api/api-reference/monitors/delete-monitor)
-  — Delete a monitor.
-- [`GET /catchAll/monitors/{monitor_id}/status`](/web-search-api/api-reference/monitors/get-monitor-status-history)
-  — Get monitor execution status history.
+- [`DELETE /catchAll/monitors/{monitor_id}`](/web-search-api/api-reference/event-monitors/delete-monitor)
+  — Delete an event monitor.
+- [`GET /catchAll/monitors/{monitor_id}/status`](/web-search-api/api-reference/event-monitors/get-monitor-status-history)
+  — Get event monitor execution status history.
 
 </Update>
 
 <Update label="1.4.0" description="2026-04-14">
-## Company search
+## Company Monitors
 
-Introduces company search — track specific companies across CatchAll jobs by
+Introduces company monitors — track specific companies across CatchAll jobs by
 connecting datasets of entities.
 
 **Features:**
@@ -625,8 +625,8 @@ connecting datasets of entities.
   arrays.
 - [`GET /catchAll/jobs/user`](/web-search-api/api-reference/jobs/list-user-jobs)
   now returns `mode` and masked `user_key` for each job.
-- [`GET /catchAll/monitors`](/web-search-api/api-reference/monitors/list-monitors)
-  now returns masked `user_key` for each monitor.
+- [`GET /catchAll/monitors`](/web-search-api/api-reference/event-monitors/list-monitors)
+  now returns masked `user_key` for each event monitor.
 - Fixed duplicate confidence values appearing in enrichment records.
 - Fixed pagination handling in the pull endpoint.
 - Improved multi-word query handling for lite mode.
@@ -635,18 +635,18 @@ connecting datasets of entities.
 </Update>
 
 <Update label="1.1.2" description="2026-03-03">
-## Monitor controls and response improvements
+## Event monitor controls and response improvements
 
 **Features:**
 
-- **Monitor limit**: Control the maximum number of records per monitor run with
+- **Event monitor limit**: Control the maximum number of records per event monitor run with
   the new `limit` parameter.
-- **Monitor backfill**: Choose whether to fill the data gap before the first
+- **Event monitor backfill**: Choose whether to fill the data gap before the first
   scheduled run with the new `backfill` parameter.
 
 **Improvements:**
 
-- [`GET /catchAll/monitors`](/web-search-api/api-reference/monitors/list-monitors)
+- [`GET /catchAll/monitors`](/web-search-api/api-reference/event-monitors/list-monitors)
   now supports `page` and `page_size` parameters and sorts by creation date.
 - [`GET /catchAll/pull/{job_id}`](/web-search-api/api-reference/jobs/get-job-results)
   now returns the `error` field for failed jobs and the `limit` applied to the
@@ -718,15 +718,15 @@ controls, and structured company enrichments.
 - **Early result access**: Pull results during the `enriching` stage without
   waiting for job completion. A new `progress_validated` field shows validation
   progress as results become available in batches.
-- **Monitor updates**: Update webhook configuration for existing monitors
+- **Event monitor updates**: Update webhook configuration for existing event monitors
   without recreating them.
 
 **Endpoints:**
 
 - [`POST /catchAll/continue`](/web-search-api/api-reference/jobs/continue-job) —
   Continue completed job with higher limit.
-- [`PATCH /catchAll/monitors/{monitor_id}`](/web-search-api/api-reference/monitors/update-monitor)
-  — Update monitor webhook configuration.
+- [`PATCH /catchAll/monitors/{monitor_id}`](/web-search-api/api-reference/event-monitors/update-monitor)
+  — Update event monitor webhook configuration.
 
 **Improvements:**
 
@@ -735,30 +735,30 @@ controls, and structured company enrichments.
 </Update>
 
 <Update label="0.5.1" description="2025-12-11">
-## API response enhancements and monitor configuration
+## API response enhancements and event monitor configuration
 
 **Features:**
 
 - **Enrichments metadata**: Job pull endpoint returns `enrichments` array
   listing all extracted field names.
-- **Human-readable schedules**: Monitor list includes `schedule_human_readable`
+- **Human-readable schedules**: Event monitor list includes `schedule_human_readable`
   alongside cron expressions.
-- **Webhook visibility**: Monitor list exposes full webhook configuration
+- **Webhook visibility**: Event monitor list exposes full webhook configuration
   including URL, method, and headers.
 
 **Improvements:**
 
 - Pull endpoints return all citations without limits.
-- Monitors require minimum 24-hour intervals between executions.
+- Event monitors require minimum 24-hour intervals between executions.
 - First webhook execution includes complete reference job results.
 - Improved validation error messages for invalid schedules.
 
 </Update>
 
 <Update label="0.4.10" description="2025-11-18">
-## Status tracking and monitor improvements
+## Status tracking and event monitor improvements
 
-Enhanced status tracking with processing steps and improved monitor
+Enhanced status tracking with processing steps and improved event monitor
 functionality for time-constrained queries.
 
 **Features:**
@@ -766,56 +766,56 @@ functionality for time-constrained queries.
 - **Progress tracking**: Status endpoint now returns detailed
   [`steps`](/web-search-api/api-reference/jobs/get-job-status#response-steps)
   array showing completion state for each processing stage.
-- **Monitor timestamps**: Monitor records include `added_on` and `updated_on`
+- **Event monitor timestamps**: Event monitor records include `added_on` and `updated_on`
   fields to track when each data record was first collected and last updated
   across job executions.
-- **Time-constrained jobs**: Monitors now work with reference jobs that include
+- **Time-constrained jobs**: Event monitors now work with reference jobs that include
   time constraints. The system automatically adapts date-specific validators for
   each execution.
 
 **Improvements:**
 
 - [`GET /catchAll/jobs/user`](/web-search-api/api-reference/jobs/list-user-jobs)
-  now returns only user-created jobs, excluding repeated monitor jobs.
-- Monitor responses use
-  [`run_info`](/web-search-api/api-reference/monitors/get-monitor-results#response-run-info)
+  now returns only user-created jobs, excluding repeated event monitor jobs.
+- Event monitor responses use
+  [`run_info`](/web-search-api/api-reference/event-monitors/get-monitor-results#response-run-info)
   structure with `first_run` and `last_run` timestamps instead of `date_range`
   for clearer execution metadata.
-- Improved error handling in monitor creation endpoint with specific validation
+- Improved error handling in event monitor creation endpoint with specific validation
   messages for invalid schedules and incomplete reference jobs.
 
 </Update>
 
 <Update label="0.4.5" description="2025-11-08">
-## Monitor webhooks and deduplication
+## Event monitor webhooks and deduplication
 
-Introduced webhook notifications and intelligent deduplication for monitors to
+Introduced webhook notifications and intelligent deduplication for event monitors to
 streamline automated data collection workflows.
 
 **Features:**
 
 - **Webhook notifications**: Receive real-time POST notifications when scheduled
-  monitor jobs complete, including monitor ID, latest job ID, and record counts.
-- **Intelligent deduplication**: Monitors automatically eliminate duplicate
+  event monitor jobs complete, including event monitor ID, latest job ID, and record counts.
+- **Intelligent deduplication**: Event monitors automatically eliminate duplicate
   records across job executions, sending only new results to webhooks.
-- **Monitor management**: Enable or disable monitors to control automated job
+- **Event monitor management**: Enable or disable event monitors to control automated job
   execution.
 
 **Endpoints:**
 
-- [`GET /catchAll/monitors`](/web-search-api/api-reference/monitors/list-monitors)
-  — List all monitors for your API key.
-- [`POST /catchAll/monitors/{monitor_id}/enable`](/web-search-api/api-reference/monitors/enable-monitor)
-  — Enable a disabled monitor.
-- [`POST /catchAll/monitors/{monitor_id}/disable`](/web-search-api/api-reference/monitors/disable-monitor)
-  — Disable an active monitor.
+- [`GET /catchAll/monitors`](/web-search-api/api-reference/event-monitors/list-monitors)
+  — List all event monitors for your API key.
+- [`POST /catchAll/monitors/{monitor_id}/enable`](/web-search-api/api-reference/event-monitors/enable-monitor)
+  — Enable a disabled event monitor.
+- [`POST /catchAll/monitors/{monitor_id}/disable`](/web-search-api/api-reference/event-monitors/disable-monitor)
+  — Disable an active event monitor.
 
 **Improvements:**
 
 - Reduced default date range from 14 days to 5 days for faster job processing.
 - Limited maximum date range to 30 days to maintain optimal performance.
 - Fixed special characters displaying incorrectly in web page content.
-- Improved error handling when monitor jobs have incomplete data.
+- Improved error handling when event monitor jobs have incomplete data.
 
 </Update>
 
@@ -829,8 +829,8 @@ and improved data quality.
 
 - [`GET /catchAll/jobs/user`](/web-search-api/api-reference/jobs/list-user-jobs)
   — List all jobs created with your API key.
-- [`GET /catchAll/monitors/pull/{monitor_id}`](/web-search-api/api-reference/monitors/get-monitor-results)
-  — Retrieve aggregated results from all monitor jobs.
+- [`GET /catchAll/monitors/pull/{monitor_id}`](/web-search-api/api-reference/event-monitors/get-monitor-results)
+  — Retrieve aggregated results from all event monitor jobs.
 
 **Improvements:**
 
@@ -838,33 +838,33 @@ and improved data quality.
 - Enhanced pagination support for handling large result sets with `page` and
   `page_size` parameters.
 - Fixed jobs failing to complete during data extraction.
-- Fixed timezone errors when scheduling monitor jobs.
-- Fixed monitors failing to execute all configured queries.
+- Fixed timezone errors when scheduling event monitor jobs.
+- Fixed event monitors failing to execute all configured queries.
 
 </Update>
 
 <Update label="0.3.0" description="2025-10-23">
-## Monitors feature
+## Event Monitors feature
 
 Introduced
-[monitors for automated queries](/web-search-api/concepts/monitors) —
+[event monitors for automated queries](/web-search-api/concepts/event-monitors) —
 schedule recurring data collection from a reference job.
 
 **Features:**
 
-- **Schedule automation**: Create monitors that run queries on schedules defined
+- **Schedule automation**: Create event monitors that run queries on schedules defined
   in plain text format (e.g., "every day at 12 PM UTC").
-- **Job tracking**: Track all jobs associated with a monitor.
+- **Job tracking**: Track all jobs associated with an event monitor.
 - **Execution history**: Retrieve job execution history and status for each
-  monitor.
+  event monitor.
 - **Webhook notifications**: Get notified when scheduled jobs complete.
 
 **Endpoints:**
 
-- [`POST /catchAll/monitors/create`](/web-search-api/api-reference/monitors/create-monitor)
-  — Create scheduled monitor.
-- [`GET /catchAll/monitors/{monitor_id}/jobs`](/web-search-api/api-reference/monitors/list-monitor-jobs)
-  — List monitor jobs.
+- [`POST /catchAll/monitors/create`](/web-search-api/api-reference/event-monitors/create-monitor)
+  — Create scheduled event monitor.
+- [`GET /catchAll/monitors/{monitor_id}/jobs`](/web-search-api/api-reference/event-monitors/list-monitor-jobs)
+  — List event monitor jobs.
 
 **Improvements:**
 

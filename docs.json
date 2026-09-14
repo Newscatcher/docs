@@ -46,8 +46,8 @@
             "group": "Concepts",
             "pages": [
               "web-search-api/concepts/jobs",
-              "web-search-api/concepts/monitors",
-              "web-search-api/concepts/company-search",
+              "web-search-api/concepts/event-monitors",
+              "web-search-api/concepts/company-monitors",
               "web-search-api/concepts/projects",
               "web-search-api/concepts/source-groups",
               "web-search-api/concepts/index-and-search-depth",
@@ -59,8 +59,8 @@
             "pages": [
               "web-search-api/how-to/write-effective-queries",
               "web-search-api/how-to/set-up-webhooks",
-              "web-search-api/how-to/configure-monitors",
-              "web-search-api/how-to/troubleshoot-monitors",
+              "web-search-api/how-to/configure-event-monitors",
+              "web-search-api/how-to/troubleshoot-event-monitors",
               "web-search-api/how-to/build-an-event-feed",
               "web-search-api/how-to/monitor-a-portfolio",
               "web-search-api/how-to/send-events-to-slack"
@@ -86,18 +86,18 @@
                 ]
               },
               {
-                "group": "Monitors",
+                "group": "Event Monitors",
                 "pages": [
-                  "web-search-api/api-reference/monitors/create-monitor",
-                  "web-search-api/api-reference/monitors/get-monitor-results",
-                  "web-search-api/api-reference/monitors/get-latest-monitor-results-as-csv",
-                  "web-search-api/api-reference/monitors/list-monitors",
-                  "web-search-api/api-reference/monitors/list-monitor-jobs",
-                  "web-search-api/api-reference/monitors/get-monitor-status-history",
-                  "web-search-api/api-reference/monitors/enable-monitor",
-                  "web-search-api/api-reference/monitors/disable-monitor",
-                  "web-search-api/api-reference/monitors/update-monitor",
-                  "web-search-api/api-reference/monitors/delete-monitor"
+                  "web-search-api/api-reference/event-monitors/create-monitor",
+                  "web-search-api/api-reference/event-monitors/get-monitor-results",
+                  "web-search-api/api-reference/event-monitors/get-latest-monitor-results-as-csv",
+                  "web-search-api/api-reference/event-monitors/list-monitors",
+                  "web-search-api/api-reference/event-monitors/list-monitor-jobs",
+                  "web-search-api/api-reference/event-monitors/get-monitor-status-history",
+                  "web-search-api/api-reference/event-monitors/enable-monitor",
+                  "web-search-api/api-reference/event-monitors/disable-monitor",
+                  "web-search-api/api-reference/event-monitors/update-monitor",
+                  "web-search-api/api-reference/event-monitors/delete-monitor"
                 ]
               },
               {
@@ -192,12 +192,12 @@
         ]
       },
       {
-        "tab": "Monitors",
-        "pages": ["web-search-api/concepts/monitors"]
+        "tab": "Event Monitors",
+        "pages": ["web-search-api/concepts/event-monitors"]
       },
       {
-        "tab": "Company Watchlist",
-        "pages": ["web-search-api/concepts/company-search"]
+        "tab": "Company Monitors",
+        "pages": ["web-search-api/concepts/company-monitors"]
       },
       {
         "tab": "News API",
@@ -385,7 +385,7 @@
   "navbar": {
     "primary": {
       "type": "button",
-      "label": "Web Search Platform",
+      "label": "Search API Platform",
       "href": "https://platform.newscatcherapi.com/catchall"
     }
   },

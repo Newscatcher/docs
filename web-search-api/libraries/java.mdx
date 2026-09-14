@@ -452,13 +452,13 @@ public class CompleteExample {
 ```
 </Accordion>
 
-## Working with monitors
+## Working with event monitors
 
 Automate recurring queries with scheduled execution.
 
 <Tabs>
-  <Tab title="Create monitor">
-    Create a monitor from a completed job:
+  <Tab title="Create event monitor">
+    Create an event monitor from a completed job:
 
     ```java
     import com.newscatcher.catchall.resources.monitors.requests.CreateMonitorRequestDto;
@@ -474,17 +474,17 @@ Automate recurring queries with scheduled execution.
             .webhookIds(List.of("a1b2c3d4-e5f6-7890-abcd-ef1234567890"))
             .build()
     );
-    System.out.println("Monitor created: " + monitor.getMonitorId().orElse("N/A"));
+    System.out.println("Event monitor created: " + monitor.getMonitorId().orElse("N/A"));
     ```
 
     <Note>
-      Monitors require a minimum 24-hour interval between executions. Learn more in the
-      [Monitors documentation](/web-search-api/concepts/monitors).
+      Event monitors require a minimum 24-hour interval between executions. Learn more in the
+      [Event Monitors documentation](/web-search-api/concepts/event-monitors).
     </Note>
   </Tab>
 
-  <Tab title="Update monitor">
-    Update webhook configuration for an existing monitor:
+  <Tab title="Update event monitor">
+    Update webhook configuration for an existing event monitor:
 
     ```java
     import com.newscatcher.catchall.resources.monitors.requests.UpdateMonitorRequestDto;
@@ -499,35 +499,35 @@ Automate recurring queries with scheduled execution.
             .limit(100)
             .build()
     );
-    System.out.println("Monitor updated: " + updated.getStatus());
+    System.out.println("Event monitor updated: " + updated.getStatus());
     ```
   </Tab>
 
   <Tab title="Pause/Resume">
-    Control monitor execution:
+    Control event monitor execution:
 
     ```java
     String monitorId = monitor.getMonitorId().orElseThrow();
 
-    // Pause monitor
+    // Pause event monitor
     client.monitors().disableMonitor(monitorId);
-    System.out.println("Monitor paused");
+    System.out.println("Event monitor paused");
 
-    // Resume monitor
+    // Resume event monitor
     client.monitors().enableMonitor(monitorId);
-    System.out.println("Monitor resumed");
+    System.out.println("Event monitor resumed");
     ```
   </Tab>
 
-  <Tab title="List monitors">
-    Retrieve all monitors for your account:
+  <Tab title="List event monitors">
+    Retrieve all event monitors for your account:
 
     ```java
     import com.newscatcher.catchall.types.ListMonitorsResponseDto;
 
     ListMonitorsResponseDto monitors = client.monitors().listMonitors();
     
-    System.out.println("Total monitors: " + monitors.getTotalMonitors());
+    System.out.println("Total event monitors: " + monitors.getTotalMonitors());
     monitors.getMonitors().forEach(m -> {
         String status = m.getEnabled() ? "active" : "paused";
         System.out.println(String.format("%s: %s", m.getMonitorId(), status));
@@ -536,7 +536,7 @@ Automate recurring queries with scheduled execution.
   </Tab>
 
   <Tab title="Retrieve results">
-    Access aggregated results from all monitor executions:
+    Access aggregated results from all event monitor executions:
 
     ```java
     import com.newscatcher.catchall.resources.monitors.requests.ListMonitorJobsRequest;
@@ -552,7 +552,7 @@ Automate recurring queries with scheduled execution.
             .sort("desc")
             .build()
     );
-    System.out.println("Monitor executed " + jobs.getTotalJobs() + " jobs");
+    System.out.println("Event monitor executed " + jobs.getTotalJobs() + " jobs");
 
     // Get all collected records
     PullMonitorResponseDto results = client.monitors().pullMonitorResults(monitorId);
@@ -568,7 +568,7 @@ Automate recurring queries with scheduled execution.
   </Tab>
 </Tabs>
 
-<Accordion title="Complete monitor example">
+<Accordion title="Complete event monitor example">
 ```java
 import com.newscatcher.catchall.CatchAllApi;
 import com.newscatcher.catchall.resources.monitors.requests.CreateMonitorRequestDto;
@@ -591,7 +591,7 @@ public class MonitorExample {
             .build();
 
         try {
-            // Create monitor from completed job
+            // Create event monitor from completed job
             String jobId = "af7a26d6-cf0b-458c-a6ed-4b6318c74da3";
 
             CreateMonitorResponseDto monitor = client.monitors().createMonitor(
@@ -602,7 +602,7 @@ public class MonitorExample {
                     .build()
             );
             String monitorId = monitor.getMonitorId().orElseThrow();
-            System.out.println("Monitor created: " + monitorId);
+            System.out.println("Event monitor created: " + monitorId);
 
             // Update webhook
             client.monitors().updateMonitor(
@@ -613,7 +613,7 @@ public class MonitorExample {
                     .build()
             );
 
-            // List all monitors
+            // List all event monitors
             ListMonitorsResponseDto allMonitors = client.monitors().listMonitors();
             allMonitors.getMonitors().forEach(m -> {
                 String status = m.getEnabled() ? "active" : "paused";
@@ -629,7 +629,7 @@ public class MonitorExample {
                 monitorId,
                 ListMonitorJobsRequest.builder().sort("desc").build()
             );
-            System.out.println("\nMonitor executed " + jobs.getTotalJobs() + " jobs");
+            System.out.println("\nEvent monitor executed " + jobs.getTotalJobs() + " jobs");
             jobs.getJobs().forEach(job -> {
                 System.out.println(String.format(
                     "  Job %s: %s to %s",
@@ -655,9 +655,9 @@ public class MonitorExample {
 ```
 </Accordion>
 
-## Company watchlist
+## Company monitors
 
-Company watchlist lets you track specific companies across jobs. Create entities,
+Company monitors let you track specific companies across jobs. Create entities,
 group them into a dataset, then connect the dataset to any job to get per-company
 relevance scores in results.
 
@@ -771,7 +771,7 @@ results.getAllRecords().forEach(record -> {
 
 <Tip>
   For a full step-by-step walkthrough including batch entity creation and the
-  JSON API path, see [Company Watchlist](/web-search-api/concepts/company-search).
+  JSON API path, see [Company Monitors](/web-search-api/concepts/company-monitors).
 </Tip>
 
 ## Error handling

@@ -1,11 +1,11 @@
 ---
-title: Monitors
-sidebarTitle: Monitors
+title: Event Monitors
+sidebarTitle: Event Monitors
 description: Schedule recurring CatchAll jobs with webhook notifications.
 ---
 
-Monitors automate data collection by running CatchAll jobs on a schedule. Create
-a monitor from a successful job, define when to run it, and receive webhook
+Event Monitors automate data collection by running CatchAll jobs on a schedule. Create
+an event monitor from a successful job, define when to run it, and receive webhook
 notifications when new results are available.
 
 ## How it works
@@ -21,15 +21,15 @@ Each scheduled execution does the following:
 
 Create a successful job following the [Quickstart guide](/web-search-api/get-started/quickstart).
 
-## Create monitor
+## Create event monitor
 
 <Warning>
-  Monitors require a reference job with `end_date` within the last 7 days. 
+  Event Monitors require a reference job with `end_date` within the last 7 days. 
   If your reference job is older than 7 days, submit a new job first.
 </Warning>
 
 Once your reference job completes with `status: job_completed`, use `job_id` to
-create a monitor:
+create an event monitor:
 
 <CodeGroup>
 
@@ -121,12 +121,12 @@ Response:
 
 ## Retrieve results
 
-Use these endpoints to list monitors, inspect execution history, and pull 
+Use these endpoints to list event monitors, inspect execution history, and pull 
 aggregated records.
 
-### List monitors
+### List event monitors
 
-Get all monitors for your API key:
+Get all event monitors for your API key:
 
 <CodeGroup>
 
@@ -199,16 +199,16 @@ Response:
 
 **Key fields:**
 
-- `enabled` (boolean): Whether the monitor is currently active
+- `enabled` (boolean): Whether the event monitor is currently active
 - `reference_job_query` (string): Original query text from the reference job
 - `schedule` (string): Natural language schedule description
-- `created_at` (string): Monitor creation timestamp
+- `created_at` (string): Event monitor creation timestamp
 
 </Expandable>
 
-### List monitor jobs
+### List event monitor jobs
 
-Get execution history for a specific monitor:
+Get execution history for a specific event monitor:
 
 <CodeGroup>
 
@@ -285,7 +285,7 @@ Use the `job_id` to retrieve detailed results for a specific execution via
 
 ### Get aggregated results
 
-Retrieve all deduplicated records from all monitor jobs:
+Retrieve all deduplicated records from all event monitor jobs:
 
 <CodeGroup>
 
@@ -385,19 +385,19 @@ Response:
 - `cron_expression` (string): Parsed cron format from your natural language
   schedule
 - `reference_job` (object): Original query and context from the reference job
-- `run_info` (object): Execution timeframe showing first and last monitor runs
-- `all_records` (array): Deduplicated records from all monitor executions
+- `run_info` (object): Execution timeframe showing first and last event monitor runs
+- `all_records` (array): Deduplicated records from all event monitor executions
 
 </Expandable>
 
 ### Export results as CSV
 
 To download the most recent run's records as a spreadsheet-friendly file, use
-[`GET /catchAll/monitors/pull/{monitor_id}/csv`](/web-search-api/api-reference/monitors/get-latest-monitor-results-as-csv).
+[`GET /catchAll/monitors/pull/{monitor_id}/csv`](/web-search-api/api-reference/event-monitors/get-latest-monitor-results-as-csv).
 It returns the latest run as a `text/csv` download — one row per record, with
 enrichment fields as columns and `citations` as a JSON column.
 
-If the monitor's reference job used a connected entity dataset, connected
+If the event monitor's reference job used a connected entity dataset, connected
 entities are split into `event_associated_entities` and `mention_entities` JSON
 columns. When no entity dataset was used, those two columns are omitted from the
 export entirely rather than included as empty columns — read columns by header
@@ -456,14 +456,14 @@ Files.write(Paths.get("monitor-results.csv"), csvData);
   debug downstream.
 </Tip>
 
-## Manage monitors
+## Manage event monitors
 
-Use these endpoints to update webhook assignments, pause, resume, or delete a 
-monitor, and inspect its execution history.
+Use these endpoints to update webhook assignments, pause, resume, or delete an 
+event monitor, and inspect its execution history.
 
-### Update monitor
+### Update event monitor
 
-Update webhook assignments or the record limit for an existing monitor. Pass a 
+Update webhook assignments or the record limit for an existing event monitor. Pass a 
 new list of webhook IDs to replace existing assignments. Pass an empty array to 
 clear all assignments:
 
@@ -529,12 +529,12 @@ Response:
 
 <Note>
   Schedule and reference job cannot be modified. To change the query or schedule, 
-  create a new monitor.
+  create a new event monitor.
 </Note>
 
-### Enable monitor
+### Enable event monitor
 
-Resume execution of a disabled monitor:
+Resume execution of a disabled event monitor:
 
 <CodeGroup>
 
@@ -588,9 +588,9 @@ Response:
 }
 ```
 
-### Disable monitor
+### Disable event monitor
 
-Pause execution without deleting the monitor:
+Pause execution without deleting the event monitor:
 
 <CodeGroup>
 
@@ -644,8 +644,8 @@ Response:
 }
 ```
 
-### Delete monitor
-Permanently delete a monitor. This action cannot be undone. Deleted monitors stop 
+### Delete event monitor
+Permanently delete an event monitor. This action cannot be undone. Deleted event monitors stop 
 executing immediately and no longer appear in list results.
 
 <CodeGroup>
@@ -699,7 +699,7 @@ Response:
 
 ### Get status history
 
-Get the full execution history of a monitor as a list of status entries,
+Get the full execution history of an event monitor as a list of status entries,
 ordered from newest to oldest. Each entry records a lifecycle event — creation,
 enable/disable, a scheduled run, or a completed dump with record counts and
 webhook delivery result.
@@ -793,6 +793,6 @@ history.getStatuses().forEach(entry ->
 ## See also
 
 - [Set up webhooks](/web-search-api/how-to/set-up-webhooks)
-- [Configure monitors](/web-search-api/how-to/configure-monitors)
+- [Configure event monitors](/web-search-api/how-to/configure-event-monitors)
 - [Webhook payload](/web-search-api/api-reference/webhooks/webhook-payload)
-- [API reference](/web-search-api/api-reference/monitors/create-monitor)
+- [API reference](/web-search-api/api-reference/event-monitors/create-monitor)

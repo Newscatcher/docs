@@ -1,10 +1,10 @@
 ---
 title: Projects
 sidebarTitle: Projects
-description: Organize jobs, monitors, datasets, and webhooks into named groups for easier management and sharing.
+description: Organize jobs, event monitors, datasets, and webhooks into named groups for easier management and sharing.
 ---
 
-A project is a named container for jobs, monitors, datasets, and webhooks. Use
+A project is a named container for jobs, event monitors, datasets, and webhooks. Use
 projects to separate work by use case, team, or client — and to share that work
 with teammates across your organization.
 
@@ -13,7 +13,7 @@ with teammates across your organization.
 Resources can be assigned to a project in two ways:
 
 - **At creation time** — include `project_id` in the request body of any
-  create endpoint for jobs, monitors, datasets, or webhooks.
+  create endpoint for jobs, event monitors, datasets, or webhooks.
 - **Post-hoc** — use the [Add resources](/web-search-api/api-reference/projects/add-resource)
   endpoint to assign one or more existing resources by type and ID.
 
@@ -152,7 +152,7 @@ resources belonging to a specific project:
       -H "x-api-key: YOUR_API_KEY"
     ```
   </Tab>
-  <Tab title="Monitors">
+  <Tab title="Event Monitors">
     ```bash
     curl "https://catchall.newscatcherapi.com/catchAll/monitors?project_id=60a85db4-78ec-4b78-876a-bc7d9cdadd04" \
       -H "x-api-key: YOUR_API_KEY"
@@ -240,8 +240,8 @@ still be attached to other projects. To remove a webhook itself, call
 </Tabs>
 
 <Warning>
-  `delete_resources=true` permanently deletes all jobs, monitors, datasets, and
-  monitor groups assigned to the project. This operation cannot be undone.
+  `delete_resources=true` permanently deletes all jobs, event monitors, datasets, and
+  event monitor groups assigned to the project. This operation cannot be undone.
   Webhooks are detached rather than deleted.
 </Warning>
 
@@ -249,6 +249,6 @@ still be attached to other projects. To remove a webhook itself, call
 
 - [Projects API reference](/web-search-api/api-reference/projects/create-project)
 - [Jobs](/web-search-api/concepts/jobs)
-- [Monitors](/web-search-api/concepts/monitors)
-- [Company search](/web-search-api/concepts/company-search)
+- [Event Monitors](/web-search-api/concepts/event-monitors)
+- [Company Monitors](/web-search-api/concepts/company-monitors)
 - [Set up webhooks](/web-search-api/how-to/set-up-webhooks)

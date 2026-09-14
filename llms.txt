@@ -15,9 +15,9 @@
 ### Concepts
 
 - [Jobs](https://www.newscatcherapi.com/docs/web-search-api/concepts/jobs): How CatchAll jobs work and how to move from query to results.
-- [Monitors](https://www.newscatcherapi.com/docs/web-search-api/concepts/monitors): Schedule recurring CatchAll jobs with webhook notifications.
-- [Company Watchlist](https://www.newscatcherapi.com/docs/web-search-api/concepts/company-search): Track specific companies across CatchAll jobs with per-company relevance scores.
-- [Projects](https://www.newscatcherapi.com/docs/web-search-api/concepts/projects): Organize jobs, monitors, datasets, and webhooks into named groups for easier management and sharing.
+- [Event Monitors](https://www.newscatcherapi.com/docs/web-search-api/concepts/event-monitors): Schedule recurring CatchAll jobs with webhook notifications.
+- [Company Monitors](https://www.newscatcherapi.com/docs/web-search-api/concepts/company-monitors): Track specific companies across CatchAll jobs with per-company relevance scores.
+- [Projects](https://www.newscatcherapi.com/docs/web-search-api/concepts/projects): Organize jobs, event monitors, datasets, and webhooks into named groups for easier management and sharing.
 - [Source groups](https://www.newscatcherapi.com/docs/web-search-api/concepts/source-groups): Scope a job to a curated set of trusted domains using named, reusable source groups.
 - [Understanding web index and search depth](https://www.newscatcherapi.com/docs/web-search-api/concepts/index-and-search-depth): How CatchAll's web index works and what start_date and end_date actually control.
 - [Working with dynamic schemas](https://www.newscatcherapi.com/docs/web-search-api/concepts/dynamic-schemas): Build integrations that handle variable field names and structures.
@@ -25,10 +25,10 @@
 ### How to
 
 - [Write effective queries](https://www.newscatcherapi.com/docs/web-search-api/how-to/write-effective-queries): Construct queries that produce high-quality event records.
-- [Set up webhooks](https://www.newscatcherapi.com/docs/web-search-api/how-to/set-up-webhooks): Create and manage webhooks to receive real-time notifications when jobs and monitors complete.
-- [Configure monitors](https://www.newscatcherapi.com/docs/web-search-api/how-to/configure-monitors): Configure reliable, efficient monitors and optimize performance.
-- [Troubleshoot monitors](https://www.newscatcherapi.com/docs/web-search-api/how-to/troubleshoot-monitors): Diagnose and fix common monitor issues.
-- [Build a recurring event feed](https://www.newscatcherapi.com/docs/web-search-api/how-to/build-an-event-feed): Go from a one-off query to a scheduled monitor that delivers fresh event records to your app every day.
+- [Set up webhooks](https://www.newscatcherapi.com/docs/web-search-api/how-to/set-up-webhooks): Create and manage webhooks to receive real-time notifications when jobs and event monitors complete.
+- [Configure event monitors](https://www.newscatcherapi.com/docs/web-search-api/how-to/configure-event-monitors): Configure reliable, efficient event monitors and optimize performance.
+- [Troubleshoot event monitors](https://www.newscatcherapi.com/docs/web-search-api/how-to/troubleshoot-event-monitors): Diagnose and fix common event monitor issues.
+- [Build a recurring event feed](https://www.newscatcherapi.com/docs/web-search-api/how-to/build-an-event-feed): Go from a one-off query to a scheduled event monitor that delivers fresh event records to your app every day.
 - [Monitor a portfolio of companies](https://www.newscatcherapi.com/docs/web-search-api/how-to/monitor-a-portfolio): Turn a list of companies into a scheduled watchlist that delivers fresh, per-company news to your app every day.
 - [Send events to Slack](https://www.newscatcherapi.com/docs/web-search-api/how-to/send-events-to-slack): Post CatchAll results straight to a Slack channel as formatted messages, with no endpoint to build or host.
 
@@ -66,29 +66,29 @@ been granted access to. Each entry returns `slug`, `name`, and `description`.
 
 - [Company enrichment](https://www.newscatcherapi.com/docs/web-search-api/api-reference/jobs/company-enrichment-dto): Data model for enrichment fields of type company.
 
-### API Reference — Monitors
+### API Reference — Event Monitors
 
-- [Create Monitor](https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/create-monitor): Create a scheduled monitor based on a reference job.
-- [Get Monitor Results](https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/get-monitor-results): Retrieve aggregated results from all jobs executed by a monitor.
-- [Get Latest Monitor Results As Csv](https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/get-latest-monitor-results-as-csv): Returns the most recent run's records as a CSV download. One row per record, with enrichment fields as columns and citations as a JSON column.
+- [Create Monitor](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/create-monitor): Create a scheduled event monitor based on a reference job.
+- [Get Monitor Results](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/get-monitor-results): Retrieve aggregated results from all jobs executed by an event monitor.
+- [Get Latest Monitor Results As Csv](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/get-latest-monitor-results-as-csv): Returns the most recent run's records as a CSV download. One row per record, with enrichment fields as columns and citations as a JSON column.
 
-If the monitor's reference job used connected entity datasets, connected entities are split into `event_associated_entities` and `mention_entities` JSON columns. When no entity dataset was used, those two columns are omitted from the export entirely.
+If the event monitor's reference job used connected entity datasets, connected entities are split into `event_associated_entities` and `mention_entities` JSON columns. When no entity dataset was used, those two columns are omitted from the export entirely.
 
-- [List Monitors](https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/list-monitors): Returns all monitors created by the authenticated user.
-- [List Monitor Jobs](https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/list-monitor-jobs): Return all jobs executed by a monitor.
-- [Get Monitor Status History](https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/get-monitor-status-history): Returns the full execution history of a monitor as a list of status entries, ordered from newest to oldest.
+- [List Monitors](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/list-monitors): Returns all event monitors created by the authenticated user.
+- [List Monitor Jobs](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/list-monitor-jobs): Return all jobs executed by an event monitor.
+- [Get Monitor Status History](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/get-monitor-status-history): Returns the full execution history of an event monitor as a list of status entries, ordered from newest to oldest.
 
-- [Enable Monitor](https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/enable-monitor): Resume scheduled job execution for a monitor.
-- [Disable Monitor](https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/disable-monitor): Stop scheduled job execution for a monitor.
-- [Update Monitor](https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/update-monitor): Update the webhook configuration for an existing monitor.
-- [Delete Monitor](https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/delete-monitor): Soft-deletes a monitor. The monitor is flagged as deleted, stops
+- [Enable Monitor](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/enable-monitor): Resume scheduled job execution for an event monitor.
+- [Disable Monitor](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/disable-monitor): Stop scheduled job execution for an event monitor.
+- [Update Monitor](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/update-monitor): Update the webhook configuration for an existing event monitor.
+- [Delete Monitor](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/delete-monitor): Soft-deletes an event monitor. The event monitor is flagged as deleted, stops
 executing scheduled jobs immediately, and no longer appears in list
 results.
 
-Only the monitor owner can delete a monitor. Returns `404` if the
-monitor is not found or does not belong to the authenticated user.
+Only the event monitor owner can delete an event monitor. Returns `404` if the
+event monitor is not found or does not belong to the authenticated user.
 
-Deleting an already-deleted monitor returns `200`.
+Deleting an already-deleted event monitor returns `200`.
 
 
 ### API Reference — Webhooks
@@ -103,13 +103,13 @@ Optionally pass `project_id` to attach the webhook to a project in the same requ
 
 - [Delete Webhook](https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/delete-webhook): Permanently deletes a webhook and removes all resource assignments. 
 
-Assigned jobs and monitors no longer trigger delivery to this webhook. This operation cannot be undone.
+Assigned jobs and event monitors no longer trigger delivery to this webhook. This operation cannot be undone.
 
 - [Test Webhook](https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/test-webhook): Sends a test HTTP request to the webhook URL using the webhook's configured method, headers, and auth. Returns the response from the target endpoint.
 
-Use this to verify URL reachability and authentication before attaching the webhook to a live job or monitor.
+Use this to verify URL reachability and authentication before attaching the webhook to a live job or event monitor.
 
-- [Assign Resource](https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/assign-resource): Attaches a job, monitor, or monitor group to the webhook. When the
+- [Assign Resource](https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/assign-resource): Attaches a job, event monitor, or event monitor group to the webhook. When the
 resource completes, the webhook receives a delivery.
 
 A single webhook can be assigned to multiple resources. Each resource
@@ -128,13 +128,13 @@ The webhook and the resource itself are not deleted.
 Each record shows the webhook dispatched, the HTTP status code returned, delivery outcome, and any error or warning messages. Use this to debug failed deliveries or audit dispatch activity.
 
 - [Trigger Webhook](https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/trigger-webhook): Manually dispatches a webhook delivery for a resource on demand, without
-waiting for the next job or monitor cycle.
+waiting for the next job or event monitor cycle.
 
 Use this to re-deliver results after a failed delivery, replay a specific
 job's results, or validate a webhook against live data. The webhook must
 already be assigned to the resource.
 
-- [Webhook payload](https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/webhook-payload): Data model for the payload delivered to a webhook when a monitor job completes.
+- [Webhook payload](https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/webhook-payload): Data model for the payload delivered to a webhook when an event monitor job completes.
 
 ### API Reference — Entities
 
@@ -252,9 +252,9 @@ deleted — it becomes unassigned and continues to exist.
 - [n8n Integration](https://www.newscatcherapi.com/docs/web-search-api/integrations/n8n): Use CatchAll in your n8n automations
 - [Apify integration](https://www.newscatcherapi.com/docs/web-search-api/integrations/apify): Use CatchAll in your Apify workflows.
 
-## Monitors
+## Event Monitors
 
-## Company Watchlist
+## Company Monitors
 
 ## News API
 

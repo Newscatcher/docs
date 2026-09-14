@@ -4,8 +4,8 @@ sidebarTitle: "Monitor a portfolio"
 description: "Turn a list of companies into a scheduled watchlist that delivers fresh, per-company news to your app every day."
 ---
 
-This guide builds a Company Watchlist end to end: upload your list of companies,
-run a connected job to confirm the matching, then schedule a monitor that re-runs
+This guide builds a company monitor end to end: upload your list of companies,
+run a connected job to confirm the matching, then schedule an event monitor that re-runs
 it and delivers per-company events to your app. Each step links to its reference
 if you need to go deeper.
 
@@ -115,7 +115,7 @@ dependencies {
       The `description` is the signal that tells two companies with the same name apart.
       A specific, factual description ("US-based alternative asset manager, NYSE: APO")
       beats a vague one ("global leader in solutions"). See
-      [Company Watchlist](/web-search-api/concepts/company-search) for how to write
+      [Company Monitors](/web-search-api/concepts/company-monitors) for how to write
       descriptions that disambiguate, plus the JSON and batch alternatives to CSV upload.
     </Tip>
   </Step>
@@ -175,12 +175,12 @@ dependencies {
     `connected_dataset_ids` to activate company search mode. To collect all news about
     your companies rather than a single topic, set `fetch_all_watchlist_news: true`;
     to track a specific theme, pass a real query instead. Keep the `job_id` — you
-    reference it when creating the monitor.
+    reference it when creating the event monitor.
 
     <Tip>
       All-news watchlist records carry a `tags` object with `event_type` and
       `sector`, so you can route or filter the feed by what happened. See [Event
-      tagging](/web-search-api/concepts/company-search#event-tagging).
+      tagging](/web-search-api/concepts/company-monitors#event-tagging).
     </Tip>
 
     <CodeGroup>
@@ -265,13 +265,13 @@ dependencies {
       To return only events where a tracked company is the primary actor (the company
       that raised funding, was acquired, announced layoffs), add
       `"ed_association_type": "event_associated"`. See
-      [Company Watchlist](/web-search-api/concepts/company-search#filter-by-association-type).
+      [Company Monitors](/web-search-api/concepts/company-monitors#filter-by-association-type).
     </Note>
   </Step>
 
   <Step title="Create a webhook" titleSize="h3">
     A webhook is created once at the organization level, then attached to any number of
-    jobs or monitors. Save the returned `webhook.id`.
+    jobs or event monitors. Save the returned `webhook.id`.
 
     <CodeGroup>
     ```bash cURL
@@ -330,9 +330,9 @@ dependencies {
     </Tip>
   </Step>
 
-  <Step title="Schedule the monitor" titleSize="h3">
-    A monitor re-runs the connected job on a schedule, deduplicates against previous
-    runs, and delivers each run to the webhooks in `webhook_ids`. A monitor created from
+  <Step title="Schedule the event monitor" titleSize="h3">
+    An event monitor re-runs the connected job on a schedule, deduplicates against previous
+    runs, and delivers each run to the webhooks in `webhook_ids`. An event monitor created from
     a watchlist job keeps the connection — every run scores the same portfolio.
 
     <CodeGroup>
@@ -383,7 +383,7 @@ dependencies {
     <Warning>
       The reference job's `end_date` must be within the last 7 days, and the default
       minimum schedule interval is 24 hours (more frequent intervals depend on your
-      plan). See [Configure monitors](/web-search-api/how-to/configure-monitors).
+      plan). See [Configure monitors](/web-search-api/how-to/configure-event-monitors).
     </Warning>
   </Step>
 
@@ -487,7 +487,7 @@ dependencies {
 
 ## Keep the watchlist current
 
-Portfolios change. Update the dataset without rebuilding the monitor — the next
+Portfolios change. Update the dataset without rebuilding the event monitor — the next
 scheduled run picks up the new roster automatically:
 
 - Add companies: [`POST /catchAll/datasets/{dataset_id}/entities`](/web-search-api/api-reference/datasets/add-entities-to-dataset).
@@ -498,8 +498,8 @@ for the full set of dataset operations.
 
 ## See also
 
-- [Company Watchlist](/web-search-api/concepts/company-search): entities, datasets, association types, and per-company scoring in depth
-- [Monitors](/web-search-api/concepts/monitors): how scheduling, deduplication, and rolling date windows work
+- [Company Monitors](/web-search-api/concepts/company-monitors): entities, datasets, association types, and per-company scoring in depth
+- [Event Monitors](/web-search-api/concepts/event-monitors): how scheduling, deduplication, and rolling date windows work
 - [Build an event feed](/web-search-api/how-to/build-an-event-feed): the same pipeline for a topic query instead of a watchlist
 - [Set up webhooks](/web-search-api/how-to/set-up-webhooks): webhook types, auth, testing, and delivery history
-- [Configure monitors](/web-search-api/how-to/configure-monitors): schedules, robust webhook handling, updating a monitor
+- [Configure event monitors](/web-search-api/how-to/configure-event-monitors): schedules, robust webhook handling, updating an event monitor

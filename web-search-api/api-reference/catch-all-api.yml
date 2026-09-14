@@ -16,17 +16,17 @@ info:
     3. Poll /catchAll/status/{job_id} until completed (10-15 minutes)
     4. Retrieve results via /catchAll/pull/{job_id}
 
-    ### Monitor workflow
+    ### Event monitor workflow
 
     1. Create successful job via /catchAll/submit
-    2. Create monitor via /catchAll/monitors/create with schedule
+    2. Create event monitor via /catchAll/monitors/create with schedule
     3. Retrieve aggregated results via /catchAll/monitors/pull/{monitor_id}
 
     ### Webhook workflow
 
     1. Create a webhook via `POST /catchAll/webhooks`
-    2. Attach it to a job or monitor via `POST /catchAll/webhooks/{webhook_id}/resources`,
-       or pass `webhook_ids` at job or monitor creation time
+    2. Attach it to a job or event monitor via `POST /catchAll/webhooks/{webhook_id}/resources`,
+       or pass `webhook_ids` at job or event monitor creation time
     3. Receive HTTP notifications at the configured URL when each job completes
 
     ### Company search workflow
@@ -60,20 +60,20 @@ tags:
     externalDocs:
       description: Learn about job lifecycle and status tracking
       url: https://www.newscatcherapi.com/docs/web-search-api/get-started/quickstart
-  - name: Monitors
-    description: Operations to create, operate and retrieve monitor results.
+  - name: Event Monitors
+    description: Operations to create, operate and retrieve event monitor results.
     externalDocs:
       description:
         Automate recurring queries with scheduled jobs and webhook
         notifications.
-      url: https://www.newscatcherapi.com/docs/web-search-api/guides-and-concepts/monitors
+      url: https://www.newscatcherapi.com/docs/web-search-api/concepts/event-monitors
   - name: Webhooks
     description: |
       Operations to create and manage reusable webhook endpoints.
 
       A webhook is a named HTTP endpoint that receives a POST notification
-      when a job or monitor completes. Create webhooks once at the organization
-      level and attach them to any number of jobs or monitors via `webhook_ids`.
+      when a job or event monitor completes. Create webhooks once at the organization
+      level and attach them to any number of jobs or event monitors via `webhook_ids`.
       Supports Slack, Microsoft Teams, and generic HTTP targets with configurable
       delivery modes, authentication, and headers.
     externalDocs:
@@ -83,32 +83,32 @@ tags:
     description: |
       Operations to create, update, and delete company entities.
 
-      Entities are the building blocks of Company Watchlist. Each entity represents
+      Entities are the building blocks of Company Monitors. Each entity represents
       a company (or person) you want to track. Add identifying information such as
       domain, alternative names, and key persons to improve matching quality.
     externalDocs:
-      description: Learn about Company Watchlist and entities
-      url: https://www.newscatcherapi.com/docs/web-search-api/guides-and-concepts/company-search
+      description: Learn about Company Monitors and entities
+      url: https://www.newscatcherapi.com/docs/web-search-api/concepts/company-monitors
   - name: Datasets
     description: |
       Operations to create and manage datasets of entities.
 
       A dataset is a named collection of entities — think of it as a watchlist or
       portfolio. Connect a dataset to a job via `connected_dataset_ids` to activate
-      Company Watchlist. Datasets can be reused across multiple jobs and monitors.
+      Company Monitors. Datasets can be reused across multiple jobs and event monitors.
     externalDocs:
-      description: Learn about datasets and Company Watchlist
-      url: https://www.newscatcherapi.com/docs/web-search-api/guides-and-concepts/company-search
+      description: Learn about datasets and Company Monitors
+      url: https://www.newscatcherapi.com/docs/web-search-api/concepts/company-monitors
   - name: Projects
     description: |
       Operations to create, organize, and manage projects.
 
-      A project is a named container for jobs, monitors, and datasets. Group
+      A project is a named container for jobs, event monitors, and datasets. Group
       related resources by use case, team, or client, and share them with
       teammates. Resources can be assigned at creation time or post-hoc.
     externalDocs:
       description: Learn about projects and resource organization
-      url: https://www.newscatcherapi.com/docs/web-search-api/guides-and-concepts/projects
+      url: https://www.newscatcherapi.com/docs/web-search-api/concepts/projects
   - name: Meta
     description: Operations to check API health and version.
 
@@ -397,14 +397,14 @@ paths:
         "422":
           $ref: "#/components/responses/ValidationError"
 
-  # ── Monitors ──────────────────────────────────────────────────────────────
+  # ── Event Monitors ────────────────────────────────────────────────────────
 
   /catchAll/monitors:
     get:
       tags:
-        - Monitors
-      summary: List monitors
-      description: Returns all monitors created by the authenticated user.
+        - Event Monitors
+      summary: List event monitors
+      description: Returns all event monitors created by the authenticated user.
       operationId: listMonitors
       parameters:
         - $ref: "#/components/parameters/Page"
@@ -425,9 +425,9 @@ paths:
   /catchAll/monitors/create:
     post:
       tags:
-        - Monitors
-      summary: Create monitor
-      description: Create a scheduled monitor based on a reference job.
+        - Event Monitors
+      summary: Create event monitor
+      description: Create a scheduled event monitor based on a reference job.
       operationId: createMonitor
       requestBody:
         required: true
@@ -454,10 +454,10 @@ paths:
   /catchAll/monitors/pull/{monitor_id}:
     get:
       tags:
-        - Monitors
-      summary: Get monitor results
+        - Event Monitors
+      summary: Get event monitor results
       description:
-        Retrieve aggregated results from all jobs executed by a monitor.
+        Retrieve aggregated results from all jobs executed by an event monitor.
       operationId: pullMonitorResults
       parameters:
         - name: monitor_id
@@ -466,7 +466,7 @@ paths:
           schema:
             type: string
             format: uuid
-          description: Monitor identifier.
+          description: Event monitor identifier.
       responses:
         "200":
           $ref: "#/components/responses/PullMonitorResponse"
@@ -480,12 +480,12 @@ paths:
   /catchAll/monitors/pull/{monitor_id}/csv:
     get:
       tags:
-        - Monitors
-      summary: Get latest monitor results as CSV
+        - Event Monitors
+      summary: Get latest event monitor results as CSV
       description: |
         Returns the most recent run's records as a CSV download. One row per record, with enrichment fields as columns and citations as a JSON column.
 
-        If the monitor's reference job used connected entity datasets, connected entities are split into `event_associated_entities` and `mention_entities` JSON columns. When no entity dataset was used, those two columns are omitted from the export entirely.
+        If the event monitor's reference job used connected entity datasets, connected entities are split into `event_associated_entities` and `mention_entities` JSON columns. When no entity dataset was used, those two columns are omitted from the export entirely.
       operationId: pullMonitorResultsCsv
       parameters:
         - name: monitor_id
@@ -494,10 +494,10 @@ paths:
           schema:
             type: string
             format: uuid
-          description: Monitor identifier.
+          description: Event monitor identifier.
       responses:
         "200":
-          description: CSV export of the latest monitor run.
+          description: CSV export of the latest event monitor run.
           content:
             text/csv:
               schema:
@@ -512,9 +512,9 @@ paths:
   /catchAll/monitors/{monitor_id}/jobs:
     get:
       tags:
-        - Monitors
-      summary: List monitor jobs
-      description: Return all jobs executed by a monitor.
+        - Event Monitors
+      summary: List event monitor jobs
+      description: Return all jobs executed by an event monitor.
       operationId: listMonitorJobs
       parameters:
         - name: monitor_id
@@ -523,7 +523,7 @@ paths:
           schema:
             type: string
             format: uuid
-          description: Monitor identifier.
+          description: Event monitor identifier.
         - name: sort
           in: query
           required: false
@@ -545,10 +545,10 @@ paths:
   /catchAll/monitors/{monitor_id}/status:
     get:
       tags:
-        - Monitors
-      summary: Get monitor status history
+        - Event Monitors
+      summary: Get event monitor status history
       description: |
-        Returns the full execution history of a monitor as a list of status entries, ordered from newest to oldest.
+        Returns the full execution history of an event monitor as a list of status entries, ordered from newest to oldest.
       operationId: getMonitorStatusHistory
       parameters:
         - name: monitor_id
@@ -557,7 +557,7 @@ paths:
           schema:
             type: string
             format: uuid
-          description: Monitor identifier.
+          description: Event monitor identifier.
       responses:
         "200":
           $ref: "#/components/responses/MonitorStatusHistoryResponse"
@@ -569,9 +569,9 @@ paths:
   /catchAll/monitors/{monitor_id}/enable:
     post:
       tags:
-        - Monitors
-      summary: Enable monitor
-      description: Resume scheduled job execution for a monitor.
+        - Event Monitors
+      summary: Enable event monitor
+      description: Resume scheduled job execution for an event monitor.
       operationId: enableMonitor
       parameters:
         - name: monitor_id
@@ -580,7 +580,7 @@ paths:
           schema:
             type: string
             format: uuid
-          description: Monitor identifier.
+          description: Event monitor identifier.
       requestBody:
         required: false
         content:
@@ -591,7 +591,7 @@ paths:
               backfill: true
       responses:
         "200":
-          description: Monitor enabled successfully
+          description: Event monitor enabled successfully
           content:
             application/json:
               schema:
@@ -612,7 +612,7 @@ paths:
                   monitor_id:
                     type: string
                     format: uuid
-                    description: ID of the enabled monitor.
+                    description: ID of the enabled event monitor.
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "403":
@@ -625,9 +625,9 @@ paths:
   /catchAll/monitors/{monitor_id}/disable:
     post:
       tags:
-        - Monitors
-      summary: Disable monitor
-      description: Stop scheduled job execution for a monitor.
+        - Event Monitors
+      summary: Disable event monitor
+      description: Stop scheduled job execution for an event monitor.
       operationId: disableMonitor
       parameters:
         - name: monitor_id
@@ -636,10 +636,10 @@ paths:
           schema:
             type: string
             format: uuid
-          description: Monitor identifier.
+          description: Event monitor identifier.
       responses:
         "200":
-          description: Monitor disabled successfully
+          description: Event monitor disabled successfully
           content:
             application/json:
               schema:
@@ -660,7 +660,7 @@ paths:
                   monitor_id:
                     type: string
                     format: uuid
-                    description: ID of the disabled monitor.
+                    description: ID of the disabled event monitor.
         "401":
           $ref: "#/components/responses/UnauthorizedError"
         "403":
@@ -673,13 +673,13 @@ paths:
   /catchAll/monitors/{monitor_id}:
     patch:
       tags:
-        - Monitors
-      summary: Update monitor
-      description: Update the webhook configuration for an existing monitor.
+        - Event Monitors
+      summary: Update event monitor
+      description: Update the webhook configuration for an existing event monitor.
       operationId: updateMonitor
       externalDocs:
-        description: Learn about monitor configuration
-        url: https://www.newscatcherapi.com/docs/web-search-api/how-to/configure-monitors
+        description: Learn about event monitor configuration
+        url: https://www.newscatcherapi.com/docs/web-search-api/how-to/configure-event-monitors
       parameters:
         - name: monitor_id
           in: path
@@ -687,7 +687,7 @@ paths:
           schema:
             type: string
             format: uuid
-          description: Monitor identifier.
+          description: Event monitor identifier.
       requestBody:
         required: true
         content:
@@ -711,17 +711,17 @@ paths:
 
     delete:
       tags:
-        - Monitors
-      summary: Delete monitor
+        - Event Monitors
+      summary: Delete event monitor
       description: |
-        Soft-deletes a monitor. The monitor is flagged as deleted, stops
+        Soft-deletes an event monitor. The event monitor is flagged as deleted, stops
         executing scheduled jobs immediately, and no longer appears in list
         results.
 
-        Only the monitor owner can delete a monitor. Returns `404` if the
-        monitor is not found or does not belong to the authenticated user.
+        Only the event monitor owner can delete an event monitor. Returns `404` if the
+        event monitor is not found or does not belong to the authenticated user.
 
-        Deleting an already-deleted monitor returns `200`.
+        Deleting an already-deleted event monitor returns `200`.
       operationId: deleteMonitor
       parameters:
         - name: monitor_id
@@ -730,7 +730,7 @@ paths:
           schema:
             type: string
             format: uuid
-          description: Monitor identifier.
+          description: Event monitor identifier.
       responses:
         "200":
           $ref: "#/components/responses/DeleteMonitorResponse"
@@ -879,7 +879,7 @@ paths:
       description: |
         Permanently deletes a webhook and removes all resource assignments. 
         
-        Assigned jobs and monitors no longer trigger delivery to this webhook. This operation cannot be undone.
+        Assigned jobs and event monitors no longer trigger delivery to this webhook. This operation cannot be undone.
       operationId: deleteWebhook
       parameters:
         - $ref: "#/components/parameters/WebhookId"
@@ -901,7 +901,7 @@ paths:
       description: |
         Sends a test HTTP request to the webhook URL using the webhook's configured method, headers, and auth. Returns the response from the target endpoint.
 
-        Use this to verify URL reachability and authentication before attaching the webhook to a live job or monitor.
+        Use this to verify URL reachability and authentication before attaching the webhook to a live job or event monitor.
       operationId: testWebhook
       parameters:
         - $ref: "#/components/parameters/WebhookId"
@@ -933,7 +933,7 @@ paths:
         - Webhooks
       summary: Assign resource to webhook
       description: |
-        Attaches a job, monitor, or monitor group to the webhook. When the
+        Attaches a job, event monitor, or event monitor group to the webhook. When the
         resource completes, the webhook receives a delivery.
 
         A single webhook can be assigned to multiple resources. Each resource
@@ -1070,7 +1070,7 @@ paths:
       summary: Manually trigger webhook delivery
       description: |
         Manually dispatches a webhook delivery for a resource on demand, without
-        waiting for the next job or monitor cycle.
+        waiting for the next job or event monitor cycle.
 
         Use this to re-deliver results after a failed delivery, replay a specific
         job's results, or validate a webhook against live data. The webhook must
@@ -2151,7 +2151,7 @@ components:
       in: query
       required: false
       description: |
-        If true, permanently deletes all resources (jobs, monitors, datasets, monitor groups) assigned to the project. If false, the project is deleted and its resources are unassigned but not deleted.
+        If true, permanently deletes all resources (jobs, event monitors, datasets, event monitor groups) assigned to the project. If false, the project is deleted and its resources are unassigned but not deleted.
 
         Webhooks are never deleted by either setting — they are only detached from the project.
       schema:
@@ -2400,7 +2400,7 @@ components:
                 description: "Major technology news outlets worldwide."
 
     CreateMonitorResponse:
-      description: Monitor created successfully
+      description: Event monitor created successfully
       content:
         application/json:
           schema:
@@ -2410,7 +2410,7 @@ components:
             status: "Monitor Created Successfully"
 
     UpdateMonitorResponse:
-      description: Monitor updated successfully
+      description: Event monitor updated successfully
       content:
         application/json:
           schema:
@@ -2420,7 +2420,7 @@ components:
             status: "Monitor updated Successfully"
 
     DeleteMonitorResponse:
-      description: Monitor deleted successfully (or already deleted).
+      description: Event monitor deleted successfully (or already deleted).
       content:
         application/json:
           schema:
@@ -2431,7 +2431,7 @@ components:
             monitor_id: "7f3a8b2c-1e4d-4a5b-9c8d-6e7f8a9b0c1d"
 
     MonitorStatusHistoryResponse:
-      description: Monitor status history retrieved successfully.
+      description: Event monitor status history retrieved successfully.
       content:
         application/json:
           schema:
@@ -2461,7 +2461,7 @@ components:
                 additional_information: null
 
     ListMonitorJobsResponse:
-      description: List of monitor jobs
+      description: List of event monitor jobs
       content:
         application/json:
           schema:
@@ -2475,29 +2475,29 @@ components:
               monitor_id:
                 type: string
                 format: uuid
-                description: Monitor identifier.
+                description: Event monitor identifier.
               sort_order:
                 type: string
                 enum: ["asc", "desc"]
                 description: Sort order applied to results.
               total_jobs:
                 type: integer
-                description: Total number of jobs for this monitor.
+                description: Total number of jobs for this event monitor.
               jobs:
                 type: array
                 items:
                   $ref: "#/components/schemas/MonitorJobItem"
-                description: Array of job executions for this monitor.
+                description: Array of job executions for this event monitor.
 
     PullMonitorResponse:
-      description: Monitor results retrieved successfully
+      description: Event monitor results retrieved successfully
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/PullMonitorResponseDto"
 
     ListMonitorsResponse:
-      description: List of user monitors
+      description: List of user event monitors
       content:
         application/json:
           schema:
@@ -3155,7 +3155,7 @@ components:
             $ref: "#/components/schemas/Error"
 
     NotFoundError:
-      description: Job/monitor not found or results not available
+      description: Job/event monitor not found or results not available
       content:
         application/json:
           schema:
@@ -3568,7 +3568,7 @@ components:
             type: string
             format: uuid
           description: |
-            Dataset IDs to connect to the job. When provided, this enables Company Watchlist mode — the job returns only events relevant to companies in the connected datasets. To set the minimum relevance threshold, use `ed_score_min`.
+            Dataset IDs to connect to the job. When provided, this enables Company Monitors mode — the job returns only events relevant to companies in the connected datasets. To set the minimum relevance threshold, use `ed_score_min`.
 
             The dataset must have `latest_status: ready` before the job is submitted. Submitting with a non-existent or inaccessible dataset ID returns `400`.
           example:
@@ -3602,7 +3602,7 @@ components:
           type: boolean
           default: false
           description: |
-            When true, retrieves all news for connected Company Watchlist entities
+            When true, retrieves all news for connected Company Monitors entities
             without topic filtering. Requires connected_dataset_ids to be set.
         ed_association_type:
           allOf:
@@ -3993,7 +3993,7 @@ components:
 
             **Note:** The system always includes the `enrichment_confidence` field within the `enrichment` object, regardless of whether enrichments are generated or specified by you.
 
-             For integration guidance, see [Dynamic schemas](https://www.newscatcherapi.com/docs/web-search-api/guides-and-concepts/dynamic-schemas)
+             For integration guidance, see [Dynamic schemas](https://www.newscatcherapi.com/docs/web-search-api/concepts/dynamic-schemas)
           properties:
             enrichment_confidence:
               type: ["string", "null"]
@@ -4109,7 +4109,7 @@ components:
                 format with UTC timezone.
               example: "2025-11-14T21:00:00Z"
       description: |
-        Citation with monitor-specific metadata. Used in monitor results and webhook payloads.
+        Citation with event monitor-specific metadata. Used in event monitor results and webhook payloads.
         Extends base citation with tracking information for job_id and timestamps.
 
     MonitorRecord:
@@ -4124,24 +4124,24 @@ components:
               items:
                 $ref: "#/components/schemas/MonitorCitation"
               description:
-                Source documents with monitor-specific metadata (job_id,
+                Source documents with event monitor-specific metadata (job_id,
                 added_on timestamps).
             added_on:
               type: string
               format: date-time
               description:
-                The date when this record was first added to monitor results in
+                The date when this record was first added to event monitor results in
                 ISO 8601 format with UTC timezone.
               example: "2025-11-14T21:00:00Z"
             updated_on:
               type: string
               format: date-time
               description:
-                The date when this record was last updated in monitor results in
+                The date when this record was last updated in event monitor results in
                 ISO 8601 format with UTC timezone.
               example: "2025-11-14T21:00:00Z"
       description: |
-        Record with monitor-specific metadata. Used in monitor results and webhook payloads.
+        Record with event monitor-specific metadata. Used in event monitor results and webhook payloads.
 
         Includes timestamps tracking when records were added and updated, and citations include job tracking.
 
@@ -4157,11 +4157,11 @@ components:
           description: |
             Job ID to use as template for scheduled runs. Defines the query, validators, and enrichments used for each scheduled run.
 
-            If [`backfill`](https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/create-monitor#body-backfill) is true, the job's `end_date` must be within the last 7 days.
+            If [`backfill`](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/create-monitor#body-backfill) is true, the job's `end_date` must be within the last 7 days.
         schedule:
           type: string
           description: |
-            Monitor schedule in plain text format. Minimum frequency depends on your plan.
+            Event monitor schedule in plain text format. Minimum frequency depends on your plan.
           example: "every day at 12 PM UTC"
         timezone:
           type: string
@@ -4180,14 +4180,14 @@ components:
             IDs of centralized webhooks to notify on each run completion.
             Passing IDs here is equivalent to calling
             `POST /catchAll/webhooks/{webhook_id}/resources` for each ID after creation.
-            Maximum 5 per monitor.
+            Maximum 5 per event monitor.
           example:
             - "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
         limit:
           type: integer
           minimum: 10
           description: |
-            Maximum number of records per monitor run. If not provided, defaults to the plan limit.
+            Maximum number of records per event monitor run. If not provided, defaults to the plan limit.
         backfill:
           type: boolean
           default: true
@@ -4199,7 +4199,7 @@ components:
           type: string
           format: uuid
           description: |
-            Project to assign this monitor to. The monitor appears in the project's resource list after creation.
+            Project to assign this event monitor to. The event monitor appears in the project's resource list after creation.
           example: "60a85db4-78ec-4b78-876a-bc7d9cdadd04"
 
     WebhookDto:
@@ -4334,7 +4334,7 @@ components:
           example: "3fec5b07-8786-46d7-9486-d43ff67eccd4"
         additional_info:
           type: object
-          description: Extra context about the triggering event, such as job query or monitor schedule.
+          description: Extra context about the triggering event, such as job query or event monitor schedule.
           example: {}
         status_code:
           type: integer
@@ -4996,7 +4996,7 @@ components:
         monitor_id:
           type: [string, "null"]
           format: uuid
-          description: Monitor ID if successful, null if error.
+          description: Event monitor ID if successful, null if error.
         status:
           type: string
           description: Creation status or error message
@@ -5011,7 +5011,7 @@ components:
             type: string
             format: uuid
           description: |
-            Updated list of centralized webhook IDs for this monitor. 
+            Updated list of centralized webhook IDs for this event monitor.
             
             Replaces all existing webhook assignments. Pass an empty array `[]` to clear all assignments. Omit to leave existing assignments unchanged.
           example:
@@ -5019,7 +5019,7 @@ components:
         limit:
           type: integer
           minimum: 10
-          description: Updated maximum number of records per monitor run.
+          description: Updated maximum number of records per event monitor run.
 
     UpdateMonitorResponseDto:
       type: object
@@ -5030,7 +5030,7 @@ components:
         monitor_id:
           type: string
           format: uuid
-          description: Monitor identifier.
+          description: Event monitor identifier.
           example: "3fec5b07-8786-46d7-9486-d43ff67eccd4"
         status:
           type: string
@@ -5056,7 +5056,7 @@ components:
         monitor_id:
           type: ["string", "null"]
           format: uuid
-          description: ID of the deleted monitor. `null` on failure.
+          description: ID of the deleted event monitor. `null` on failure.
           example: "7f3a8b2c-1e4d-4a5b-9c8d-6e7f8a9b0c1d"
 
     ReferenceJob:
@@ -5088,12 +5088,12 @@ components:
         monitor_id:
           type: string
           format: uuid
-          description: Unique identifier for the monitor.
+          description: Unique identifier for the event monitor.
           example: "7f3a8b2c-1e4d-4a5b-9c8d-6e7f8a9b0c1d"
         cron_expression:
           type: string
           description: |
-            The cron expression for a monitor schedule parsed from the text schedule you provide.
+            The cron expression for an event monitor schedule parsed from the text schedule you provide.
 
             Standard cron format (minute hour day month day-of-week).
           example: "0 12 * * *"
@@ -5105,7 +5105,7 @@ components:
           $ref: "#/components/schemas/ReferenceJob"
         run_info:
           type: object
-          description: Execution time range for this monitor.
+          description: Execution time range for this event monitor.
           properties:
             first_run:
               type: string
@@ -5121,22 +5121,22 @@ components:
           type: integer
           default: 0
           description:
-            Total number of records collected across all monitor jobs.
+            Total number of records collected across all event monitor jobs.
           example: 487
         status:
           type: string
           description:
-            Current monitor status or error message if monitor creation failed.
+            Current event monitor status or error message if event monitor creation failed.
           example: "Done"
         all_records:
           type: array
           items:
             $ref: "#/components/schemas/MonitorRecord"
           description: |
-            Aggregated records from all jobs executed by this monitor. Each record includes structured data extracted from web sources with citations.
+            Aggregated records from all jobs executed by this event monitor. Each record includes structured data extracted from web sources with citations.
         limit:
           type: ["integer", "null"]
-          description: Record limit applied to this monitor's jobs.
+          description: Record limit applied to this event monitor's jobs.
           example: 100
         connected_datasets:
           type: array
@@ -5160,7 +5160,7 @@ components:
       properties:
         total:
           type: integer
-          description: Total number of monitors for this user.
+          description: Total number of event monitors for this user.
           example: 3
         page:
           type: integer
@@ -5168,7 +5168,7 @@ components:
           example: 1
         page_size:
           type: integer
-          description: Number of monitors per page.
+          description: Number of event monitors per page.
           example: 100
         total_pages:
           type: integer
@@ -5178,7 +5178,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/MonitorListItemDto"
-          description: Array of monitor summaries.
+          description: Array of event monitor summaries.
 
     MonitorListItemDto:
       type: object
@@ -5191,12 +5191,12 @@ components:
         monitor_id:
           type: string
           format: uuid
-          description: Monitor identifier.
+          description: Event monitor identifier.
           example: "7f3a8b2c-1e4d-4a5b-9c8d-6e7f8a9b0c1d"
         reference_job_id:
           type: string
           format: uuid
-          description: Job identifier used as a reference for this monitor.
+          description: Job identifier used as a reference for this event monitor.
           example: "5f0c9087-85cb-4917-b3c7-e5a5eff73a0c"
         reference_job_query:
           type: string
@@ -5204,15 +5204,15 @@ components:
           example: "Series B funding rounds for SaaS startups"
         enabled:
           type: boolean
-          description: True if the monitor is currently active; false otherwise.
+          description: True if the event monitor is currently active; false otherwise.
           example: true
         schedule:
           type: string
-          description: Cron expression for monitor schedule.
+          description: Cron expression for event monitor schedule.
           example: "0 12 * * *"
         schedule_human_readable:
           type: string
-          description: The monitor schedule in a plain text format.
+          description: The event monitor schedule in a plain text format.
           example: "Every 24 hours"
         timezone:
           type: string
@@ -5221,39 +5221,39 @@ components:
         created_at:
           type: string
           format: date-time
-          description: The date when the monitor was created.
+          description: The date when the event monitor was created.
           example: "2025-10-23T14:30:00Z"
         webhook:
           oneOf:
             - $ref: "#/components/schemas/WebhookDto"
             - type: "null"
           description:
-            Webhook configuration for this monitor, or null if not set.
+            Webhook configuration for this event monitor, or null if not set.
         user_key:
           type: string
-          description: Masked API key associated with this monitor.
+          description: Masked API key associated with this event monitor.
           example: "***...a1b2"
         sharing_info:
           allOf:
             - $ref: "#/components/schemas/SharingInfo"
           description: |
-            Present when this monitor was shared with the authenticated user. Omitted when the user owns the monitor.
+            Present when this event monitor was shared with the authenticated user. Omitted when the user owns the event monitor.
 
     WebhookPayload:
       type: object
       description: |
-        **First execution:** The initial webhook after monitor creation includes all records from the reference job, providing immediate access to collected data.
+        **First execution:** The initial webhook after event monitor creation includes all records from the reference job, providing immediate access to collected data.
 
         **Subsequent executions:** Only new records (after deduplication) are included.
       properties:
         monitor_id:
           type: string
           format: uuid
-          description: Monitor identifier.
+          description: Event monitor identifier.
         reference_job_id:
           type: string
           format: uuid
-          description: Reference job used as template for this monitor.
+          description: Reference job used as template for this event monitor.
         latest_job_id:
           type: string
           format: uuid
@@ -5264,7 +5264,7 @@ components:
             Number of new records from latest job (after deduplication).
         jobs_processed:
           type: integer
-          description: Total number of jobs executed by this monitor.
+          description: Total number of jobs executed by this event monitor.
         updated_at:
           type: string
           format: date-time
@@ -5274,7 +5274,7 @@ components:
           example: "2025-11-15T06:01:57Z"
         cron_expression:
           type: string
-          description: Cron expression defining the monitor schedule.
+          description: Cron expression defining the event monitor schedule.
         timezone:
           type: string
           description: Timezone for schedule execution.
@@ -5284,7 +5284,7 @@ components:
             $ref: "#/components/schemas/MonitorRecord"
           description:
             Array of new records from the latest job execution (includes
-            monitor-specific fields like added_on, updated_on).
+            event monitor-specific fields like added_on, updated_on).
 
     MonitorJobItem:
       type: object
@@ -5302,14 +5302,14 @@ components:
           format: date-time
           description:
             Start of the data collection time window for this job execution
-            (based on monitor schedule) in ISO 8601 format with UTC timezone.
+            (based on event monitor schedule) in ISO 8601 format with UTC timezone.
           example: "2025-11-14T21:00:00Z"
         end_date:
           type: string
           format: date-time
           description:
             End of the data collection time window for this job execution (based
-            on monitor schedule) in ISO 8601 format with UTC timezone.
+            on event monitor schedule) in ISO 8601 format with UTC timezone.
           example: "2025-11-15T00:00:00Z"
 
     MonitorStatusEntry:
@@ -5329,9 +5329,9 @@ components:
           description: |
             Type of lifecycle event.
 
-            - `created`: Monitor was created.
-            - `enable`: Monitor was enabled.
-            - `disable`: Monitor was disabled.
+            - `created`: Event monitor was created.
+            - `enable`: Event monitor was enabled.
+            - `disable`: Event monitor was disabled.
             - `scheduled`: A job was triggered for execution.
               `additional_information` contains `job_id`, `start_date`,
               and `end_date`.
@@ -5369,7 +5369,7 @@ components:
               }
             }
             ```
-            The `webhook` key is only present if the monitor has a webhook configured.
+            The `webhook` key is only present if the event monitor has a webhook configured.
 
     MonitorStatusHistoryResponseDto:
       type: object
@@ -5389,7 +5389,7 @@ components:
         monitor_id:
           type: ["string", "null"]
           format: uuid
-          description: Monitor identifier. `null` on failure.
+          description: Event monitor identifier. `null` on failure.
           example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
         total_statuses:
           type: ["integer", "null"]
@@ -5403,7 +5403,7 @@ components:
 
     EnableMonitorRequestDto:
       type: object
-      description: Optional request body for enabling a monitor.
+      description: Optional request body for enabling an event monitor.
       properties:
         backfill:
           type: boolean
@@ -5628,7 +5628,7 @@ components:
         description:
           type: string
           description: |
-            Free-text description of the entity used for disambiguation when similar names exist. See [Writing effective descriptions](https://www.newscatcherapi.com/docs/web-search-api/concepts/company-search#writing-effective-descriptions) for guidance on improving matching quality.
+            Free-text description of the entity used for disambiguation when similar names exist. See [Writing effective descriptions](https://www.newscatcherapi.com/docs/web-search-api/concepts/company-monitors#writing-effective-descriptions) for guidance on improving matching quality.
           example: "NewsCatcher is a data-as-a-service company providing news intelligence APIs including the CatchAll Web Search API (2B+ web pages indexed) and News API (140,000+ sources, 100+ countries)."
         external_entity_id:
           type: string
@@ -6183,7 +6183,7 @@ components:
             ISO 8601 timestamp of when this status was set. Returned without timezone offset (server-local time).
           example: "2026-04-08T15:21:36.066271"
 
-    # ── Company Watchlist output schema ──────────────────────────────────────────
+    # ── Company Monitors output schema ───────────────────────────────────────
 
     EntityAssociationType:
       type: string
@@ -6205,7 +6205,7 @@ components:
         - ed_score
         - relation
       description: |
-        A company entity matched to a record in a Company Watchlist job, with a relevance score and explanation.
+        A company entity matched to a record in a Company Monitors job, with a relevance score and explanation.
 
         Only entities with `ed_score` ≥ 1 appear in results. Entities scored 0 are filtered out before the response is returned. When `ed_score_min` is set at submission time, entities below that threshold are excluded.
       properties:
@@ -6267,7 +6267,7 @@ components:
         - id
         - name
       description: |
-        A dataset used to narrow the retrieval scope of a job or monitor, returned with its identifier and name.
+        A dataset used to narrow the retrieval scope of a job or event monitor, returned with its identifier and name.
       properties:
         id:
           type: string
