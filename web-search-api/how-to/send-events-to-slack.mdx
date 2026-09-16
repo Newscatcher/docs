@@ -5,7 +5,7 @@ description: "Post CatchAll results straight to a Slack channel as formatted mes
 
 CatchAll can post results directly to Slack as formatted messages. You don't need
 to build or host an endpoint: create a webhook of type `slack`, point it at a Slack
-incoming webhook URL, and attach it to a job or monitor.
+incoming webhook URL, and attach it to a job or event monitor.
 
 ## Before you begin
 
@@ -100,8 +100,8 @@ incoming webhook URL, and attach it to a job or monitor.
     </Warning>
   </Step>
 
-  <Step title="Attach it to a job or monitor" titleSize="h3">
-    Pass the webhook ID in `webhook_ids` when you create a monitor (for a recurring
+  <Step title="Attach it to a job or event monitor" titleSize="h3">
+    Pass the webhook ID in `webhook_ids` when you create an event monitor (for a recurring
     feed) or submit a job (for a one-off run).
 
     <CodeGroup>
@@ -147,9 +147,9 @@ incoming webhook URL, and attach it to a job or monitor.
     </CodeGroup>
 
     <Note>
-      Need to build the job and monitor first? See
+      Need to build the job and event monitor first? See
       [Build a recurring event feed](/web-search-api/how-to/build-an-event-feed) for the
-      full query → monitor → delivery pipeline.
+      full query → event monitor → delivery pipeline.
     </Note>
   </Step>
 </Steps>
@@ -165,5 +165,5 @@ or Zapier) and map the records to your destination there.
 ## See also
 
 - [Set up webhooks](/web-search-api/how-to/set-up-webhooks): webhook types, auth, testing, and delivery history
-- [Build a recurring event feed](/web-search-api/how-to/build-an-event-feed): the full job → monitor → delivery pipeline
-- [Configure monitors](/web-search-api/how-to/configure-monitors): schedules and reliable delivery
+- [Build a recurring event feed](/web-search-api/how-to/build-an-event-feed): the full job → event monitor → delivery pipeline
+- [Configure event monitors](/web-search-api/how-to/configure-event-monitors): schedules and reliable delivery

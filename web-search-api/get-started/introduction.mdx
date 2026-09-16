@@ -169,7 +169,7 @@ CatchAll processes queries through a multi-stage pipeline that analyzes over
     from the original job.
   </Accordion>
 
-  <Accordion title="Company search" icon="building">
+  <Accordion title="Company Monitors" icon="building">
     Filter job results to a predefined list of companies and receive
     per-company relevance scores on every record. Activate by passing
     `connected_dataset_ids` when submitting a job.
@@ -180,7 +180,7 @@ CatchAll processes queries through a multi-stage pipeline that analyzes over
       `name`, `ed_score` (1–10), and `relation` for each matched company
 
     <Tip>
-      See [Company search](/web-search-api/concepts/company-search)
+      See [Company Monitors](/web-search-api/concepts/company-monitors)
       for a full walkthrough.
     </Tip>
   </Accordion>
@@ -210,18 +210,18 @@ CatchAll processes queries through a multi-stage pipeline that analyzes over
   
   </Tab>
 
-  <Tab title="Monitors">
-    | Endpoint                                    |  Method  | Description                    |
-    | ------------------------------------------- | -------- | ------------------------------ |
-    | `/catchAll/monitors/create`                 | `POST`   | Create scheduled monitor       |
-    | `/catchAll/monitors/{monitor_id}`           | `PATCH`  | Update monitor                 |
-    | `/catchAll/monitors/{monitor_id}`           | `DELETE` | Delete a monitor               |
-    | `/catchAll/monitors`                        | `GET`    | List all monitors              |
-    | `/catchAll/monitors/{monitor_id}/jobs`      | `GET`    | List jobs for a monitor        |
-    | `/catchAll/monitors/{monitor_id}/status`    | `GET`    | Get monitor execution history  |
-    | `/catchAll/monitors/pull/{monitor_id}`      | `GET`    | Get aggregated monitor results |
-    | `/catchAll/monitors/{monitor_id}/enable`    | `POST`   | Enable a monitor               |
-    | `/catchAll/monitors/{monitor_id}/disable`   | `POST`   | Disable a monitor              |
+  <Tab title="Event Monitors">
+    | Endpoint                                    |  Method  | Description                          |
+    | ------------------------------------------- | -------- | ------------------------------------- |
+    | `/catchAll/monitors/create`                 | `POST`   | Create scheduled event monitor        |
+    | `/catchAll/monitors/{monitor_id}`           | `PATCH`  | Update event monitor                  |
+    | `/catchAll/monitors/{monitor_id}`           | `DELETE` | Delete an event monitor               |
+    | `/catchAll/monitors`                        | `GET`    | List all event monitors               |
+    | `/catchAll/monitors/{monitor_id}/jobs`      | `GET`    | List jobs for an event monitor        |
+    | `/catchAll/monitors/{monitor_id}/status`    | `GET`    | Get event monitor execution history   |
+    | `/catchAll/monitors/pull/{monitor_id}`      | `GET`    | Get aggregated event monitor results  |
+    | `/catchAll/monitors/{monitor_id}/enable`    | `POST`   | Enable an event monitor               |
+    | `/catchAll/monitors/{monitor_id}/disable`   | `POST`   | Disable an event monitor              |
   </Tab>
 
   <Tab title="Webhooks">
@@ -338,7 +338,7 @@ Bankruptcy filings by retail companies in the US this quarter
   >
     Make your first request and get results in minutes
   </Card>
-  <Card title="Monitors" icon="clock" href="/web-search-api/concepts/monitors">
+  <Card title="Event Monitors" icon="clock" href="/web-search-api/concepts/event-monitors">
     Automate recurring queries with scheduled execution
   </Card>
   <Card

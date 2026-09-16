@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft-07/schema",
-  "version": "1.0.0",
-  "generated": "2025-02-10",
+  "version": "1.1.0",
+  "generated": "2026-09-10",
   "description": "URL redirect mappings for documentation portal restructure",
   "metadata": {
     "project": "NewsCatcher API Documentation",
-    "change": "Remove the v3 prefix and introduce a new structure: Home | Web Search API | News API | Local News API. Flatten API reference docs and use a consistent pattern for other documentation types.",
-    "total_redirects": 105
+    "change": "Rename Monitors -> Event Monitors and Company Watchlist -> Company Monitors, updating page slugs across concepts, how-to, and API reference.",
+    "total_redirects": 119
   },
   "redirects": [
     {
@@ -23,7 +23,7 @@
     },
     {
       "source": "/docs/v3/catch-all/overview/monitors",
-      "destination": "/docs/web-search-api/concepts/monitors",
+      "destination": "/docs/web-search-api/concepts/event-monitors",
       "type": "permanent",
       "status_code": 301
     },
@@ -53,13 +53,13 @@
     },
     {
       "source": "/docs/v3/catch-all/how-to/configure-monitors",
-      "destination": "/docs/web-search-api/how-to/configure-monitors",
+      "destination": "/docs/web-search-api/how-to/configure-event-monitors",
       "type": "permanent",
       "status_code": 301
     },
     {
       "source": "/docs/v3/catch-all/how-to/troubleshoot-monitors",
-      "destination": "/docs/web-search-api/how-to/troubleshoot-monitors",
+      "destination": "/docs/web-search-api/how-to/troubleshoot-event-monitors",
       "type": "permanent",
       "status_code": 301
     },
@@ -101,43 +101,43 @@
     },
     {
       "source": "/docs/v3/catch-all/endpoints/create-monitor",
-      "destination": "/docs/web-search-api/api-reference/monitors/create-monitor",
+      "destination": "/docs/web-search-api/api-reference/event-monitors/create-monitor",
       "type": "permanent",
       "status_code": 301
     },
     {
       "source": "/docs/v3/catch-all/endpoints/update-monitor",
-      "destination": "/docs/web-search-api/api-reference/monitors/update-monitor",
+      "destination": "/docs/web-search-api/api-reference/event-monitors/update-monitor",
       "type": "permanent",
       "status_code": 301
     },
     {
       "source": "/docs/v3/catch-all/endpoints/list-monitors",
-      "destination": "/docs/web-search-api/api-reference/monitors/list-monitors",
+      "destination": "/docs/web-search-api/api-reference/event-monitors/list-monitors",
       "type": "permanent",
       "status_code": 301
     },
     {
       "source": "/docs/v3/catch-all/endpoints/list-monitor-jobs",
-      "destination": "/docs/web-search-api/api-reference/monitors/list-monitor-jobs",
+      "destination": "/docs/web-search-api/api-reference/event-monitors/list-monitor-jobs",
       "type": "permanent",
       "status_code": 301
     },
     {
       "source": "/docs/v3/catch-all/endpoints/get-monitor-results",
-      "destination": "/docs/web-search-api/api-reference/monitors/get-monitor-results",
+      "destination": "/docs/web-search-api/api-reference/event-monitors/get-monitor-results",
       "type": "permanent",
       "status_code": 301
     },
     {
       "source": "/docs/v3/catch-all/endpoints/enable-monitor",
-      "destination": "/docs/web-search-api/api-reference/monitors/enable-monitor",
+      "destination": "/docs/web-search-api/api-reference/event-monitors/enable-monitor",
       "type": "permanent",
       "status_code": 301
     },
     {
       "source": "/docs/v3/catch-all/endpoints/disable-monitor",
-      "destination": "/docs/web-search-api/api-reference/monitors/disable-monitor",
+      "destination": "/docs/web-search-api/api-reference/event-monitors/disable-monitor",
       "type": "permanent",
       "status_code": 301
     },
@@ -611,13 +611,13 @@
     },
     {
       "source": "/docs/web-search-api/guides-and-concepts/monitors",
-      "destination": "/docs/web-search-api/concepts/monitors",
+      "destination": "/docs/web-search-api/concepts/event-monitors",
       "type": "permanent",
       "status_code": 301
     },
     {
       "source": "/docs/web-search-api/guides-and-concepts/company-search",
-      "destination": "/docs/web-search-api/concepts/company-search",
+      "destination": "/docs/web-search-api/concepts/company-monitors",
       "type": "permanent",
       "status_code": 301
     },
@@ -636,6 +636,90 @@
     {
       "source": "/docs/web-search-api/guides-and-concepts/dynamic-schemas",
       "destination": "/docs/web-search-api/concepts/dynamic-schemas",
+      "type": "permanent",
+      "status_code": 301
+    },
+    {
+      "source": "/docs/web-search-api/concepts/monitors",
+      "destination": "/docs/web-search-api/concepts/event-monitors",
+      "type": "permanent",
+      "status_code": 301
+    },
+    {
+      "source": "/docs/web-search-api/concepts/company-search",
+      "destination": "/docs/web-search-api/concepts/company-monitors",
+      "type": "permanent",
+      "status_code": 301
+    },
+    {
+      "source": "/docs/web-search-api/how-to/configure-monitors",
+      "destination": "/docs/web-search-api/how-to/configure-event-monitors",
+      "type": "permanent",
+      "status_code": 301
+    },
+    {
+      "source": "/docs/web-search-api/how-to/troubleshoot-monitors",
+      "destination": "/docs/web-search-api/how-to/troubleshoot-event-monitors",
+      "type": "permanent",
+      "status_code": 301
+    },
+    {
+      "source": "/docs/web-search-api/api-reference/monitors/create-monitor",
+      "destination": "/docs/web-search-api/api-reference/event-monitors/create-monitor",
+      "type": "permanent",
+      "status_code": 301
+    },
+    {
+      "source": "/docs/web-search-api/api-reference/monitors/delete-monitor",
+      "destination": "/docs/web-search-api/api-reference/event-monitors/delete-monitor",
+      "type": "permanent",
+      "status_code": 301
+    },
+    {
+      "source": "/docs/web-search-api/api-reference/monitors/disable-monitor",
+      "destination": "/docs/web-search-api/api-reference/event-monitors/disable-monitor",
+      "type": "permanent",
+      "status_code": 301
+    },
+    {
+      "source": "/docs/web-search-api/api-reference/monitors/enable-monitor",
+      "destination": "/docs/web-search-api/api-reference/event-monitors/enable-monitor",
+      "type": "permanent",
+      "status_code": 301
+    },
+    {
+      "source": "/docs/web-search-api/api-reference/monitors/get-latest-monitor-results-as-csv",
+      "destination": "/docs/web-search-api/api-reference/event-monitors/get-latest-monitor-results-as-csv",
+      "type": "permanent",
+      "status_code": 301
+    },
+    {
+      "source": "/docs/web-search-api/api-reference/monitors/get-monitor-results",
+      "destination": "/docs/web-search-api/api-reference/event-monitors/get-monitor-results",
+      "type": "permanent",
+      "status_code": 301
+    },
+    {
+      "source": "/docs/web-search-api/api-reference/monitors/get-monitor-status-history",
+      "destination": "/docs/web-search-api/api-reference/event-monitors/get-monitor-status-history",
+      "type": "permanent",
+      "status_code": 301
+    },
+    {
+      "source": "/docs/web-search-api/api-reference/monitors/list-monitor-jobs",
+      "destination": "/docs/web-search-api/api-reference/event-monitors/list-monitor-jobs",
+      "type": "permanent",
+      "status_code": 301
+    },
+    {
+      "source": "/docs/web-search-api/api-reference/monitors/list-monitors",
+      "destination": "/docs/web-search-api/api-reference/event-monitors/list-monitors",
+      "type": "permanent",
+      "status_code": 301
+    },
+    {
+      "source": "/docs/web-search-api/api-reference/monitors/update-monitor",
+      "destination": "/docs/web-search-api/api-reference/event-monitors/update-monitor",
       "type": "permanent",
       "status_code": 301
     }

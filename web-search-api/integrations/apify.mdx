@@ -36,14 +36,14 @@ modular workflows.
 | `catchall-pull-results`       | Retrieve all valid records from a completed job                    |
 | `catchall-early-results`      | Retrieve partial results before a job completes                    |
 | `catchall-continue`           | Expand an existing job to process more records                     |
-| `catchall-create-monitor`     | Create a scheduled monitor for recurring jobs                      |
-| `catchall-update-monitor`     | Update an existing monitor's webhook                               |
-| `catchall-start-stop-monitor` | Pause or resume a monitor                                          |
+| `catchall-create-monitor`     | Create a scheduled event monitor for recurring jobs                |
+| `catchall-update-monitor`     | Update an existing event monitor's webhook                         |
+| `catchall-start-stop-monitor` | Pause or resume an event monitor                                   |
 
 The utility Actors map to individual CatchAll API endpoints and can be chained
 together to build custom workflows. For the underlying API concepts, see
 [Jobs](/web-search-api/concepts/jobs) and
-[Monitors](/web-search-api/concepts/monitors).
+[Event Monitors](/web-search-api/concepts/event-monitors).
 
 ## Run Actor
 
@@ -105,7 +105,7 @@ external services.
   <Accordion title="Schedules">
     Run any CatchAll Actor on a recurring schedule from the **Schedules** section
     in Apify Console. This is separate from the CatchAll
-    [Monitors](/web-search-api/concepts/monitors) feature, which
+    [Event Monitors](/web-search-api/concepts/event-monitors) feature, which
     handles job scheduling and records deduplication at the API level.
   </Accordion>
 
@@ -121,5 +121,5 @@ external services.
 
 - [Quickstart](/web-search-api/get-started/quickstart)
 - [Jobs](/web-search-api/concepts/jobs)
-- [Monitors](/web-search-api/concepts/monitors)
+- [Event Monitors](/web-search-api/concepts/event-monitors)
 - [Write effective queries](/web-search-api/how-to/write-effective-queries)

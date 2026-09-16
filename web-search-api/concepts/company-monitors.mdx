@@ -1,23 +1,23 @@
 ---
-title: Company Watchlist
-sidebarTitle: Company Watchlist
+title: Company Monitors
+sidebarTitle: Company Monitors
 description: Track specific companies across CatchAll jobs with per-company relevance scores.
 ---
 
-Company Watchlist filters CatchAll job results to a predefined list of companies
+Company Monitors filters CatchAll job results to a predefined list of companies
 and scores each matching record per company. Use it to track specific companies — 
 a portfolio, a competitor set, or any curated list — instead of running broad queries.
 
 ## How it works
 
-Company Watchlist uses three connected concepts:
+Company Monitors uses three connected concepts:
 
 **Entities** are individual company definitions. Each entity stores identifying
 information — name, domain, description, alternative names, key persons — that the system
 uses to recognize the company in web content.
 
 **Datasets** are named collections of entities. A dataset acts as a watchlist or
-portfolio. You create it once and can reuse it across multiple jobs and monitors.
+portfolio. You create it once and can reuse it across multiple jobs and event monitors.
 
 **Connected jobs** are standard CatchAll jobs submitted with a
 `connected_dataset_ids` parameter. Adding this parameter activates company
@@ -958,7 +958,7 @@ var job = client.jobs().createJob(
 
 </CodeGroup>
 
-Monitors created from an all-news job preserve this behavior — each recurring
+Event Monitors created from an all-news job preserve this behavior — each recurring
 run collects all news for the connected watchlist, not topic-restricted results.
 
 ## Event tagging
@@ -1172,6 +1172,6 @@ results.getAllRecords().forEach(record -> {
 ## See also
 
 - [Jobs](/web-search-api/concepts/jobs)
-- [Monitors](/web-search-api/concepts/monitors)
+- [Event Monitors](/web-search-api/concepts/event-monitors)
 - [Entities API reference](/web-search-api/api-reference/entities/create-entity)
 - [Datasets API reference](/web-search-api/api-reference/datasets/create-dataset)

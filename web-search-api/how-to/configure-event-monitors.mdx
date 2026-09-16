@@ -1,15 +1,15 @@
 ---
-title: Configure monitors
-sidebarTitle: Configure monitors
-description: Configure reliable, efficient monitors and optimize performance.
+title: Configure event monitors
+sidebarTitle: Configure event monitors
+description: Configure reliable, efficient event monitors and optimize performance.
 ---
 
-This guide covers best practices for monitor configuration, webhook
+This guide covers best practices for event monitor configuration, webhook
 implementation, and performance optimization.
 
 <Tip>
   Encountering issues? See [Troubleshoot
-  monitors](/web-search-api/how-to/troubleshoot-monitors) for solutions to common
+  event monitors](/web-search-api/how-to/troubleshoot-event-monitors) for solutions to common
   problems.
 </Tip>
 
@@ -68,8 +68,8 @@ Define schedules in natural language with explicit timezone.
 Test your schedule format before production use.
 
 <Steps>
-  <Step title="Create test monitor">
-    Create a monitor with your desired schedule (e.g., `"every day at 3 PM UTC"`)
+  <Step title="Create test event monitor">
+    Create an event monitor with your desired schedule (e.g., `"every day at 3 PM UTC"`)
   </Step>
 
   <Step title="Wait for execution">
@@ -84,8 +84,8 @@ Test your schedule format before production use.
     ```
   </Step>
 
-  <Step title="Create production monitor">
-    If correct, create your production monitor. If incorrect, adjust the schedule format.
+  <Step title="Create production event monitor">
+    If correct, create your production event monitor. If incorrect, adjust the schedule format.
   </Step>
 </Steps>
 
@@ -236,7 +236,7 @@ Return 200 immediately and process asynchronously to avoid timeouts:
 
 <Tip>
   If webhooks aren't firing, see [Troubleshoot: Webhook not
-  firing](/web-search-api/how-to/troubleshoot-monitors#webhook-not-firing).
+  firing](/web-search-api/how-to/troubleshoot-event-monitors#webhook-not-firing).
 </Tip>
 
 <Expandable title="Add retry logic with exponential backoff">
@@ -413,21 +413,21 @@ Log all webhook events for debugging:
 
 </Expandable>
 
-## Update monitor configuration
+## Update event monitor configuration
 
-Update webhook assignments or the record limit for an existing monitor without
+Update webhook assignments or the record limit for an existing event monitor without
 recreating it.
 
 ### When to update
 
-Update a monitor when you need to:
+Update an event monitor when you need to:
 - Change which webhooks receive notifications
 - Clear all webhook assignments
 - Adjust the maximum records per run
 
 <Note>
   Schedule and reference job cannot be modified. To change the query or schedule,
-  create a new monitor.
+  create a new event monitor.
 </Note>
 
 ### Update procedure
@@ -503,7 +503,7 @@ To clear all webhook assignments, pass an empty array: `"webhook_ids": []`.
   </Step>
 
   <Step title="Verify update">
-    List your monitors to confirm the change took effect:
+    List your event monitors to confirm the change took effect:
 
 ```bash
     curl "https://catchall.newscatcherapi.com/catchAll/monitors" \
@@ -520,6 +520,6 @@ To clear all webhook assignments, pass an empty array: `"webhook_ids": []`.
 ## See also
 
 - [Set up webhooks](/web-search-api/how-to/set-up-webhooks)
-- [Monitors overview](/web-search-api/concepts/monitors)
-- [Troubleshoot monitors](/web-search-api/how-to/troubleshoot-monitors)
-- [API reference](/web-search-api/api-reference/monitors/create-monitor)
+- [Event Monitors overview](/web-search-api/concepts/event-monitors)
+- [Troubleshoot event monitors](/web-search-api/how-to/troubleshoot-event-monitors)
+- [API reference](/web-search-api/api-reference/event-monitors/create-monitor)

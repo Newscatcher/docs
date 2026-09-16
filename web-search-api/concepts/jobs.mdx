@@ -160,7 +160,7 @@ the description instead of relying on ambiguous cases passing.
 <Note>
   To activate Company search mode and filter results to specific companies,
   add `connected_dataset_ids` to your submit request. See [Company
-  search](/web-search-api/concepts/company-search) for setup
+  Monitors](/web-search-api/concepts/company-monitors) for setup
   instructions.
 </Note>
 
@@ -545,7 +545,7 @@ while (true) {
 <Info>
   Records from Company Search jobs include a `connected_entities` array with
   one entry per matched company — each with `entity_id`, `name`, `ed_score`
-  (1–10), and `relation`. See [Company search](/web-search-api/concepts/company-search) 
+  (1–10), and `relation`. See [Company search](/web-search-api/concepts/company-monitors) 
   for the full output format.
 </Info>
 
@@ -609,9 +609,9 @@ Files.write(Paths.get("job-results.csv"), csvData);
 </Tip>
 
 Each record becomes one row. Enrichment fields are flattened into columns and
-`citations` are serialized as a JSON column. For monitors, the equivalent
+`citations` are serialized as a JSON column. For event monitors, the equivalent
 endpoint is
-[`GET /catchAll/monitors/pull/{monitor_id}/csv`](/web-search-api/api-reference/monitors/get-latest-monitor-results-as-csv),
+[`GET /catchAll/monitors/pull/{monitor_id}/csv`](/web-search-api/api-reference/event-monitors/get-latest-monitor-results-as-csv),
 which exports the most recent run's records.
 
 Connected entities from Company Search jobs are split into two JSON columns:
@@ -850,7 +850,7 @@ Response:
 
 ## See also
 
-- [Monitors](/web-search-api/concepts/monitors)
+- [Event Monitors](/web-search-api/concepts/event-monitors)
 - [Source groups](/web-search-api/concepts/source-groups)
 - [Write effective queries](/web-search-api/how-to/write-effective-queries)
 - [Index and search depth](/web-search-api/concepts/index-and-search-depth)

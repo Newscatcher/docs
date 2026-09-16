@@ -102,9 +102,9 @@ client.wait_for_completion(job_id)
 result = client.get_all_results(job_id)
 ```
 
-### Monitors
+### Event Monitors
 
-Automate recurring searches with scheduled execution. Monitor methods in `CatchAllClient` 
+Automate recurring searches with scheduled execution. Event monitor methods in `CatchAllClient` 
 mirror the [CatchAll Python SDK](/web-search-api/libraries/python) interface directly.
 
 ```python
@@ -136,8 +136,8 @@ results = client.pull_monitor_results(monitor_id)
 jobs = client.list_monitor_jobs(monitor_id, sort="desc")
 ```
 
-For detailed monitor configuration, scheduling syntax, and webhook setup, see
-the [Monitors guide](/web-search-api/concepts/monitors).
+For detailed event monitor configuration, scheduling syntax, and webhook setup, see
+the [Event Monitors guide](/web-search-api/concepts/event-monitors).
 
 
 ### Advanced: Cost optimization

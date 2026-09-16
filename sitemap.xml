@@ -16,10 +16,10 @@
         <loc>https://www.newscatcherapi.com/docs/web-search-api/concepts/jobs</loc>
     </url>
     <url>
-        <loc>https://www.newscatcherapi.com/docs/web-search-api/concepts/monitors</loc>
+        <loc>https://www.newscatcherapi.com/docs/web-search-api/concepts/event-monitors</loc>
     </url>
     <url>
-        <loc>https://www.newscatcherapi.com/docs/web-search-api/concepts/company-search</loc>
+        <loc>https://www.newscatcherapi.com/docs/web-search-api/concepts/company-monitors</loc>
     </url>
     <url>
         <loc>https://www.newscatcherapi.com/docs/web-search-api/concepts/projects</loc>
@@ -40,10 +40,10 @@
         <loc>https://www.newscatcherapi.com/docs/web-search-api/how-to/set-up-webhooks</loc>
     </url>
     <url>
-        <loc>https://www.newscatcherapi.com/docs/web-search-api/how-to/configure-monitors</loc>
+        <loc>https://www.newscatcherapi.com/docs/web-search-api/how-to/configure-event-monitors</loc>
     </url>
     <url>
-        <loc>https://www.newscatcherapi.com/docs/web-search-api/how-to/troubleshoot-monitors</loc>
+        <loc>https://www.newscatcherapi.com/docs/web-search-api/how-to/troubleshoot-event-monitors</loc>
     </url>
     <url>
         <loc>https://www.newscatcherapi.com/docs/web-search-api/how-to/build-an-event-feed</loc>
@@ -88,34 +88,34 @@
         <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/jobs/company-enrichment-dto</loc>
     </url>
     <url>
-        <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/create-monitor</loc>
+        <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/create-monitor</loc>
     </url>
     <url>
-        <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/get-monitor-results</loc>
+        <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/get-monitor-results</loc>
     </url>
     <url>
-        <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/get-latest-monitor-results-as-csv</loc>
+        <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/get-latest-monitor-results-as-csv</loc>
     </url>
     <url>
-        <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/list-monitors</loc>
+        <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/list-monitors</loc>
     </url>
     <url>
-        <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/list-monitor-jobs</loc>
+        <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/list-monitor-jobs</loc>
     </url>
     <url>
-        <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/get-monitor-status-history</loc>
+        <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/get-monitor-status-history</loc>
     </url>
     <url>
-        <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/enable-monitor</loc>
+        <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/enable-monitor</loc>
     </url>
     <url>
-        <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/disable-monitor</loc>
+        <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/disable-monitor</loc>
     </url>
     <url>
-        <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/update-monitor</loc>
+        <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/update-monitor</loc>
     </url>
     <url>
-        <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/monitors/delete-monitor</loc>
+        <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/delete-monitor</loc>
     </url>
     <url>
         <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/create-webhook</loc>
@@ -274,10 +274,10 @@
         <loc>https://www.newscatcherapi.com/docs/web-search-api/integrations/apify</loc>
     </url>
     <url>
-        <loc>https://www.newscatcherapi.com/docs/web-search-api/concepts/monitors</loc>
+        <loc>https://www.newscatcherapi.com/docs/web-search-api/concepts/event-monitors</loc>
     </url>
     <url>
-        <loc>https://www.newscatcherapi.com/docs/web-search-api/concepts/company-search</loc>
+        <loc>https://www.newscatcherapi.com/docs/web-search-api/concepts/company-monitors</loc>
     </url>
     <url>
         <loc>https://www.newscatcherapi.com/docs/news-api/get-started/introduction</loc>

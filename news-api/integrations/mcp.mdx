@@ -28,41 +28,36 @@ Every tool uses `POST` under the hood even though News API also exposes a
 logs, avoids URL-length limits, and lets multi-value filters be sent as native
 JSON arrays.
 
+The server is open source. Source code, changelog, and issue tracker:
+[Newscatcher/news-mcp](https://github.com/Newscatcher/news-mcp).
+
 ## Before you start
 
 - News API key from
-  [platform.newscatcherapi.com](https://platform.newscatcherapi.com/)
+  [platform.newscatcherapi.com/newsapi](https://platform.newscatcherapi.com/newsapi) or you can use your existing API Key
 - MCP-compatible client (Claude, Cursor, VS Code, Windsurf, Zed, Warp, Gemini
   CLI, Roo Code, or any client that supports remote MCP)
 
 ## Authentication
 
-The MCP server resolves your API key from several sources. They are checked in
-this order, and the first one present wins:
+The MCP server resolves your API key from multiple sources, in this order
+(first match wins):
 
 1. `api_token` parameter set on the tool call itself
-2. `?apiToken=YOUR_KEY` URL query parameter — used by Claude.ai, whose
+2. `?apiToken=YOUR_KEY` URL query parameter — used by Claude.ai because its
    connector UI does not support custom request headers
 3. `x-api-token` HTTP request header — **recommended** for every client that
-   supports headers
+   supports custom headers
 4. `Authorization: Bearer <key>` HTTP request header
 5. `NEWS_API_KEY` environment variable on the server host (self-hosted only)
 
 Most client configurations use option 3 (the `x-api-token` header). Claude.ai
-uses option 2 (the `apiToken` query parameter) automatically. `check_health` is
-the only tool that does not require authentication — it's a local liveness ping
-and never calls News API.
+uses option 2 (the `apiToken` query parameter) automatically. `check_health`
+is the only tool that does not require authentication — it's a local liveness
+ping and never calls News API.
 
 To rotate your key, update your client configuration with the new key and
 restart the client.
-
-<Warning>
-  The URL query parameter takes priority over the `x-api-token` header. If your
-  configured URL still carries `?apiToken=...` from an earlier setup, adding a
-  header does not override it — every call fails with `401: Invalid api key`
-  naming the old key. Remove the query parameter from the URL when you switch
-  to a header.
-</Warning>
 
 <Note>
   When you pass the key through a `--header` flag (Claude Code, `mcp-remote`),
@@ -70,6 +65,14 @@ restart the client.
   example `x-api-token:YOUR_NEWS_API_KEY`. A space or a missing colon is the
   most common reason a connection silently fails to authenticate.
 </Note>
+
+<Warning>
+  Configure only one authentication method per client. If a request carries
+  `?apiToken=`, it wins over an `x-api-token` or `Authorization` header sent
+  alongside it — and the key seen on the session's first request is reused for
+  the rest of that session. A stale key in the URL keeps returning `401` even
+  when the header holds a valid one.
+</Warning>
 
 <Warning>
   Your configuration file contains your API key in plain text. Treat it as a
@@ -431,8 +434,8 @@ the [API reference](/news-api/api-reference/overview).
 
 | Tool | Description |
 |------|-------------|
-| `search_articles` | Full-text/boolean search over articles, with date, language, source, entity, and NLP filters |
-| `get_latest_headlines` | Recent headlines over a rolling time window, no keyword required |
+| `search_articles` | Full-text/boolean search over articles, with date, language, source, entity, and NLP filters — clustered by default |
+| `get_latest_headlines` | Recent headlines over a rolling time window, no keyword required — clustered by default |
 | `get_breaking_news` | Actively trending, most-corroborated stories over a fixed window |
 | `search_by_author` | All articles by one exact byline |
 | `search_by_link` | Look up specific already-known articles by NewsCatcher `id` or URL |
@@ -458,15 +461,15 @@ neither you nor the assistant sets the parameter, whether the value comes from
 the MCP or from News API itself. That's what you need when a result comes back
 empty or in a shape you didn't expect.
 
-| Parameter | Value when unset | How to set it |
+| Parameter | Value when unset | How to change it |
 | --- | --- | --- |
 | Date range | Last 7 days | Set `from_` and `to_`, e.g. `from_="2026-03-01"` |
 | Sort order | `relevancy` | `sort_by="date"` for "latest" or "most recent" |
-| Results per call | `page_size=100` (max `1000`) | Lower it for chat-sized answers |
+| Results per call | `page_size=50` on `search_articles` and `get_latest_headlines`, `100` elsewhere (max `1000`) | Lower it for chat-sized answers |
 | Clustering | On for `search_articles` and `get_latest_headlines` | `clustering_enabled=false` |
 | NLP payload | On | `include_nlp_data=false` |
-| Near-duplicate removal | On | `exclude_duplicates=false` |
-| Fields per article | A short default set (title, link, date, domain, author, language, NLP summary and theme) | Pass your own `fields` list |
+| Near-duplicate removal | On for `search_articles` | `exclude_duplicates=false` |
+| Fields per article | A lean nine-key set | Pass your own `fields` list |
 
 <Warning>
   The default date range is the **last 7 days**. An undated query about
@@ -476,46 +479,128 @@ empty or in a shape you didn't expect.
   [Working with historical data](/news-api/guides-and-concepts/working-with-historical-data).
 </Warning>
 
-Because clustering is on by default, `search_articles` and
-`get_latest_headlines` return `clusters_count` plus
-`clusters[{cluster_id, cluster_size, articles}]` — there is no top-level
-`articles` list. Keep it on when you want to see which stories got the widest
-pickup; pass `clustering_enabled=false` when you want a flat article list. See
-[Clustering news articles](/news-api/guides-and-concepts/clustering-news-articles).
-
-Other limits worth knowing:
+Two more limits worth knowing:
 
 - There is a hard cap of **10,000 articles per query**, regardless of
   pagination. If `total_hits` reads exactly `10000`, the real count is likely
   higher — narrow the query or split the date range. See
   [Retrieve more than 10k articles](/news-api/how-to/retrieve-more-than-10k-articles).
-- Call `get_aggregation_count` first on a broad or undated query to gauge
-  volume before paging through results.
 - The upstream request timeout is 30 seconds. A `408` means: narrow the query,
   shorten the date range, or reduce `page_size`.
 
+## Clustered results by default
+
+`search_articles` and `get_latest_headlines` return grouped results unless you
+ask for a flat list. Their defaults:
+
+| Parameter | Default | Effect |
+| --- | --- | --- |
+| `clustering_enabled` | `true` | Response has `clusters_count` and `clusters` (each `{cluster_id, cluster_size, articles}`) instead of a flat `articles` list |
+| `page_size` | `50` | Sized for the grouped view rather than a flat article dump |
+| `cluster_top_n_articles` | `3` | Shows at most three articles per cluster; `cluster_size` still reports the real total |
+
+Clustering regroups results, it does not shrink them: every matched article
+lands in a cluster and none are dropped, so one heavily syndicated story can
+otherwise fill a whole page with near-identical coverage.
+`cluster_top_n_articles` trims each cluster's `articles` list while leaving
+`cluster_size` intact, so you always see how wide a story's coverage actually
+is. Pass `null` for no cap.
+
+Turn clustering off when you want the articles themselves rather than grouped
+topic coverage — tracking a single outlet, checking whether a specific source
+covered a story, or paginating through a flat list:
+
+```text
+Search for articles about AI regulation from reuters.com,
+with clustering_enabled false and page_size 20
+```
+
+With clustering on, the exact article or source you are after may fall outside
+the top three of its cluster and never reach the response. See
+[Clustering news articles](/news-api/guides-and-concepts/clustering-news-articles)
+for how the grouping itself works.
+
+<Note>
+  Other tools are unaffected. `get_breaking_news` returns story clusters with
+  its own API-native `top_n_articles` parameter, and `search_by_author`,
+  `search_by_link`, and `get_aggregation_count` remain unclustered with a
+  default `page_size` of 100.
+</Note>
+
+## Response fields
+
+`search_articles`, `get_latest_headlines`, `get_breaking_news`,
+`search_by_author`, and `search_by_link` accept a `fields` parameter that trims
+each article to the keys you name. News API returns around 40 fields per
+article and the `content` body alone can push a 30-article call past 300 KB, so
+these tools default to a lean set instead:
+
+```text
+title, link, published_date, domain_url, author, language,
+nlp.summary, nlp.translation_summary, nlp.theme
+```
+
+To get the full article object, pass `fields` explicitly as an empty list
+(`[]`) or as `null`. **Leaving `fields` out of the call does not do this** — an
+omitted `fields` applies the lean default like any other call. Only an explicit
+`[]` or `null` opts out.
+
+Field names are validated against the real article schema before the request
+goes out, so a typo returns a corrective error instead of silently disappearing
+from the response. NLP subfields need a dotted path — `nlp.theme`,
+`nlp.sentiment`, `nlp.ner_ORG` — or pass `nlp` alone for the whole block. There
+is no top-level `summary` field: use `description` for the short lede or
+`nlp.summary` for the AI-generated summary.
+
+<Note>
+  For the boolean toggles — `clustering_enabled`, `exclude_duplicates`,
+  `include_nlp_data`, `include_translation_fields` — an explicit `null` means
+  the same as omitting the parameter: the tool's own default applies. `fields`
+  and `cluster_top_n_articles` are the two exceptions, where `null` carries its
+  own meaning (all fields, and no per-cluster cap).
+</Note>
+
+## Response size cap
+
+Article-returning tools (`search_articles`, `get_latest_headlines`,
+`get_breaking_news`, `search_by_author`) cap each response at 250,000 bytes.
+A broad request — `fields=[]` with a large `page_size` and no filters — would
+otherwise return a payload big enough to swamp the client's context window.
+
+The cap drops trailing articles until the response fits; it never touches the
+content of the articles it keeps, and it does not fire on responses that
+already fit, which is nearly all of them. When it does trim, the response
+carries a `response_capped` block:
+
+```json
+{
+  "response_capped": {
+    "reason": "response exceeded the 250000-byte cap",
+    "kept": 42,
+    "dropped": 958,
+    "hint": "narrow the query (add filters, pass fields=[...] instead of fields=[], or reduce page_size) to get more back in one call, or paginate with `page`"
+  }
+}
+```
+
+If you see it, narrow the query, name the fields you actually need instead of
+requesting the full object, lower `page_size`, or page through the results.
+
 ## Keeping responses small
 
-Every tool result lands in your client's context window. The MCP already trims
-each article down to a short default set of fields — title, link, publish date,
-domain, author, language, and the NLP summary and theme — so the full article
-body and the large link arrays never cross the wire. What it does not trim is
-how *many* articles come back: the default is 100 per call, wrapped in
-clusters.
-
-Measured against production, same query, same day:
-
-| Call | Response size | Approx. tokens |
-| --- | --- | --- |
-| `search_articles(q="renewable energy")` | ~96 KB | ~24,000 |
-| The same query with `page_size=20` | ~19 KB | ~4,800 |
-| The same query with `page_size=20`, `clustering_enabled=false`, `include_nlp_data=false` | ~8 KB | ~1,900 |
+The cap is a backstop, not a budget. Every tool result lands in your client's
+context window, and a response that fits comfortably under 250,000 bytes can
+still crowd out the conversation around it. The MCP already trims each article
+to the lean field set above, so the full `content` body and the large link
+arrays never cross the wire. What it does not trim is how *many* articles come
+back.
 
 Three levers, in order of impact:
 
 - **`page_size`** — the big one. 10 to 25 is usually right for an answer you
-  are going to read, against a default of 100.
-- **`clustering_enabled=false`** — flat list, no cluster wrapper.
+  are going to read, against a default of 50.
+- **`clustering_enabled=false`** — a flat list with no cluster wrapper, when
+  you want the articles rather than the grouping.
 - **`include_nlp_data=false`** — drops the per-article `nlp` block when you are
   not using summaries, themes, sentiment, or entities.
 
@@ -591,7 +676,7 @@ work in any client.
 
 News API sorts by relevancy, date, or rank — not by sentiment — so the
 assistant fetches a page and ranks it itself. Keep the result count modest for
-this one.
+this one, or filter server-side with `content_sentiment_max`.
 
 **Follow a person or organization as an entity**
 
@@ -650,8 +735,9 @@ matching does differently.
 </Accordion>
 
 <Accordion title="Tool calls returning errors">
-  Tools return a pretty-printed JSON string on success. A validation or
-  upstream API error comes back as a string starting with `Error: ...`; an
+  Tools return a JSON string on success — compact for the article and source
+  tools, pretty-printed for `get_subscription` and `check_health`. A validation
+  or upstream API error comes back as a string starting with `Error: ...`; an
   unhandled exception comes back as `Unexpected error: ...`. The string names
   the specific reason.
 
@@ -661,11 +747,19 @@ matching does differently.
   looks wrong, open the raw tool output and read the returned string.
 </Accordion>
 
+<Accordion title="401 even though the key is correct">
+  Check whether the configured server URL still carries `?apiToken=...`. The
+  query parameter takes priority over the `x-api-token` header, so an old
+  parameter silently wins over a newly added header. See
+  [Authentication](#authentication).
+</Accordion>
+
 <Accordion title="No results, or only very recent results">
   Queries default to the **last 7 days**. If you asked about something older
   and got nothing back, add an explicit range — "from 2026-03-01 to
   2026-03-31" — and check `historical_days` from `get_subscription` to confirm
-  your plan reaches that far. See [What you get by default](#what-you-get-by-default).
+  your plan reaches that far. See
+  [What you get by default](#what-you-get-by-default).
 </Accordion>
 
 <Accordion title="429 errors or stalled requests">
@@ -675,19 +769,21 @@ matching does differently.
   [Quota and rate limits](#quota-and-rate-limits).
 </Accordion>
 
-<Accordion title="Response too large, or the client truncated the result">
-  The default is 100 articles per call, wrapped in clusters, with the NLP block
-  populated. Ask for fewer — "10 results, just title, link, date and source" —
-  or set `page_size`, `fields`, `clustering_enabled=false` and
-  `include_nlp_data=false` directly. See
-  [Keeping responses small](#keeping-responses-small).
+<Accordion title="Fewer results than expected">
+  Three separate limits can shorten a response. Clustered results show at most
+  `cluster_top_n_articles` articles per cluster (default 3) — `cluster_size`
+  reports the true total. The [response size
+  cap](#response-size-cap) drops trailing articles from oversized payloads and
+  adds a `response_capped` block when it does. And News API returns a maximum
+  of 10,000 articles per query regardless of pagination.
 </Accordion>
 
-<Accordion title="401 even though the key is correct">
-  Check whether the configured server URL still carries `?apiToken=...`. The
-  query parameter takes priority over the `x-api-token` header, so an old
-  parameter silently wins over a newly added header. See
-  [Authentication](#authentication).
+<Accordion title="Response too large, or the client truncated the result">
+  `search_articles` and `get_latest_headlines` default to 50 articles per call,
+  wrapped in clusters, with the NLP block populated. Ask for fewer — "10
+  results, just title, link, date and source" — or set `page_size`, `fields`,
+  `clustering_enabled=false` and `include_nlp_data=false` directly. See
+  [Keeping responses small](#keeping-responses-small).
 </Accordion>
 
 <Accordion title="Client does not support remote MCP">
@@ -725,5 +821,12 @@ matching does differently.
     href="/news-api/how-to/build-search-queries"
   >
     Get better results from News API searches
+  </Card>
+  <Card
+    title="GitHub repository"
+    icon="github"
+    href="https://github.com/Newscatcher/news-mcp"
+  >
+    Server source code, changelog, and issues
   </Card>
 </CardGroup>
