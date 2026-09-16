@@ -236,12 +236,6 @@ deleted — it becomes unassigned and continues to exist.
 - [Get Plan Limits](https://www.newscatcherapi.com/docs/web-search-api/api-reference/meta/get-plan-limits): Returns plan features and current usage for the authenticated organization.
 
 
-### Libraries
-
-- [Python SDK](https://www.newscatcherapi.com/docs/web-search-api/libraries/python): Python client library for CatchAll API
-- [TypeScript SDK](https://www.newscatcherapi.com/docs/web-search-api/libraries/typescript): TypeScript client library for CatchAll API
-- [Java SDK](https://www.newscatcherapi.com/docs/web-search-api/libraries/java): Java client library for CatchAll API
-
 ### Integrations
 
 - [CatchAll MCP server](https://www.newscatcherapi.com/docs/web-search-api/integrations/mcp): Connect CatchAll to any MCP-compatible client for structured web research.
@@ -251,6 +245,12 @@ deleted — it becomes unassigned and continues to exist.
 - [Make.com Integration](https://www.newscatcherapi.com/docs/web-search-api/integrations/make): Use CatchAll in your Make.com scenarios
 - [n8n Integration](https://www.newscatcherapi.com/docs/web-search-api/integrations/n8n): Use CatchAll in your n8n automations
 - [Apify integration](https://www.newscatcherapi.com/docs/web-search-api/integrations/apify): Use CatchAll in your Apify workflows.
+
+### Libraries
+
+- [Python SDK](https://www.newscatcherapi.com/docs/web-search-api/libraries/python): Python client library for CatchAll API
+- [TypeScript SDK](https://www.newscatcherapi.com/docs/web-search-api/libraries/typescript): TypeScript client library for CatchAll API
+- [Java SDK](https://www.newscatcherapi.com/docs/web-search-api/libraries/java): Java client library for CatchAll API
 
 ## Event Monitors
 
@@ -341,15 +341,15 @@ deleted — it becomes unassigned and continues to exist.
 - [Retrieve Subscription Plan Information Get (GET)](https://www.newscatcherapi.com/docs/news-api/api-reference/subscription/retrieve-subscription-plan-information-get): Retrieves information about your subscription plan.
 - [Retrieve Subscription Plan Information Post (POST)](https://www.newscatcherapi.com/docs/news-api/api-reference/subscription/retrieve-subscription-plan-information-post): Retrieves information about your subscription plan.
 
+### Integrations
+
+- [News API MCP server](https://www.newscatcherapi.com/docs/news-api/integrations/mcp): Connect News API to any MCP-compatible client for structured news search.
+
 ### Libraries
 
 - [Python SDK](https://www.newscatcherapi.com/docs/news-api/libraries/python): Python client library for News API
 - [TypeScript SDK](https://www.newscatcherapi.com/docs/news-api/libraries/typescript): TypeScript client library for News API
 - [Java SDK](https://www.newscatcherapi.com/docs/news-api/libraries/java): Java client library for News API
-
-### Integrations
-
-- [News API MCP server](https://www.newscatcherapi.com/docs/news-api/integrations/mcp): Connect News API to any MCP-compatible client for structured news search.
 
 ## Local News API
 
