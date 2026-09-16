@@ -244,15 +244,6 @@
         <loc>https://www.newscatcherapi.com/docs/web-search-api/api-reference/meta/get-plan-limits</loc>
     </url>
     <url>
-        <loc>https://www.newscatcherapi.com/docs/web-search-api/libraries/python</loc>
-    </url>
-    <url>
-        <loc>https://www.newscatcherapi.com/docs/web-search-api/libraries/typescript</loc>
-    </url>
-    <url>
-        <loc>https://www.newscatcherapi.com/docs/web-search-api/libraries/java</loc>
-    </url>
-    <url>
         <loc>https://www.newscatcherapi.com/docs/web-search-api/integrations/mcp</loc>
     </url>
     <url>
@@ -272,6 +263,15 @@
     </url>
     <url>
         <loc>https://www.newscatcherapi.com/docs/web-search-api/integrations/apify</loc>
+    </url>
+    <url>
+        <loc>https://www.newscatcherapi.com/docs/web-search-api/libraries/python</loc>
+    </url>
+    <url>
+        <loc>https://www.newscatcherapi.com/docs/web-search-api/libraries/typescript</loc>
+    </url>
+    <url>
+        <loc>https://www.newscatcherapi.com/docs/web-search-api/libraries/java</loc>
     </url>
     <url>
         <loc>https://www.newscatcherapi.com/docs/web-search-api/concepts/event-monitors</loc>
@@ -412,6 +412,9 @@
         <loc>https://www.newscatcherapi.com/docs/news-api/api-reference/subscription/retrieve-subscription-plan-information-post</loc>
     </url>
     <url>
+        <loc>https://www.newscatcherapi.com/docs/news-api/integrations/mcp</loc>
+    </url>
+    <url>
         <loc>https://www.newscatcherapi.com/docs/news-api/libraries/python</loc>
     </url>
     <url>
@@ -419,9 +422,6 @@
     </url>
     <url>
         <loc>https://www.newscatcherapi.com/docs/news-api/libraries/java</loc>
-    </url>
-    <url>
-        <loc>https://www.newscatcherapi.com/docs/news-api/integrations/mcp</loc>
     </url>
     <url>
         <loc>https://www.newscatcherapi.com/docs/local-news-api/get-started/introduction</loc>

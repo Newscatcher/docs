@@ -170,14 +170,6 @@
             ]
           },
           {
-            "group": "Libraries",
-            "pages": [
-              "web-search-api/libraries/python",
-              "web-search-api/libraries/typescript",
-              "web-search-api/libraries/java"
-            ]
-          },
-          {
             "group": "Integrations",
             "pages": [
               "web-search-api/integrations/mcp",
@@ -187,6 +179,14 @@
               "web-search-api/integrations/make",
               "web-search-api/integrations/n8n",
               "web-search-api/integrations/apify"
+            ]
+          },
+          {
+            "group": "Libraries",
+            "pages": [
+              "web-search-api/libraries/python",
+              "web-search-api/libraries/typescript",
+              "web-search-api/libraries/java"
             ]
           }
         ]
@@ -312,16 +312,16 @@
             ]
           },
           {
+            "group": "Integrations",
+            "pages": ["news-api/integrations/mcp"]
+          },
+          {
             "group": "Libraries",
             "pages": [
               "news-api/libraries/python",
               "news-api/libraries/typescript",
               "news-api/libraries/java"
             ]
-          },
-          {
-            "group": "Integrations",
-            "pages": ["news-api/integrations/mcp"]
           }
         ]
       },
