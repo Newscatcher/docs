@@ -5,6 +5,43 @@ description: Track updates, improvements, and fixes to the CatchAll API.
 rss: true
 ---
 
+<Update label="1.9.0" description="2026-09-18">
+## Paused event monitor alerts and better watchlist recall
+
+A quality release with no request or response changes. You now get an email
+when an event monitor is paused for lack of credits. Watchlist-connected jobs
+also match more articles, and validation no longer drops records on criteria it
+never checked. Existing jobs and event monitors pick up these changes
+automatically.
+
+### Email alert when an event monitor is paused
+
+When an account runs out of credits, scheduled event monitors are disabled
+automatically. You now get an email when this happens, so a monitor doesn't stop
+without you knowing. Emails are limited to one per day, so an account that runs
+out of credits doesn't get a flood of notifications.
+
+After adding credits, resume the monitor with
+[`POST /catchAll/monitors/{monitor_id}/enable`](/web-search-api/api-reference/event-monitors/enable-monitor).
+See
+[Troubleshoot event monitors](/web-search-api/how-to/troubleshoot-event-monitors#event-monitor-stopped-running).
+
+### Better recall for watchlist-connected jobs
+
+Jobs submitted with `connected_dataset_ids` now match articles against the same
+fields as the Search API. Before, some watchlist queries missed articles because
+English word-stem matching was skipped. Source rank filters are now applied to
+watchlist searches too, except when a source group filter is also set.
+
+### Fixes and improvements
+
+- Fewer records dropped during validation. Every validator criterion now gets an
+  explicit verdict. Before, a criterion that the model skipped counted as failed,
+  which could discard records on criteria that were never checked.
+- Fixed model fallback during enrichment. When the primary model is unavailable,
+  enrichment now falls back to the backup model instead of failing.
+</Update>
+
 <Update label="1.8.2" description="2026-09-04">
 ## Update event monitor schedules
 

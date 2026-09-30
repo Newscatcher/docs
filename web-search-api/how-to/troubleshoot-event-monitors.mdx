@@ -172,6 +172,25 @@ For webhook implementation guidance including error handling and retry logic, se
 
 ---
 
+## Event monitor stopped running
+
+**Symptom**: Scheduled runs stop, and you receive an email saying the event
+monitor was paused.
+
+**Cause**: The account ran out of credits, so the event monitor was disabled
+automatically. The notification email is sent at most once per day.
+
+**Resolution**:
+
+1. Add credits to your account or upgrade your plan.
+2. Re-enable the event monitor with
+   [`POST /catchAll/monitors/{monitor_id}/enable`](/web-search-api/api-reference/event-monitors/enable-monitor).
+   See [Enable event monitor](/web-search-api/concepts/event-monitors#enable-event-monitor).
+3. Check the [status history](/web-search-api/concepts/event-monitors#get-status-history)
+   to confirm the event monitor is active again.
+
+---
+
 ## Need more help?
 
 If you encounter issues not covered in this guide:
