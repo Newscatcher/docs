@@ -197,6 +197,13 @@ industry**, **headquarters location**, **founding year and founders**, and
 **concrete products or services**. Generic adjectives ("leading," "innovative,"
 "world-class") carry no disambiguating signal — drop them.
 
+<Note>
+  When a company name or alias is a common word, such as "Apple" or "Target",
+  CatchAll matches it using named-entity recognition instead of searching for
+  the word anywhere in article text. This reduces false matches from ordinary
+  uses of the word.
+</Note>
+
 <Tip>
   Before saving: *Could this description be true of a different company with the
   same name?* If yes, add the attribute that breaks the tie — usually industry,
@@ -1168,6 +1175,14 @@ results.getAllRecords().forEach(record -> {
 | `company` | object | Company-specific attributes (domain, alternative names, key persons). Present when `type == "company"`. |
 
 </Expandable>
+
+### Records per company
+
+Connected jobs cluster articles separately for each company in the dataset, so
+articles about different companies never end up in the same record. When an
+article covers several companies from your watchlist, each of those companies
+can get its own record built from that article. Articles with no connected
+company are clustered together.
 
 ## See also
 
