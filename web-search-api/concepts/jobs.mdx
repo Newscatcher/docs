@@ -250,7 +250,8 @@ System.out.println("Job created: " + jobId);
 returns the current processing stage. Poll every 30-60 seconds until status is
 `completed`. Jobs typically take 10-15 minutes.
 
-Jobs progress through these stages in order:
+Jobs progress through these stages in order. A job can repeat `fetching`,
+`clustering`, and `enriching` when it moves to a new [search turn](#search-turns).
 
 | Stage        | Description                                            |
 | ------------ | ------------------------------------------------------ |
@@ -374,6 +375,20 @@ while (true) {
   You can pull partial results once the job reaches the `enriching` stage
   without waiting for completion. See [Get job results](#get-job-results) below.
 </Note>
+
+### Search turns
+
+CatchAll searches in up to four turns. The first turn runs a strict precision
+search that matches your query against article titles and summaries. If the job
+runs out of candidates before reaching its `limit`, it moves to the next turn,
+which searches a broader set of sources and repeats `fetching`, `clustering`,
+and `enriching`. The job completes when it reaches the limit or finishes the
+last turn. Jobs without a `limit` can run all four turns.
+
+Because of this, a job can return to `fetching` after `enriching`. Treat this
+as continued progress on the same job, and keep polling until the status is
+`completed` or `failed`. Records from earlier turns keep their IDs; articles
+found in later turns can be added to them as new citations.
 
 ## Get job results
 

@@ -5,6 +5,46 @@ description: Track updates, improvements, and fixes to the CatchAll API.
 rss: true
 ---
 
+<Update label="1.10.0" description="2026-09-30">
+## Multi-turn search and per-company clustering
+
+A quality release with no request or response schema changes. Jobs now start
+with a narrow precision search and widen only when they need more results, so
+small jobs finish faster. Company Monitors results no longer mix different
+companies in the same record. Existing jobs and event monitors pick up these
+changes automatically.
+
+### Multi-turn search
+
+Jobs now search in up to four turns. The first turn runs a strict precision
+search that matches your query against article titles and summaries. If the
+job runs out of candidates before reaching its `limit`, it searches the next,
+broader set of sources and runs fetching, clustering, and enrichment again. The
+job completes when it reaches the limit or finishes the last turn.
+
+- Jobs with a low `limit` often finish after the first turn, in around four
+  minutes.
+- Records you already pulled keep their IDs and content. Articles found in later
+  turns can join existing records as additional citations.
+- A job can return to `fetching` after `enriching`. Keep polling until the
+  status is `completed` or `failed`. See
+  [Jobs](/web-search-api/concepts/jobs#search-turns).
+
+### Per-company clustering for Company Monitors
+
+Jobs submitted with `connected_dataset_ids` now cluster articles separately for
+each connected company, so articles about different companies no longer end up
+in the same record. An article about several companies from your watchlist can
+produce a record for each of them. See
+[Company Monitors](/web-search-api/concepts/company-monitors#records-per-company).
+
+### Fixes and improvements
+
+- Fewer false matches for companies whose name or alias is a common word. For
+  these names, matching relies on named-entity recognition instead of matching
+  the word anywhere in article text.
+</Update>
+
 <Update label="1.9.0" description="2026-09-18">
 ## Paused event monitor alerts and better watchlist recall
 
