@@ -80,7 +80,13 @@ If the event monitor's reference job used connected entity datasets, connected e
 
 - [Enable Monitor](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/enable-monitor): Resume scheduled job execution for an event monitor.
 - [Disable Monitor](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/disable-monitor): Stop scheduled job execution for an event monitor.
-- [Update Monitor](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/update-monitor): Update the webhook configuration for an existing event monitor.
+- [Update Monitor](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/update-monitor): Update the webhook assignments, record limit, or schedule of an existing
+event monitor. Omitted fields are left unchanged.
+
+Passing `schedule` replaces the event monitor's current schedule. The new
+schedule takes effect from the next scheduler reload, and the old schedule
+stops firing. The reference job cannot be changed.
+
 - [Delete Monitor](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/delete-monitor): Soft-deletes an event monitor. The event monitor is flagged as deleted, stops
 executing scheduled jobs immediately, and no longer appears in list
 results.
