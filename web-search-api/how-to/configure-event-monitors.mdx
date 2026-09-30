@@ -415,8 +415,8 @@ Log all webhook events for debugging:
 
 ## Update event monitor configuration
 
-Update webhook assignments or the record limit for an existing event monitor without
-recreating it.
+Update webhook assignments, the record limit, or the schedule for an existing event
+monitor without recreating it.
 
 ### When to update
 
@@ -424,10 +424,11 @@ Update an event monitor when you need to:
 - Change which webhooks receive notifications
 - Clear all webhook assignments
 - Adjust the maximum records per run
+- Change how often or at what time the event monitor runs
 
 <Note>
-  Schedule and reference job cannot be modified. To change the query or schedule,
-  create a new event monitor.
+  The reference job cannot be modified. To change the query, create a new event
+  monitor.
 </Note>
 
 ### Update procedure
@@ -500,6 +501,13 @@ System.out.println("Updated: " + response.getMonitorId().orElse("N/A"));
 
 To clear all webhook assignments, pass an empty array: `"webhook_ids": []`.
 
+To change the schedule, pass `schedule` (and optionally `timezone`) in the same
+request body, for example `{"schedule": "every Monday at 9 AM EST"}`. The new
+schedule takes effect from the next scheduler reload, and the old schedule stops
+firing. The API returns `422` if the schedule can't be parsed or runs would be
+spaced too closely. See [Choose appropriate schedules](#choose-appropriate-schedules)
+for supported formats.
+
   </Step>
 
   <Step title="Verify update">
@@ -513,8 +521,8 @@ To clear all webhook assignments, pass an empty array: `"webhook_ids": []`.
 </Steps>
 
 <Tip>
-  Updates take effect immediately. The next scheduled execution uses the new
-  configuration.
+  Webhook and limit updates take effect immediately. The next scheduled execution
+  uses the new configuration. Schedule changes apply from the next scheduler reload.
 </Tip>
 
 ## See also
