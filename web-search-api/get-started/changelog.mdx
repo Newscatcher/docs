@@ -5,6 +5,38 @@ description: Track updates, improvements, and fixes to the CatchAll API.
 rss: true
 ---
 
+<Update label="1.8.2" description="2026-09-04">
+## Update event monitor schedules
+
+You can now change when an existing event monitor runs without deleting and
+recreating it. This release also makes Raw Query fetching more reliable.
+
+### Change an event monitor's schedule
+
+[`PATCH /catchAll/monitors/{monitor_id}`](/web-search-api/api-reference/event-monitors/update-monitor)
+accepts two new optional fields:
+
+- `schedule` (string): A new natural-language schedule, such as
+  `every Monday at 9 AM EST`, that replaces the current one. Omit to keep the
+  current schedule.
+- `timezone` (string, default `UTC`): IANA timezone for the new schedule. A
+  timezone in the `schedule` text takes precedence. Ignored if `schedule` is not
+  set.
+
+The event monitor keeps its ID, reference job, webhooks, and execution history.
+The new schedule takes effect from the next scheduler reload, and the old one
+stops firing. The endpoint returns `422` if the schedule can't be parsed or runs
+would be spaced too closely. See
+[Event Monitors](/web-search-api/concepts/event-monitors#change-the-schedule).
+
+### Fixes and improvements
+
+- Fixed Raw Query fetches that could fail partway through a large result set.
+  Transient fetch failures now retry with exponential backoff and recover
+  consistently.
+- Validator evaluation runs on a faster, lower-cost model.
+</Update>
+
 <Update label="1.8.1" description="2026-08-29">
 ## Sharper watchlist search and stricter validators
 

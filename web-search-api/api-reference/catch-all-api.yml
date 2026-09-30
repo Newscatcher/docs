@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: NewsCatcher CatchAll API
-  version: 1.8.1
+  version: 1.8.2
   description: |
     CatchAll is a web search API that generates unique datasets that don't exist anywhere else on the web. Built on NewsCatcher's proprietary real-world event index, it delivers state-of-the-art recall—finding all relevant events, not just top results.
 
@@ -675,7 +675,13 @@ paths:
       tags:
         - Event Monitors
       summary: Update event monitor
-      description: Update the webhook configuration for an existing event monitor.
+      description: |
+        Update the webhook assignments, record limit, or schedule of an existing
+        event monitor. Omitted fields are left unchanged.
+
+        Passing `schedule` replaces the event monitor's current schedule. The new
+        schedule takes effect from the next scheduler reload, and the old schedule
+        stops firing. The reference job cannot be changed.
       operationId: updateMonitor
       externalDocs:
         description: Learn about event monitor configuration
@@ -694,9 +700,17 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdateMonitorRequestDto"
-            example:
-              webhook_ids:
-                - "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+            examples:
+              update_webhooks:
+                summary: Update webhook assignments
+                value:
+                  webhook_ids:
+                    - "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+              update_schedule:
+                summary: Change the schedule
+                value:
+                  schedule: "every Monday at 9 AM"
+                  timezone: "America/New_York"
       responses:
         "200":
           $ref: "#/components/responses/UpdateMonitorResponse"
@@ -707,7 +721,13 @@ paths:
         "404":
           $ref: "#/components/responses/NotFoundError"
         "422":
-          $ref: "#/components/responses/ValidationError"
+          description: |
+            Validation error. Also returned when `schedule` can't be parsed into a
+            cron expression, or when runs would be spaced too closely.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
 
     delete:
       tags:
@@ -5020,6 +5040,24 @@ components:
           type: integer
           minimum: 10
           description: Updated maximum number of records per event monitor run.
+        schedule:
+          type: [string, "null"]
+          description: |
+            New natural-language schedule that replaces the event monitor's current
+            schedule. Examples: `every day at 9 AM`, `every Monday at 6 PM EST`.
+
+            Omit to keep the current schedule. The new schedule takes effect from the
+            next scheduler reload, and the old schedule stops firing. Returns `422` if
+            the text can't be parsed or runs would be spaced too closely.
+          example: "every day at 9 AM"
+        timezone:
+          type: [string, "null"]
+          default: UTC
+          description: |
+            IANA timezone for the new schedule (for example, `America/New_York`).
+            A timezone included in the `schedule` text takes precedence. Ignored if
+            `schedule` is not set.
+          example: "America/New_York"
 
     UpdateMonitorResponseDto:
       type: object

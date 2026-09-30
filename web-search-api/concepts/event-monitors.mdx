@@ -458,14 +458,14 @@ Files.write(Paths.get("monitor-results.csv"), csvData);
 
 ## Manage event monitors
 
-Use these endpoints to update webhook assignments, pause, resume, or delete an 
-event monitor, and inspect its execution history.
+Use these endpoints to update webhook assignments, record limit, or schedule;
+pause, resume, or delete an event monitor; and inspect its execution history.
 
 ### Update event monitor
 
-Update webhook assignments or the record limit for an existing event monitor. Pass a 
-new list of webhook IDs to replace existing assignments. Pass an empty array to 
-clear all assignments:
+Update webhook assignments, the record limit, or the schedule for an existing event
+monitor. Omitted fields are left unchanged. Pass a new list of webhook IDs to
+replace existing assignments. Pass an empty array to clear all assignments:
 
 <CodeGroup>
 ```bash cURL
@@ -527,9 +527,75 @@ Response:
 }
 ```
 
+#### Change the schedule
+
+Pass `schedule` to replace the event monitor's current schedule without
+recreating it. The event monitor keeps its ID, reference job, webhooks, and
+execution history:
+
+<CodeGroup>
+```bash cURL
+curl -X PATCH "https://catchall.newscatcherapi.com/catchAll/monitors/{monitor_id}" \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "schedule": "every Monday at 9 AM EST"
+  }'
+```
+```json JSON
+{
+  "schedule": "every Monday at 9 AM EST"
+}
+```
+```python Python
+from newscatcher_catchall import CatchAllApi
+
+client = CatchAllApi(api_key="YOUR_API_KEY")
+
+client.monitors.update_monitor(
+    monitor_id="3fec5b07-8786-46d7-9486-d43ff67eccd4",
+    schedule="every Monday at 9 AM EST",
+)
+```
+```typescript TypeScript
+import { CatchAllApiClient } from "newscatcher-catchall-sdk";
+
+const client = new CatchAllApiClient({ apiKey: "YOUR_API_KEY" });
+
+await client.monitors.updateMonitor({
+  monitor_id: "3fec5b07-8786-46d7-9486-d43ff67eccd4",
+  schedule: "every Monday at 9 AM EST",
+});
+```
+```java Java
+import com.newscatcher.catchall.CatchAllApi;
+import com.newscatcher.catchall.resources.monitors.requests.UpdateMonitorRequestDto;
+
+CatchAllApi client = CatchAllApi.builder()
+    .apiKey("YOUR_API_KEY")
+    .build();
+
+client.monitors().updateMonitor(
+    "3fec5b07-8786-46d7-9486-d43ff67eccd4",
+    UpdateMonitorRequestDto.builder()
+        .schedule("every Monday at 9 AM EST")
+        .build()
+);
+```
+</CodeGroup>
+
+- `schedule` uses the same natural-language format as event monitor creation.
+- `timezone` (optional, default `UTC`) sets an IANA timezone for the new
+  schedule, such as `America/New_York`. A timezone in the `schedule` text takes
+  precedence. `timezone` is ignored if `schedule` is not set.
+- The new schedule takes effect from the next scheduler reload, and the old
+  schedule stops firing.
+- The API returns `422` if the schedule can't be parsed or runs would be spaced
+  too closely.
+
 <Note>
-  Schedule and reference job cannot be modified. To change the query or schedule, 
-  create a new event monitor.
+  The reference job cannot be modified. To change the query, validators, or
+  enrichments, create a new event monitor from a different reference job.
 </Note>
 
 ### Enable event monitor
