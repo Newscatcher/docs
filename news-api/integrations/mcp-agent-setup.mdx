@@ -197,6 +197,9 @@ and source only."
 `*` wildcard, `NEAR`. Quote multi word names (`"Tim Cook"`). Filters are
 separate parameters, not query syntax: `lang`, `countries`, `search_in`
 (title, summary, content), `theme`, `is_headline`, `sort_by`, `page_size`.
+`lang`, `countries`, `search_in`, `theme` and `fields` are **lists**, even for
+one value: `"lang": ["en"]`, not `"lang": "en"`. A bare string is rejected with
+a validation error before the call reaches the API.
 
 Before pulling many pages, call `get_aggregation_count` first. It returns daily
 or hourly article counts for the query and no articles, so you can see the
@@ -221,7 +224,7 @@ volume and narrow the window before spending calls.
 ## Recipes
 
 ```json
-{"name":"search_articles","arguments":{"q":"\"Siemens Energy\"","lang":"en","from_":"3 days ago","page_size":20,"fields":["title","link","published_date","domain_url"]}}
+{"name":"search_articles","arguments":{"q":"\"Siemens Energy\"","lang":["en"],"from_":"3 days ago","page_size":20,"fields":["title","link","published_date","domain_url"]}}
 ```
 
 ```json
