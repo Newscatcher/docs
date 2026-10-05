@@ -56,8 +56,7 @@ The MCP server resolves your API key from multiple sources, in this order
 (first match wins):
 
 1. `api_token` parameter set on the tool call itself
-2. `?apiToken=YOUR_KEY` URL query parameter — used by the Claude.ai and Claude
-   Desktop connector UIs, which have no field for custom request headers
+2. `?apiToken=YOUR_KEY` URL query parameter — used by some Agents which have no field for custom request headers
 3. `x-api-token` HTTP request header — **recommended** for every client that
    supports custom headers
 4. `Authorization: Bearer <key>` HTTP request header
