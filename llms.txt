@@ -350,7 +350,6 @@ deleted — it becomes unassigned and continues to exist.
 ### Integrations
 
 - [News API MCP server](https://www.newscatcherapi.com/docs/news-api/integrations/mcp): Connect News API to any MCP-compatible client for structured news search.
-- [News API MCP agent setup](https://www.newscatcherapi.com/docs/news-api/integrations/mcp-agent-setup): Written for the AI agent doing the setup. Hand it this page and it connects the News API MCP server to whatever client it is running in, then verifies the key with one call.
 
 ### Libraries
 
