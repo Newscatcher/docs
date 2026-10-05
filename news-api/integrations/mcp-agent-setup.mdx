@@ -168,9 +168,27 @@ client restart. Claude Desktop does **not** need it; use path A.
 
 Ask for `check_health` (free, proves the connection), then `get_subscription`
 (proves the key, shows quota). Then one real query that names a time window, a
-result count and the fields wanted, so the response stays small: "Latest
-headlines about renewable energy, last 2 days, 10 results, title, link, date
+result count and the fields wanted, so the response stays small: "Most recent
+articles about renewable energy, last 2 days, 10 results, title, link, date
 and source only."
+
+A topic means a keyword, and only `search_articles` takes one (`q`).
+`get_latest_headlines` has no `q` and rejects it with a validation error; it
+filters by `lang`, `countries`, `theme` and `sources` over a `when` window.
+The query above as a call:
+
+```json
+{
+  "name": "search_articles",
+  "arguments": {
+    "q": "\"renewable energy\"",
+    "from_": "2 days ago",
+    "sort_by": "date",
+    "page_size": 10,
+    "fields": ["title", "link", "published_date", "domain_url"]
+  }
+}
+```
 
 ## Defaults that decide what comes back
 
