@@ -313,7 +313,7 @@
           },
           {
             "group": "Integrations",
-            "pages": ["news-api/integrations/mcp"]
+            "pages": ["news-api/integrations/mcp", "news-api/integrations/mcp-agent-setup"]
           },
           {
             "group": "Libraries",

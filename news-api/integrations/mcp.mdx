@@ -31,6 +31,18 @@ JSON arrays.
 The server is open source. Source code, changelog, and issue tracker:
 [Newscatcher/news-mcp](https://github.com/Newscatcher/news-mcp).
 
+<Tip>
+  **Setting up with an AI agent?** Paste this into Claude, Cursor, or any agent
+  with web access, with your key filled in. The
+  [agent setup page](/news-api/integrations/mcp-agent-setup) is written for the
+  agent: it picks the right path for the client it is running in and verifies
+  the key with one call.
+
+  ```text
+  Read and follow https://www.newscatcherapi.com/docs/news-api/integrations/mcp-agent-setup.md and set up the News API MCP server for me. My News API key: YOUR_NEWS_API_KEY
+  ```
+</Tip>
+
 ## Before you start
 
 - News API key from
@@ -44,15 +56,16 @@ The MCP server resolves your API key from multiple sources, in this order
 (first match wins):
 
 1. `api_token` parameter set on the tool call itself
-2. `?apiToken=YOUR_KEY` URL query parameter — used by Claude.ai because its
-   connector UI does not support custom request headers
+2. `?apiToken=YOUR_KEY` URL query parameter — used by the Claude.ai and Claude
+   Desktop connector UIs, which have no field for custom request headers
 3. `x-api-token` HTTP request header — **recommended** for every client that
    supports custom headers
 4. `Authorization: Bearer <key>` HTTP request header
 5. `NEWS_API_KEY` environment variable on the server host (self-hosted only)
 
 Most client configurations use option 3 (the `x-api-token` header). Claude.ai
-uses option 2 (the `apiToken` query parameter) automatically. `check_health`
+and Claude Desktop use option 2 (the `apiToken` query parameter) through their
+connector URL. `check_health`
 is the only tool that does not require authentication — it's a local liveness
 ping and never calls News API.
 
@@ -119,76 +132,102 @@ restart the client.
   </Tab>
 
   <Tab title="Claude Desktop">
-    Claude Desktop supports remote MCP servers through the Connectors UI (**Settings > Customize > Connectors**) — the same flow as Claude.ai.
-
-    Alternatively, you can configure it via a JSON config file. This approach does not support native remote MCP, so it requires `mcp-remote` as a proxy.
+    Claude Desktop connects to remote MCP servers through the same Connectors
+    screen as Claude.ai. No config file, no Node.js, no restart.
 
     <Steps>
-      <Step title="Install Node.js">
-        Run `node --version` to check if Node.js is installed. If the command fails, download and install it from [nodejs.org](https://nodejs.org) before continuing.
+      <Step title="Open connectors">
+        In Claude Desktop, open **Settings > Connectors** (under **Customize** on some versions) and click **Add custom connector**.
       </Step>
-      <Step title="Fix npm permissions (once)">
-        Run this once to avoid permission errors when using `npx`:
+      <Step title="Configure connection">
+        Fill in the **Add custom connector** dialog:
 
-        ```bash
-        sudo chown -R $(whoami) ~/.npm
+        * **Name**: `News API`
+        * **Remote MCP server URL**:
+
+        ```
+        https://news-mcp.newscatcherapi.com/mcp?apiToken=YOUR_NEWS_API_KEY
         ```
       </Step>
-      <Step title="Install mcp-remote">
-        ```bash
-        npm install -g mcp-remote
-        ```
-      </Step>
-      <Step title="Open configuration file">
-        <Tabs>
-          <Tab title="macOS">
-            ```txt
-            ~/Library/Application Support/Claude/claude_desktop_config.json
-            ```
-          </Tab>
-          <Tab title="Windows">
-            ```txt
-            %APPDATA%\Claude\claude_desktop_config.json
-            ```
-          </Tab>
-        </Tabs>
+      <Step title="Add and test">
+        Click **Add**. The tools are available in the next new chat, with no restart.
 
-        Or open it from Claude Desktop: **Settings > Developer > Edit Config**.
-      </Step>
-      <Step title="Add News API entry">
-        Paste the following into the file:
+        Ask Claude to run `check_health`. It needs no API key, so a clean response proves the connection itself works. Then ask for `get_subscription`, the first call that uses your key: it returns your plan, remaining calls, concurrency limit, and how far back you can search.
 
-        ```json
-        {
-          "mcpServers": {
-            "news": {
-              "command": "npx",
-              "args": [
-                "mcp-remote",
-                "https://news-mcp.newscatcherapi.com/mcp",
-                "--header",
-                "x-api-token:YOUR_NEWS_API_KEY"
-              ]
-            }
-          }
-        }
-        ```
-
-        Write the header value as `x-api-token:YOUR_NEWS_API_KEY` with no space after the colon (see [Authentication](#authentication)).
-
-        <Note>
-          On Windows, `npx` often cannot be launched directly from this config.
-          If the server fails to start, wrap it with `cmd`: set `"command":
-          "cmd"` and prepend `"/c", "npx"` to the `args` array.
-        </Note>
-      </Step>
-      <Step title="Restart Claude Desktop">
-        Save the file and quit Claude Desktop completely, then relaunch it. Claude Desktop loads MCP tools on startup.
-      </Step>
-      <Step title="Verify connection">
-        Go to **Settings > Developer**. Next to **news**, the status should show **running**. To confirm end to end, open a new chat and ask Claude to run `check_health` — it needs no API key, so a clean response proves the connection works. Then ask for `get_subscription` to confirm the key itself is valid and see your remaining quota.
+        For a real query, name a time window, a result count, and the fields you want: "Get the latest headlines about renewable energy from the last 2 days, 10 results, just title, link, date and source."
       </Step>
     </Steps>
+
+    <Accordion title="Alternative: JSON config file with mcp-remote">
+      Use this only if the Connectors screen is not available to you. Claude Desktop's JSON config does not speak remote MCP directly, so this path needs Node.js, the `mcp-remote` proxy, and a full restart of the app.
+
+      <Steps>
+        <Step title="Install Node.js">
+          Run `node --version` to check if Node.js is installed. If the command fails, download and install it from [nodejs.org](https://nodejs.org) before continuing.
+        </Step>
+        <Step title="Fix npm permissions (once)">
+          Run this once to avoid permission errors when using `npx`:
+
+          ```bash
+          sudo chown -R $(whoami) ~/.npm
+          ```
+        </Step>
+        <Step title="Install mcp-remote">
+          ```bash
+          npm install -g mcp-remote
+          ```
+        </Step>
+        <Step title="Open configuration file">
+          <Tabs>
+            <Tab title="macOS">
+              ```txt
+              ~/Library/Application Support/Claude/claude_desktop_config.json
+              ```
+            </Tab>
+            <Tab title="Windows">
+              ```txt
+              %APPDATA%\Claude\claude_desktop_config.json
+              ```
+            </Tab>
+          </Tabs>
+
+          Or open it from Claude Desktop: **Settings > Developer > Edit Config**.
+        </Step>
+        <Step title="Add News API entry">
+          Paste the following into the file:
+
+          ```json
+          {
+            "mcpServers": {
+              "news": {
+                "command": "npx",
+                "args": [
+                  "mcp-remote",
+                  "https://news-mcp.newscatcherapi.com/mcp",
+                  "--header",
+                  "x-api-token:YOUR_NEWS_API_KEY"
+                ]
+              }
+            }
+          }
+          ```
+
+          `mcp-remote` splits the `--header` value on the first colon, so write it as `x-api-token:YOUR_NEWS_API_KEY` with no space after the colon.
+
+          <Note>
+            On Windows, `npx` often cannot be launched directly from this config.
+            If the server fails to start, wrap it with `cmd`: set `"command":
+            "cmd"` and prepend `"/c", "npx"` to the `args` array.
+          </Note>
+        </Step>
+        <Step title="Restart Claude Desktop">
+          Save the file and quit Claude Desktop completely, then relaunch it. Claude Desktop loads MCP tools on startup.
+        </Step>
+        <Step title="Verify connection">
+          Go to **Settings > Developer**. Next to **news**, the status should show **running**. To confirm end to end, open a new chat and ask Claude to run `check_health` — it needs no API key, so a clean response proves the connection works. Then ask for `get_subscription` to confirm the key itself is valid and see your remaining quota.
+        </Step>
+      </Steps>
+    </Accordion>
 
   </Tab>
 
@@ -716,7 +755,9 @@ matching does differently.
 
 <Accordion title="Tools not appearing">
   Restart your MCP client after updating the configuration. Most clients load
-  MCP tools on startup and do not detect changes until restarted.
+  MCP tools on startup and do not detect changes until restarted. A connector
+  added through the Claude.ai or Claude Desktop Connectors screen needs no
+  restart: open a new chat.
 </Accordion>
 
 <Accordion title="Connection refused or timeout">
@@ -788,12 +829,21 @@ matching does differently.
 
 <Accordion title="Client does not support remote MCP">
   Use `mcp-remote` to proxy the connection. Install Node.js, then use the
-  `npx` configuration shown in the **Other clients** tab.
+  `npx` configuration shown in the **Other clients** tab. Claude Desktop is
+  not one of these clients: its Connectors screen takes the remote URL
+  directly (see [Connect to Claude](#connect-to-claude)).
 </Accordion>
 
 ## See also
 
 <CardGroup cols={2}>
+  <Card
+    title="Agent setup"
+    icon="robot"
+    href="/news-api/integrations/mcp-agent-setup"
+  >
+    One line to paste into your agent; it connects itself
+  </Card>
   <Card
     title="API reference"
     icon="book"

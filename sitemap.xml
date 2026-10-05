@@ -415,6 +415,9 @@
         <loc>https://www.newscatcherapi.com/docs/news-api/integrations/mcp</loc>
     </url>
     <url>
+        <loc>https://www.newscatcherapi.com/docs/news-api/integrations/mcp-agent-setup</loc>
+    </url>
+    <url>
         <loc>https://www.newscatcherapi.com/docs/news-api/libraries/python</loc>
     </url>
     <url>
