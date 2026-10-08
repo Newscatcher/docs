@@ -3769,15 +3769,21 @@ components:
       default: day
 
     NewsDomainType:
-      type: string
-      enum:
-        - Original Content
-        - Aggregator
-        - Press Releases
-        - Republisher
-        - Other
+      oneOf:
+        - type: string
+          example: "Original Content,Aggregator"
+        - type: array
+          items:
+            type: string
+            enum:
+              - Original Content
+              - Aggregator
+              - Press Releases
+              - Republisher
+              - Other
+          example: ["Original Content", "Aggregator"]
       description: |
-        Filters results based on the news domain type. Possible values are:
+        Filters results based on the news domain type. Multiple types can be specified using a comma-separated string or an array of strings. Possible values are:
         - `Original Content`: Sources that produce their own content.
         - `Aggregator`: Sources that collect content from various other sources.
         - `Press Releases`: Sources primarily publishing press releases.
