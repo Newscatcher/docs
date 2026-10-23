@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: NewsCatcher CatchAll API
-  version: 1.10.0
+  version: 1.10.2
   description: |
     CatchAll is a web search API that generates unique datasets that don't exist anywhere else on the web. Built on NewsCatcher's proprietary real-world event index, it delivers state-of-the-art recall—finding all relevant events, not just top results.
 
@@ -3744,6 +3744,8 @@ components:
         - `completed`: Job finished successfully, results ready.
         - `failed`: Job processing failed.
 
+        Later search turns repeat `fetching`, `clustering`, and `enriching`, so a job can return to `fetching` after `enriching`.
+
         Poll `/catchAll/status/{job_id}` every 30-60 seconds until status is `completed` (typically 10-15 minutes).
       example: "fetching"
 
@@ -3767,6 +3769,18 @@ components:
           default: false
           description: True if this step has finished processing; false otherwise.
 
+    JobIterationInfo:
+      type: object
+      properties:
+        turn:
+          type: integer
+          default: 1
+          minimum: 1
+          description: |
+            Current 1-indexed search turn. Jobs search in up to four turns, and a job that moves to a later turn repeats `fetching`, `clustering`, and `enriching`. Jobs that run without turns are reported as turn 1.
+          example: 1
+      description: Job progress details for multi-turn search.
+
     StatusResponseDto:
       type: object
       required:
@@ -3781,6 +3795,10 @@ components:
           allOf:
             - $ref: "#/components/schemas/PublicJobStatus"
           description: Current job processing status.
+        job_info:
+          allOf:
+            - $ref: "#/components/schemas/JobIterationInfo"
+          description: Job progress details. `turn` is the current 1-indexed search turn.
         steps:
           type: array
           items:
@@ -3845,6 +3863,10 @@ components:
           type: string
           description: Current processing status of the job.
           example: "completed"
+        job_info:
+          allOf:
+            - $ref: "#/components/schemas/JobIterationInfo"
+          description: Job progress details. `turn` is the current 1-indexed search turn.
         mode:
           type: string
           enum: ["lite", "base"]
@@ -3897,6 +3919,10 @@ components:
           description: |
             Job status.
           example: "completed"
+        job_info:
+          allOf:
+            - $ref: "#/components/schemas/JobIterationInfo"
+          description: Job progress details. `turn` is the current 1-indexed search turn.
         error:
           type: [string, "null"]
           description:

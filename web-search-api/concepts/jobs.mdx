@@ -330,6 +330,9 @@ while (true) {
 {
   "job_id": "5f0c9087-85cb-4917-b3c7-e5a5eff73a0c",
   "status": "completed",
+  "job_info": {
+    "turn": 1
+  },
   "steps": [
     {
       "status": "submitted",
@@ -389,6 +392,21 @@ Because of this, a job can return to `fetching` after `enriching`. Treat this
 as continued progress on the same job, and keep polling until the status is
 `completed` or `failed`. Records from earlier turns keep their IDs; articles
 found in later turns can be added to them as new citations.
+
+To see which turn a job is on, read `job_info.turn` from the
+[status](#get-job-status), [results](#get-job-results), or
+[list user jobs](#list-user-jobs) response. Turns are numbered from 1. Jobs
+that run without turns report `turn: 1`.
+
+```json
+{
+  "job_id": "5f0c9087-85cb-4917-b3c7-e5a5eff73a0c",
+  "status": "fetching",
+  "job_info": {
+    "turn": 2
+  }
+}
+```
 
 ## Get job results
 
@@ -492,6 +510,9 @@ while (true) {
     "other_investors"
   ],
   "status": "completed",
+  "job_info": {
+    "turn": 1
+  },
   "duration": "1m",
   "candidate_records": 4,
   "valid_records": 3,
@@ -799,6 +820,9 @@ for (var job : jobs.getJobs()) {
       "query": "Series B funding rounds for SaaS startups",
       "created_at": "2026-02-24T13:57:56.267572",
       "status": "completed",
+      "job_info": {
+        "turn": 1
+      },
       "mode": "base"
     },
     {
@@ -806,6 +830,9 @@ for (var job : jobs.getJobs()) {
       "query": "Find corporate headquarters relocations in the US",
       "created_at": "2026-02-18T20:25:20.940731",
       "status": "completed",
+      "job_info": {
+        "turn": 1
+      },
       "mode": "lite"
     }
   ]

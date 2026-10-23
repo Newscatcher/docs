@@ -5,6 +5,51 @@ description: Track updates, improvements, and fixes to the CatchAll API.
 rss: true
 ---
 
+<Update label="1.10.2" description="2026-10-09">
+## Search turn in job responses and broader article matching
+
+Job responses now report which search turn a job is on. Jobs also match against
+full article content, and published records no longer include failed
+extractions or records with unfinished quality checks. Existing jobs and event
+monitors pick up these changes automatically.
+
+### Search turn in job responses
+
+`GET /catchAll/status/{job_id}`, `GET /catchAll/pull/{job_id}`, and
+`GET /catchAll/jobs/user` now return a `job_info` object. Its `turn` field is
+the current 1-indexed [search turn](/web-search-api/concepts/jobs#search-turns),
+so you can tell when a job that goes back to `fetching` has moved to a later
+turn. Jobs that run without turns report `turn: 1`.
+
+```json
+{
+  "job_id": "5f0c9087-85cb-4917-b3c7-e5a5eff73a0c",
+  "status": "fetching",
+  "job_info": {
+    "turn": 2
+  }
+}
+```
+
+### Broader article matching
+
+- Queries now match against full article content, not only titles and
+  summaries.
+- Language-specific queries also match translated article content.
+- Local News compatibility is restored.
+
+### Fixes and improvements
+
+- Published records no longer include failed extractions or records whose
+  correction or precision checks did not finish. This also applies to resumed
+  jobs and to results aggregated from a parent job.
+- Better recovery from temporary provider failures. Failed validation and
+  extraction are retried, and resumed jobs reuse completed work instead of
+  repeating it.
+- Records removed during deduplication no longer reappear when a job resumes.
+- Faster matching of new articles to existing records in later search turns.
+</Update>
+
 <Update label="1.10.0" description="2026-09-30">
 ## Multi-turn search and per-company clustering
 
