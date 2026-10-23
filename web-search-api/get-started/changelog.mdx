@@ -5,6 +5,39 @@ description: Track updates, improvements, and fixes to the CatchAll API.
 rss: true
 ---
 
+<Update label="1.10.3" description="2026-10-15">
+## Model updates and more accurate deduplication
+
+A quality release with no request or response schema changes. Enrichment and
+deduplication now run on updated models, and deduplication no longer merges
+records that belong apart. Existing jobs and event monitors pick up these
+changes automatically.
+
+### Updated models
+
+Entity matching, precision filtering, event tagging, deduplication, and event
+monitor group summaries now use updated models, with equal or better result
+quality. Existing jobs and event monitors that were created with the retired
+models switch to the current ones the next time they run or continue, so you
+don't need to re-create them.
+
+### More accurate deduplication
+
+- Records from different jobs or event monitors are no longer merged.
+- Unrelated incidents are no longer merged into the same record, including
+  through chains of earlier merges.
+- If a merge can't be verified, the records stay separate instead of being
+  merged or dropped.
+- Processing errors during deduplication keep every record instead of dropping
+  events.
+
+### Fixes and improvements
+
+- Event monitor group results are no longer saved with records silently
+  missing. If new records can't be processed, the update fails instead of
+  dropping them.
+</Update>
+
 <Update label="1.10.2" description="2026-10-09">
 ## Search turn in job responses and broader article matching
 
