@@ -1,0 +1,78 @@
+---
+title: Agent overview
+sidebarTitle: Overview
+description: Research events or companies in the background, once or on a schedule.
+---
+
+The agent researches the news for you and returns a table. You describe what
+to find, it runs in the background, and you get one event or story per row,
+with its sources.
+
+## Two things to research, two ways to run
+
+| | Run once | Keep updated |
+|---|---|---|
+| **Events**: a description of what happened | [Event research](/agent/event-research) | Event monitor |
+| **Companies**: a list of company domains | [Company research](/agent/company-research) | Company monitor |
+
+- **Events**: "Bank M&A deals announced in the US since Sep 15". The agent
+  finds the events and fills the columns your question needs.
+- **Companies**: `stripe.com`, `adyen.com`, … The agent finds each company's
+  news stories, optionally only about a topic such as "funding and
+  acquisitions".
+- **Keep updated**: once a run succeeds, the agent turns it into a
+  [monitor](/agent/monitors) that delivers only what is new, daily, weekly or
+  every few hours.
+
+## One endpoint
+
+Every run starts with `POST /runs`. Send `query` for events, or `companies`
+for companies:
+
+<CodeGroup>
+```json Events
+{
+  "query": "Bank M&A deals announced in the US since Sep 15",
+  "mode": "standard"
+}
+```
+
+```json Companies
+{
+  "companies": { "items": [{ "domain": "stripe.com" }, { "domain": "adyen.com" }] },
+  "query": "funding and acquisitions",
+  "lookback_days": 90
+}
+```
+
+```json Keep updated
+{
+  "query": "Product recalls announced by US food companies",
+  "mode": "fast",
+  "keep_updated": { "schedule": { "every": "day", "at": "09:00", "tz": "America/New_York" } }
+}
+```
+</CodeGroup>
+
+## Modes
+
+Event research has three modes. Company research has one.
+
+| Mode | How it works | Time |
+|---|---|---|
+| `fast` (default for events) | One agent. | About 1 to 3 minutes |
+| `standard` | Deep research: planned slices, every web page read, each row verified, a cited briefing. | About 10 to 30 minutes |
+| `max` | Deep research with stronger models: higher recall and cost. | Longer than `standard` |
+
+Company runs always use `standard`.
+
+## What you get
+
+Both kinds return the same table, so display, export and monitor delivery work
+the same way:
+
+- an events run has the columns its question needed, one event per row;
+- a companies run has one story per row, company first, plus one coverage row
+  per company in `companies`.
+
+See [Results and exports](/agent/results-and-exports).

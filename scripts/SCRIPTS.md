@@ -113,6 +113,36 @@ npm run sitemap:generate
 and fails if the committed `sitemap.xml` does not match the freshly generated
 output.
 
+Both generators read the tabs of every navigation version, and skip OpenAPI
+endpoint entries such as `GET /search` (Mintlify generates those pages).
+
+---
+
+### `sync_latest_oas.py`
+
+Fetches the News API and Agent OpenAPI specs into `api-reference/news-api/`
+and `api-reference/agent/`, the specs behind the Latest API Reference tab.
+
+**What it does:**
+
+- Downloads `/news-api/openapi.json` and `/agent/openapi.json` from the API host
+- Cuts the Python docstring sections (`Args:`, `Returns:`, `Raises:`) the Agent
+  spec carries in its descriptions, and turns RST double backticks into
+  Markdown code
+- Keeps everything else as served
+
+**Usage:**
+
+```bash
+# From the dev host (default)
+python scripts/sync_latest_oas.py
+
+# From another host
+python scripts/sync_latest_oas.py --base https://api.example.com
+```
+
+**Requirements:** Python 3.8+, stdlib only
+
 ---
 
 ## Migration Scripts

@@ -1,0 +1,3460 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "NCA-V4-API",
+    "summary": "Ranked, story-aware news search.",
+    "description": "Search the news NewsCatcher has crawled in the last **30 days**, in every language: ranked by relevance, source authority and freshness, and\ngrouped into **stories** (the articles that report the same event), with a one-line summary of each article.\n\n## Authentication\n\nSend your API key in the `x-api-key` header of every request. Keys are created in the NewsCatcher platform. A missing or invalid key is answered with `401`.\n\n## Endpoints\n\n| Endpoint | What it does | Charged |\n|---|---|---|\n| `GET` or `POST /search` | Ranked articles for a request in plain words or with keywords. | Yes, by effort |\n| `GET /stories/{story_id}` | Every article of one story. | Yes, 1 NCC per successful request |\n| `GET /subscription` | Your plan, limits and credit balance. | No |\n\n## Effort and credits\n\n`effort` sets how much work goes into the ranking. A search is charged in **NCC** credits, by the effort you ask for, and only when it succeeds (`200`).\n\n| Effort | What it does | Credits |\n|---|---|---|\n| `low` | Ranks by relevance, authority, coverage and freshness. Fastest. | 1 |\n| `medium` (default) | Adds a cross-encoder rerank of the top stories. | 5 |\n| `high` | Adds an LLM judgement of the top stories and merges the stories that report the same event. Slowest, best quality. | 10 |\n\nA search that finds nothing is still charged. A request that is refused or fails (`401`, `402`, `403`, `422`, `429`, `500`, `503`) is never charged.\n\n## Query\n\n`q` is a request in plain words or keywords, in any language, up to 500 characters. Put an upper-case `NOT` before a term to drop the articles that mention it in\ntheir headline, description or summary (`Apple NOT iPhone`). `languages`, `countries` and `sources` narrow the search; the time window is the last 24 hours unless you set\n`window_hours`.\n\n## Limits\n\nYour plan sets the requests per second (per effort level and in all), an optional daily limit, the most results per request (`limit`) and how far back you can search.\n`GET /subscription` returns all of them. Over a limit you get `429` with a `Retry-After` header. A `window_hours` longer than your plan's history is cut to it and the response\nsays `window.clamped`.\n\n## Errors\n\nEvery error has the same body: `message` (what went wrong), `status_code` and `status` (a short label). Use the HTTP status to decide what to do:\n\n| Status | Meaning | Retry the same request? |\n|---|---|---|\n| `401` | The API key is missing or invalid. | No |\n| `402` | Your credit balance does not cover the search. | After topping up |\n| `403` | The plan does not include what you asked for (a larger `limit`, an Enterprise field) or the key may not use this API. | No |\n| `404` | Unknown story. | No |\n| `422` | A parameter is missing, invalid or unknown, or the body is not valid JSON. | No, fix it first |\n| `429` | A rate limit of your plan. | Yes, after `Retry-After` seconds |\n| `500` | Something failed on our side. | Yes, and tell us the `Correlation-ID` |\n| `503` | A part of the service is temporarily unavailable. | Yes, after a short wait |\n\nEvery response carries a `Correlation-ID` header (quote it to support) and an `X-Process-Time` header.\n\n## Enterprise fields\n\n`include` adds heavy fields to every result (`description`, `content`, `entities`, `sentiment`, `themes`, `translation`, `embedding`). They are part of the Enterprise plans;\nother plans get `403` with `enterprise_field`.",
+    "termsOfService": "https://newscatcherapi.com/terms-of-service",
+    "contact": {
+      "name": "NewsCatcher Support",
+      "url": "https://newscatcherapi.com/",
+      "email": "support@newscatcherapi.com"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://dev-api.newscatcherapi.dev/news-api"
+    }
+  ],
+  "paths": {
+    "/search": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Search news",
+        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\n**How it ranks.** Every article is scored on relevance to the request, the authority of its publisher, how many newsrooms cover its story and how fresh it is.\n`effort` decides how much further work goes into the order: `low` stops there, `medium` adds a cross-encoder rerank of the top stories, `high` adds an LLM judgement of\nthem and merges stories that report the same event. Articles in every language are searched through their English translation, unless every language you ask for is not English\n(then the original text is searched).\n\n**Filters.** `languages`, `countries`, `sources` and `min_newsrooms` narrow the search; `window_hours` sets the look-back window (24 hours by default, up to your plan's\nhistory). `collapse` decides what happens to several articles of one story. An upper-case `NOT` in `q` drops the articles that mention the term in their headline, description or summary.\n\n**Credits.** A successful search (`200`) costs 1, 5 or 10 NCC for `low`, `medium` or `high` effort, also when it finds nothing. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /search` with the parameters in the query string, or `POST /search` with the same parameters as a JSON body. In both, `sources`, `languages`, `countries`\nand `include` take a comma-separated string; in the JSON body they can also be arrays.",
+        "operationId": "newsSearchGet",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500,
+              "examples": [
+                "Tesla recall NOT Cybertruck"
+              ]
+            },
+            "description": "What to look for: keywords with AND/OR/NOT or a plain-language question, in any language. An upper-case `NOT` (`Apple NOT iPhone`, `NOT \"model y\"`) drops the articles whose headline, description or summary mention the term; the article text is not checked.",
+            "example": "Tesla recall NOT Cybertruck"
+          },
+          {
+            "name": "effort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "low",
+                "medium",
+                "high"
+              ],
+              "examples": [
+                "medium"
+              ],
+              "default": "medium"
+            },
+            "description": "How much work goes into the ranking, and the price: `low` ranks by relevance, authority, coverage and freshness (1 NCC); `medium` adds a cross-encoder rerank of the top stories (5 NCC); `high` adds an LLM rerank and merges stories about the same event (10 NCC). Charged only when the search succeeds.",
+            "example": "medium"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "examples": [
+                20
+              ],
+              "default": 20
+            },
+            "description": "Number of articles to return (1 to 100; a plan may allow fewer, e.g. 50 on Free: the request is refused with 403 above it).",
+            "example": 20
+          },
+          {
+            "name": "collapse",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "diverse",
+                "story",
+                "duplicates",
+                "none"
+              ],
+              "examples": [
+                "diverse"
+              ],
+              "default": "diverse"
+            },
+            "description": "`diverse` (default) discounts repeated articles of one story, `story` keeps one article per story, `duplicates` and `none` keep every article.",
+            "example": "diverse"
+          },
+          {
+            "name": "window_hours",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 720,
+              "examples": [
+                48
+              ]
+            },
+            "description": "Look-back window in hours, from 1 up to your plan's history (30 days = 720 hours on the free plan; a longer request is cut to it and the response says `window.clamped`). Default: 24.",
+            "example": 48
+          },
+          {
+            "name": "sources",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "Comma-separated values.",
+                  "examples": [
+                    "reuters.com,bbc.co.uk"
+                  ]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "Domain of a publisher, e.g. `reuters.com`."
+                  },
+                  "maxItems": 100,
+                  "examples": [
+                    [
+                      "reuters.com",
+                      "bbc.co.uk"
+                    ]
+                  ]
+                }
+              ]
+            },
+            "description": "Only search these publishers: domains, comma-separated or as an array (at most 100). Matches any copy of an article, and the result shows the requested domain.",
+            "example": "reuters.com,bbc.co.uk"
+          },
+          {
+            "name": "languages",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "Comma-separated values.",
+                  "examples": [
+                    "en,de"
+                  ]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z]{2}$",
+                    "description": "ISO 639-1 language code; Chinese is `cn` (simplified) or `tw` (traditional), `zh` means `cn`."
+                  },
+                  "maxItems": 100,
+                  "examples": [
+                    [
+                      "en",
+                      "de"
+                    ]
+                  ]
+                }
+              ]
+            },
+            "description": "Only articles in these languages: ISO 639-1 codes, comma-separated or as an array (at most 100). `zh` is searched as `cn`.",
+            "example": "en,de"
+          },
+          {
+            "name": "countries",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "Comma-separated values.",
+                  "examples": [
+                    "US,GB"
+                  ]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z]{2}$",
+                    "description": "ISO 3166-1 alpha-2 country code."
+                  },
+                  "maxItems": 100,
+                  "examples": [
+                    [
+                      "US",
+                      "GB"
+                    ]
+                  ]
+                }
+              ]
+            },
+            "description": "Only articles from publishers in these countries: ISO 3166-1 alpha-2 codes, comma-separated or as an array (at most 100).",
+            "example": "US,GB"
+          },
+          {
+            "name": "min_newsrooms",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000,
+              "examples": [
+                3
+              ],
+              "default": 0
+            },
+            "description": "Only stories carried by at least this many newsrooms.",
+            "example": 3
+          },
+          {
+            "name": "content_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "news",
+                "all"
+              ],
+              "examples": [
+                "news"
+              ],
+              "default": "news"
+            },
+            "description": "`news` (default) keeps real news articles only; `all` returns every article, whatever its type.",
+            "example": "news"
+          },
+          {
+            "name": "include",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "Comma-separated values.",
+                  "examples": [
+                    "entities,sentiment"
+                  ]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "description",
+                      "content",
+                      "entities",
+                      "sentiment",
+                      "themes",
+                      "translation",
+                      "embedding"
+                    ]
+                  },
+                  "maxItems": 100,
+                  "examples": [
+                    [
+                      "entities",
+                      "sentiment"
+                    ]
+                  ]
+                }
+              ]
+            },
+            "description": "Heavy fields to add to every result, comma-separated or as an array: description, content, entities, sentiment, themes, translation, embedding. Enterprise accounts only (403 `enterprise_field` otherwise).",
+            "example": "entities,sentiment"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The articles, best first. `count` is 0 and `results` empty when nothing matched.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewsSearchResponse"
+                },
+                "examples": {
+                  "results": {
+                    "summary": "A search with results",
+                    "value": {
+                      "query": "hurricane recovery florida",
+                      "effort": "medium",
+                      "took_ms": 3664,
+                      "window": {
+                        "hours": 24,
+                        "to": "2026-10-28T14:12:35.408254+00:00"
+                      },
+                      "count": 1,
+                      "results": [
+                        {
+                          "id": "876a97d2bc58f3c2437ad7b03a06ebfe",
+                          "title": "Major disaster declared in Florida following Hurricane Isaias; federal aid approved",
+                          "language": "en",
+                          "url": "https://www.fox10tv.com/2026/10/28/major-disaster-declared-florida-following-hurricane-isaias-federal-aid-approved",
+                          "source": {
+                            "domain": "fox10tv.com",
+                            "name": "FOX10News"
+                          },
+                          "published_at": "2026-10-28T01:05:37+00:00",
+                          "crawled_at": "2026-10-28T01:06:57+00:00",
+                          "content_type": "news_report",
+                          "story": {
+                            "id": "6f1c2b0e-2f0f-4d52-9a0b-5d0e8a5f9d11",
+                            "newsrooms": 40
+                          },
+                          "score": 36.1871,
+                          "country": "US",
+                          "snippet": "President Donald J. Trump approved a Major Disaster Declaration for Florida on Tuesday, releasing federal funding to assist with recovery…",
+                          "summary": "Trump approved a major disaster declaration for Florida after Hurricane Isaias, unlocking federal recovery funds."
+                        }
+                      ]
+                    }
+                  },
+                  "nothing_found": {
+                    "summary": "Nothing matched (still charged)",
+                    "value": {
+                      "query": "qwxz plorbt vrrnk",
+                      "effort": "low",
+                      "took_ms": 884,
+                      "window": {
+                        "hours": 24,
+                        "to": "2026-10-28T14:12:35.408254+00:00"
+                      },
+                      "count": 0,
+                      "results": []
+                    }
+                  },
+                  "enterprise_fields": {
+                    "summary": "include=entities,sentiment,themes,description (Enterprise)",
+                    "value": {
+                      "query": "hurricane recovery florida NOT insurance",
+                      "effort": "high",
+                      "took_ms": 9786,
+                      "window": {
+                        "hours": 24,
+                        "to": "2026-10-28T14:12:35.408254+00:00",
+                        "clamped": true
+                      },
+                      "count": 1,
+                      "results": [
+                        {
+                          "id": "876a97d2bc58f3c2437ad7b03a06ebfe",
+                          "title": "Major disaster declared in Florida following Hurricane Isaias; federal aid approved",
+                          "language": "en",
+                          "url": "https://www.fox10tv.com/2026/10/28/major-disaster-declared-florida-following-hurricane-isaias-federal-aid-approved",
+                          "source": {
+                            "domain": "fox10tv.com",
+                            "name": "FOX10News"
+                          },
+                          "published_at": "2026-10-28T01:05:37+00:00",
+                          "crawled_at": "2026-10-28T01:06:57+00:00",
+                          "content_type": "news_report",
+                          "story": {
+                            "id": "6f1c2b0e-2f0f-4d52-9a0b-5d0e8a5f9d11",
+                            "newsrooms": 40
+                          },
+                          "score": 36.1871,
+                          "country": "US",
+                          "snippet": "President Donald J. Trump approved a Major Disaster Declaration for Florida on Tuesday, releasing federal funding to assist with recovery…",
+                          "summary": "Trump approved a major disaster declaration for Florida after Hurricane Isaias, unlocking federal recovery funds.",
+                          "description": "President Donald J. Trump approved a Major Disaster Declaration for Florida on Tuesday, releasing federal funding to assist with recovery efforts.",
+                          "entities": {
+                            "ner_PER": [
+                              "Donald J. Trump"
+                            ],
+                            "ner_LOC": [
+                              "Florida"
+                            ],
+                            "ner_MISC": [
+                              "Hurricane Isaias"
+                            ]
+                          },
+                          "sentiment": {
+                            "title": -0.1,
+                            "content": 0.05
+                          },
+                          "themes": [
+                            "Weather",
+                            "Politics",
+                            "Disasters"
+                          ]
+                        }
+                      ],
+                      "excluded": [
+                        "insurance"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "401": {
+            "description": "The `x-api-key` header is missing, or the key is not valid.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "missing_key": {
+                    "summary": "Missing key",
+                    "value": {
+                      "message": "The 'x-api-key' header is missing. Please provide your API key.",
+                      "status_code": 401,
+                      "status": "Unauthorized"
+                    }
+                  },
+                  "invalid_key": {
+                    "summary": "Invalid key",
+                    "value": {
+                      "message": "The 'x-api-key' parameter has an invalid value. Please provide a valid API key.",
+                      "status_code": 401,
+                      "status": "Unauthorized"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "402": {
+            "description": "Your credit balance does not cover the price of the search. Nothing was searched and nothing was charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "insufficient_credits": {
+                    "summary": "Insufficient credits",
+                    "value": {
+                      "message": "Insufficient credits: a medium-effort search costs 5 NCC but your balance is 2 NCC. Please top up your credits.",
+                      "status_code": 402,
+                      "status": "Payment required"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "403": {
+            "description": "The request asks for more than your plan includes, or the key may not use the News API.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "limit_above_plan": {
+                    "summary": "Limit above plan",
+                    "value": {
+                      "message": "Your plan allows up to 50 results per request, but you requested limit=51.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  },
+                  "enterprise_field": {
+                    "summary": "Enterprise field",
+                    "value": {
+                      "message": "enterprise_field: content is not included in your plan. Please upgrade to Enterprise.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  },
+                  "key_not_allowed": {
+                    "summary": "Key not allowed",
+                    "value": {
+                      "message": "This API key is not allowed to use the News API. Please check your account and organization access.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  },
+                  "other_product_key": {
+                    "summary": "Other product key",
+                    "value": {
+                      "message": "This API key belongs to another NewsCatcher product and cannot be used with the News API. Please use an API key from the NewsCatcher platform.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "422": {
+            "description": "A parameter is missing, has the wrong type or an invalid value, is not a parameter of this endpoint, or the body is not valid JSON. The message names the parameter. Nothing was searched and nothing was charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "invalid_value": {
+                    "summary": "Invalid value",
+                    "value": {
+                      "message": "The 'limit' parameter must be between 1 and 100.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "missing_query": {
+                    "summary": "Missing query",
+                    "value": {
+                      "message": "'q' field required",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "unknown_parameter": {
+                    "summary": "Unknown parameter",
+                    "value": {
+                      "message": "Invalid Parameter: 'mode'. Allowed parameters: q, effort, limit, collapse, window_hours, sources, languages, countries, min_newsrooms, content_type, include.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "invalid_country": {
+                    "summary": "Invalid country",
+                    "value": {
+                      "message": "Invalid country code(s): XX. Country codes must be valid ISO 3166-1 alpha-2 codes.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "invalid_json": {
+                    "summary": "Invalid json",
+                    "value": {
+                      "message": "Invalid JSON format in request body. Please check your JSON syntax.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "429": {
+            "description": "You are over a rate limit of your plan: requests per second (per effort level, and in all) or requests per day. Wait for `Retry-After` seconds and send the request again; a refused request is not charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "per_second": {
+                    "summary": "Per second",
+                    "value": {
+                      "message": "Rate limit reached: your plan allows 1 requests per second for your organization. Please slow down and retry.",
+                      "status_code": 429,
+                      "status": "Too many requests"
+                    }
+                  },
+                  "per_day": {
+                    "summary": "Per day",
+                    "value": {
+                      "message": "Daily request limit reached: your plan allows 500 requests per day. The count restarts at 00:00 UTC.",
+                      "status_code": 429,
+                      "status": "Too many requests"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again: until the next second for the per-second limits, until 00:00 UTC for the daily limit.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "examples": [
+                    1
+                  ]
+                }
+              },
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "500": {
+            "description": "Something failed on our side. Quote the `Correlation-ID` response header when you contact support. A failed request is not charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "internal_error": {
+                    "summary": "Internal error",
+                    "value": {
+                      "message": "Internal server error occurred. Please contact support.",
+                      "status_code": 500,
+                      "status": "Internal error occurred"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "503": {
+            "description": "A part of the service is temporarily unavailable. Send the same request again after a short wait; it was not charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "limits_unavailable": {
+                    "summary": "Limits unavailable",
+                    "value": {
+                      "message": "Request limits are temporarily unavailable. Please retry shortly.",
+                      "status_code": 503,
+                      "status": "Service unavailable"
+                    }
+                  },
+                  "search_unavailable": {
+                    "summary": "Search unavailable",
+                    "value": {
+                      "message": "The news search backend is not available.",
+                      "status_code": 503,
+                      "status": "Service unavailable"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Search news (JSON body)",
+        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\n**How it ranks.** Every article is scored on relevance to the request, the authority of its publisher, how many newsrooms cover its story and how fresh it is.\n`effort` decides how much further work goes into the order: `low` stops there, `medium` adds a cross-encoder rerank of the top stories, `high` adds an LLM judgement of\nthem and merges stories that report the same event. Articles in every language are searched through their English translation, unless every language you ask for is not English\n(then the original text is searched).\n\n**Filters.** `languages`, `countries`, `sources` and `min_newsrooms` narrow the search; `window_hours` sets the look-back window (24 hours by default, up to your plan's\nhistory). `collapse` decides what happens to several articles of one story. An upper-case `NOT` in `q` drops the articles that mention the term in their headline, description or summary.\n\n**Credits.** A successful search (`200`) costs 1, 5 or 10 NCC for `low`, `medium` or `high` effort, also when it finds nothing. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /search` with the parameters in the query string, or `POST /search` with the same parameters as a JSON body. In both, `sources`, `languages`, `countries`\nand `include` take a comma-separated string; in the JSON body they can also be arrays.",
+        "operationId": "newsSearchPost",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewsSearchRequest"
+              },
+              "examples": {
+                "plain_words": {
+                  "summary": "A request in plain words",
+                  "value": {
+                    "q": "What is happening with the Florida hurricane recovery?",
+                    "effort": "medium",
+                    "limit": 20
+                  }
+                },
+                "keywords_not": {
+                  "summary": "Keywords with NOT, one language and country, last 3 days",
+                  "value": {
+                    "q": "Tesla recall NOT Cybertruck",
+                    "effort": "low",
+                    "limit": 10,
+                    "languages": [
+                      "en"
+                    ],
+                    "countries": [
+                      "US"
+                    ],
+                    "window_hours": 72
+                  }
+                },
+                "high_effort": {
+                  "summary": "High effort, publishers and stories carried by 3 newsrooms or more",
+                  "value": {
+                    "q": "central bank interest rates",
+                    "effort": "high",
+                    "limit": 50,
+                    "sources": [
+                      "reuters.com",
+                      "bloomberg.com"
+                    ],
+                    "min_newsrooms": 3,
+                    "collapse": "story"
+                  }
+                },
+                "enterprise": {
+                  "summary": "With Enterprise fields",
+                  "value": {
+                    "q": "OpenAI funding round",
+                    "include": [
+                      "entities",
+                      "sentiment",
+                      "themes"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The articles, best first. `count` is 0 and `results` empty when nothing matched.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewsSearchResponse"
+                },
+                "examples": {
+                  "results": {
+                    "summary": "A search with results",
+                    "value": {
+                      "query": "hurricane recovery florida",
+                      "effort": "medium",
+                      "took_ms": 3664,
+                      "window": {
+                        "hours": 24,
+                        "to": "2026-10-28T14:12:35.408254+00:00"
+                      },
+                      "count": 1,
+                      "results": [
+                        {
+                          "id": "876a97d2bc58f3c2437ad7b03a06ebfe",
+                          "title": "Major disaster declared in Florida following Hurricane Isaias; federal aid approved",
+                          "language": "en",
+                          "url": "https://www.fox10tv.com/2026/10/28/major-disaster-declared-florida-following-hurricane-isaias-federal-aid-approved",
+                          "source": {
+                            "domain": "fox10tv.com",
+                            "name": "FOX10News"
+                          },
+                          "published_at": "2026-10-28T01:05:37+00:00",
+                          "crawled_at": "2026-10-28T01:06:57+00:00",
+                          "content_type": "news_report",
+                          "story": {
+                            "id": "6f1c2b0e-2f0f-4d52-9a0b-5d0e8a5f9d11",
+                            "newsrooms": 40
+                          },
+                          "score": 36.1871,
+                          "country": "US",
+                          "snippet": "President Donald J. Trump approved a Major Disaster Declaration for Florida on Tuesday, releasing federal funding to assist with recovery…",
+                          "summary": "Trump approved a major disaster declaration for Florida after Hurricane Isaias, unlocking federal recovery funds."
+                        }
+                      ]
+                    }
+                  },
+                  "nothing_found": {
+                    "summary": "Nothing matched (still charged)",
+                    "value": {
+                      "query": "qwxz plorbt vrrnk",
+                      "effort": "low",
+                      "took_ms": 884,
+                      "window": {
+                        "hours": 24,
+                        "to": "2026-10-28T14:12:35.408254+00:00"
+                      },
+                      "count": 0,
+                      "results": []
+                    }
+                  },
+                  "enterprise_fields": {
+                    "summary": "include=entities,sentiment,themes,description (Enterprise)",
+                    "value": {
+                      "query": "hurricane recovery florida NOT insurance",
+                      "effort": "high",
+                      "took_ms": 9786,
+                      "window": {
+                        "hours": 24,
+                        "to": "2026-10-28T14:12:35.408254+00:00",
+                        "clamped": true
+                      },
+                      "count": 1,
+                      "results": [
+                        {
+                          "id": "876a97d2bc58f3c2437ad7b03a06ebfe",
+                          "title": "Major disaster declared in Florida following Hurricane Isaias; federal aid approved",
+                          "language": "en",
+                          "url": "https://www.fox10tv.com/2026/10/28/major-disaster-declared-florida-following-hurricane-isaias-federal-aid-approved",
+                          "source": {
+                            "domain": "fox10tv.com",
+                            "name": "FOX10News"
+                          },
+                          "published_at": "2026-10-28T01:05:37+00:00",
+                          "crawled_at": "2026-10-28T01:06:57+00:00",
+                          "content_type": "news_report",
+                          "story": {
+                            "id": "6f1c2b0e-2f0f-4d52-9a0b-5d0e8a5f9d11",
+                            "newsrooms": 40
+                          },
+                          "score": 36.1871,
+                          "country": "US",
+                          "snippet": "President Donald J. Trump approved a Major Disaster Declaration for Florida on Tuesday, releasing federal funding to assist with recovery…",
+                          "summary": "Trump approved a major disaster declaration for Florida after Hurricane Isaias, unlocking federal recovery funds.",
+                          "description": "President Donald J. Trump approved a Major Disaster Declaration for Florida on Tuesday, releasing federal funding to assist with recovery efforts.",
+                          "entities": {
+                            "ner_PER": [
+                              "Donald J. Trump"
+                            ],
+                            "ner_LOC": [
+                              "Florida"
+                            ],
+                            "ner_MISC": [
+                              "Hurricane Isaias"
+                            ]
+                          },
+                          "sentiment": {
+                            "title": -0.1,
+                            "content": 0.05
+                          },
+                          "themes": [
+                            "Weather",
+                            "Politics",
+                            "Disasters"
+                          ]
+                        }
+                      ],
+                      "excluded": [
+                        "insurance"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "401": {
+            "description": "The `x-api-key` header is missing, or the key is not valid.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "missing_key": {
+                    "summary": "Missing key",
+                    "value": {
+                      "message": "The 'x-api-key' header is missing. Please provide your API key.",
+                      "status_code": 401,
+                      "status": "Unauthorized"
+                    }
+                  },
+                  "invalid_key": {
+                    "summary": "Invalid key",
+                    "value": {
+                      "message": "The 'x-api-key' parameter has an invalid value. Please provide a valid API key.",
+                      "status_code": 401,
+                      "status": "Unauthorized"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "402": {
+            "description": "Your credit balance does not cover the price of the search. Nothing was searched and nothing was charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "insufficient_credits": {
+                    "summary": "Insufficient credits",
+                    "value": {
+                      "message": "Insufficient credits: a medium-effort search costs 5 NCC but your balance is 2 NCC. Please top up your credits.",
+                      "status_code": 402,
+                      "status": "Payment required"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "403": {
+            "description": "The request asks for more than your plan includes, or the key may not use the News API.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "limit_above_plan": {
+                    "summary": "Limit above plan",
+                    "value": {
+                      "message": "Your plan allows up to 50 results per request, but you requested limit=51.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  },
+                  "enterprise_field": {
+                    "summary": "Enterprise field",
+                    "value": {
+                      "message": "enterprise_field: content is not included in your plan. Please upgrade to Enterprise.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  },
+                  "key_not_allowed": {
+                    "summary": "Key not allowed",
+                    "value": {
+                      "message": "This API key is not allowed to use the News API. Please check your account and organization access.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  },
+                  "other_product_key": {
+                    "summary": "Other product key",
+                    "value": {
+                      "message": "This API key belongs to another NewsCatcher product and cannot be used with the News API. Please use an API key from the NewsCatcher platform.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "422": {
+            "description": "A parameter is missing, has the wrong type or an invalid value, is not a parameter of this endpoint, or the body is not valid JSON. The message names the parameter. Nothing was searched and nothing was charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "invalid_value": {
+                    "summary": "Invalid value",
+                    "value": {
+                      "message": "The 'limit' parameter must be between 1 and 100.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "missing_query": {
+                    "summary": "Missing query",
+                    "value": {
+                      "message": "'q' field required",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "unknown_parameter": {
+                    "summary": "Unknown parameter",
+                    "value": {
+                      "message": "Invalid Parameter: 'mode'. Allowed parameters: q, effort, limit, collapse, window_hours, sources, languages, countries, min_newsrooms, content_type, include.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "invalid_country": {
+                    "summary": "Invalid country",
+                    "value": {
+                      "message": "Invalid country code(s): XX. Country codes must be valid ISO 3166-1 alpha-2 codes.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "invalid_json": {
+                    "summary": "Invalid json",
+                    "value": {
+                      "message": "Invalid JSON format in request body. Please check your JSON syntax.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "429": {
+            "description": "You are over a rate limit of your plan: requests per second (per effort level, and in all) or requests per day. Wait for `Retry-After` seconds and send the request again; a refused request is not charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "per_second": {
+                    "summary": "Per second",
+                    "value": {
+                      "message": "Rate limit reached: your plan allows 1 requests per second for your organization. Please slow down and retry.",
+                      "status_code": 429,
+                      "status": "Too many requests"
+                    }
+                  },
+                  "per_day": {
+                    "summary": "Per day",
+                    "value": {
+                      "message": "Daily request limit reached: your plan allows 500 requests per day. The count restarts at 00:00 UTC.",
+                      "status_code": 429,
+                      "status": "Too many requests"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again: until the next second for the per-second limits, until 00:00 UTC for the daily limit.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "examples": [
+                    1
+                  ]
+                }
+              },
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "500": {
+            "description": "Something failed on our side. Quote the `Correlation-ID` response header when you contact support. A failed request is not charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "internal_error": {
+                    "summary": "Internal error",
+                    "value": {
+                      "message": "Internal server error occurred. Please contact support.",
+                      "status_code": 500,
+                      "status": "Internal error occurred"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "503": {
+            "description": "A part of the service is temporarily unavailable. Send the same request again after a short wait; it was not charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "limits_unavailable": {
+                    "summary": "Limits unavailable",
+                    "value": {
+                      "message": "Request limits are temporarily unavailable. Please retry shortly.",
+                      "status_code": 503,
+                      "status": "Service unavailable"
+                    }
+                  },
+                  "search_unavailable": {
+                    "summary": "Search unavailable",
+                    "value": {
+                      "message": "The news search backend is not available.",
+                      "status_code": 503,
+                      "status": "Service unavailable"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stories/{story_id}": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Get a story and its articles",
+        "description": "Every distinct article of one story (the articles that report the same event), best sources first, with the number of newsrooms and when the first and the latest article appeared.\nTake the story id from the `story.id` of a search result. A successful request (HTTP 200) costs 1 NCC, regardless of the number of articles returned. The rate limits of your plan apply.",
+        "operationId": "newsStoryGet",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "story_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Id of the story: the `story.id` of a search result (a UUID).",
+              "examples": [
+                "6f1c2b0e-2f0f-4d52-9a0b-5d0e8a5f9d11"
+              ]
+            },
+            "description": "Id of the story: the `story.id` of a search result (a UUID).",
+            "example": "6f1c2b0e-2f0f-4d52-9a0b-5d0e8a5f9d11"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "examples": [
+                50
+              ],
+              "default": 50
+            },
+            "description": "Number of articles to return (1 to 500).",
+            "example": 50
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The story and its articles.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewsStoryResponse"
+                },
+                "examples": {
+                  "story": {
+                    "summary": "A story with its articles",
+                    "value": {
+                      "story_id": "6f1c2b0e-2f0f-4d52-9a0b-5d0e8a5f9d11",
+                      "articles_total": 43,
+                      "newsrooms": 40,
+                      "first_seen": "2026-10-28T00:41:10+00:00",
+                      "last_seen": "2026-10-28T13:58:02+00:00",
+                      "articles": [
+                        {
+                          "id": "876a97d2bc58f3c2437ad7b03a06ebfe",
+                          "title": "Major disaster declared in Florida following Hurricane Isaias; federal aid approved",
+                          "language": "en",
+                          "url": "https://www.fox10tv.com/2026/10/28/major-disaster-declared-florida-following-hurricane-isaias-federal-aid-approved",
+                          "domain": "fox10tv.com",
+                          "published_at": "2026-10-28T01:05:37+00:00",
+                          "content_type": "news_report"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "401": {
+            "description": "The `x-api-key` header is missing, or the key is not valid.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "missing_key": {
+                    "summary": "Missing key",
+                    "value": {
+                      "message": "The 'x-api-key' header is missing. Please provide your API key.",
+                      "status_code": 401,
+                      "status": "Unauthorized"
+                    }
+                  },
+                  "invalid_key": {
+                    "summary": "Invalid key",
+                    "value": {
+                      "message": "The 'x-api-key' parameter has an invalid value. Please provide a valid API key.",
+                      "status_code": 401,
+                      "status": "Unauthorized"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "402": {
+            "description": "Your credit balance does not cover the price of the search. Nothing was searched and nothing was charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "insufficient_credits": {
+                    "summary": "Insufficient credits",
+                    "value": {
+                      "message": "Insufficient credits: a medium-effort search costs 5 NCC but your balance is 2 NCC. Please top up your credits.",
+                      "status_code": 402,
+                      "status": "Payment required"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "403": {
+            "description": "The request asks for more than your plan includes, or the key may not use the News API.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "limit_above_plan": {
+                    "summary": "Limit above plan",
+                    "value": {
+                      "message": "Your plan allows up to 50 results per request, but you requested limit=51.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  },
+                  "enterprise_field": {
+                    "summary": "Enterprise field",
+                    "value": {
+                      "message": "enterprise_field: content is not included in your plan. Please upgrade to Enterprise.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  },
+                  "key_not_allowed": {
+                    "summary": "Key not allowed",
+                    "value": {
+                      "message": "This API key is not allowed to use the News API. Please check your account and organization access.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  },
+                  "other_product_key": {
+                    "summary": "Other product key",
+                    "value": {
+                      "message": "This API key belongs to another NewsCatcher product and cannot be used with the News API. Please use an API key from the NewsCatcher platform.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "404": {
+            "description": "There is no story with this id.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "unknown_story": {
+                    "summary": "Unknown story",
+                    "value": {
+                      "message": "Unknown story.",
+                      "status_code": 404,
+                      "status": "Not found"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "422": {
+            "description": "A parameter is missing, has the wrong type or an invalid value, is not a parameter of this endpoint, or the body is not valid JSON. The message names the parameter. Nothing was searched and nothing was charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "invalid_value": {
+                    "summary": "Invalid value",
+                    "value": {
+                      "message": "The 'limit' parameter must be between 1 and 100.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "missing_query": {
+                    "summary": "Missing query",
+                    "value": {
+                      "message": "'q' field required",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "unknown_parameter": {
+                    "summary": "Unknown parameter",
+                    "value": {
+                      "message": "Invalid Parameter: 'mode'. Allowed parameters: q, effort, limit, collapse, window_hours, sources, languages, countries, min_newsrooms, content_type, include.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "invalid_country": {
+                    "summary": "Invalid country",
+                    "value": {
+                      "message": "Invalid country code(s): XX. Country codes must be valid ISO 3166-1 alpha-2 codes.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "invalid_json": {
+                    "summary": "Invalid json",
+                    "value": {
+                      "message": "Invalid JSON format in request body. Please check your JSON syntax.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "429": {
+            "description": "You are over a rate limit of your plan: requests per second (per effort level, and in all) or requests per day. Wait for `Retry-After` seconds and send the request again; a refused request is not charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "per_second": {
+                    "summary": "Per second",
+                    "value": {
+                      "message": "Rate limit reached: your plan allows 1 requests per second for your organization. Please slow down and retry.",
+                      "status_code": 429,
+                      "status": "Too many requests"
+                    }
+                  },
+                  "per_day": {
+                    "summary": "Per day",
+                    "value": {
+                      "message": "Daily request limit reached: your plan allows 500 requests per day. The count restarts at 00:00 UTC.",
+                      "status_code": 429,
+                      "status": "Too many requests"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again: until the next second for the per-second limits, until 00:00 UTC for the daily limit.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "examples": [
+                    1
+                  ]
+                }
+              },
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "500": {
+            "description": "Something failed on our side. Quote the `Correlation-ID` response header when you contact support. A failed request is not charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "internal_error": {
+                    "summary": "Internal error",
+                    "value": {
+                      "message": "Internal server error occurred. Please contact support.",
+                      "status_code": 500,
+                      "status": "Internal error occurred"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "503": {
+            "description": "A part of the service is temporarily unavailable. Send the same request again after a short wait; it was not charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "limits_unavailable": {
+                    "summary": "Limits unavailable",
+                    "value": {
+                      "message": "Request limits are temporarily unavailable. Please retry shortly.",
+                      "status_code": 503,
+                      "status": "Service unavailable"
+                    }
+                  },
+                  "search_unavailable": {
+                    "summary": "Search unavailable",
+                    "value": {
+                      "message": "The news search backend is not available.",
+                      "status_code": 503,
+                      "status": "Service unavailable"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subscription": {
+      "get": {
+        "tags": [
+          "Subscription"
+        ],
+        "summary": "Get subscription info",
+        "description": "Your plan, its limits and your credit balance: what one search costs per effort level, the requests per second and per day your organization may send (and how many it has used today),\nthe largest `limit`, how many days back you can search, the heavy fields you can `include`, and the NCC credits you have left. Free: it is not charged. The balance is cached for up to\n2 minutes and usage reaches it 1 to 3 minutes late.",
+        "operationId": "subscriptionGet",
+        "responses": {
+          "200": {
+            "description": "Your plan, limits and balance.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationSubscriptionResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "401": {
+            "description": "The `x-api-key` header is missing, or the key is not valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "missing_key": {
+                    "summary": "Missing key",
+                    "value": {
+                      "message": "The 'x-api-key' header is missing. Please provide your API key.",
+                      "status_code": 401,
+                      "status": "Unauthorized"
+                    }
+                  },
+                  "invalid_key": {
+                    "summary": "Invalid key",
+                    "value": {
+                      "message": "The 'x-api-key' parameter has an invalid value. Please provide a valid API key.",
+                      "status_code": 401,
+                      "status": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "429": {
+            "description": "You are over a rate limit of your plan: requests per second (per effort level, and in all) or requests per day. Wait for `Retry-After` seconds and send the request again; a refused request is not charged.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again: until the next second for the per-second limits, until 00:00 UTC for the daily limit.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1.0,
+                  "examples": [
+                    1
+                  ]
+                }
+              },
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "per_second": {
+                    "summary": "Per second",
+                    "value": {
+                      "message": "Rate limit reached: your plan allows 1 requests per second for your organization. Please slow down and retry.",
+                      "status_code": 429,
+                      "status": "Too many requests"
+                    }
+                  },
+                  "per_day": {
+                    "summary": "Per day",
+                    "value": {
+                      "message": "Daily request limit reached: your plan allows 500 requests per day. The count restarts at 00:00 UTC.",
+                      "status_code": 429,
+                      "status": "Too many requests"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Something failed on our side. Quote the `Correlation-ID` response header when you contact support. A failed request is not charged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "internal_error": {
+                    "summary": "Internal error",
+                    "value": {
+                      "message": "Internal server error occurred. Please contact support.",
+                      "status_code": 500,
+                      "status": "Internal error occurred"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "503": {
+            "description": "A part of the service is temporarily unavailable. Send the same request again after a short wait; it was not charged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "limits_unavailable": {
+                    "summary": "Limits unavailable",
+                    "value": {
+                      "message": "Request limits are temporarily unavailable. Please retry shortly.",
+                      "status_code": 503,
+                      "status": "Service unavailable"
+                    }
+                  },
+                  "search_unavailable": {
+                    "summary": "Search unavailable",
+                    "value": {
+                      "message": "The news search backend is not available.",
+                      "status_code": 503,
+                      "status": "Service unavailable"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Subscription"
+        ],
+        "summary": "Get subscription info",
+        "description": "Your plan, its limits and your credit balance: what one search costs per effort level, the requests per second and per day your organization may send (and how many it has used today),\nthe largest `limit`, how many days back you can search, the heavy fields you can `include`, and the NCC credits you have left. Free: it is not charged. The balance is cached for up to\n2 minutes and usage reaches it 1 to 3 minutes late.",
+        "operationId": "subscriptionPost",
+        "responses": {
+          "200": {
+            "description": "Your plan, limits and balance.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationSubscriptionResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "401": {
+            "description": "The `x-api-key` header is missing, or the key is not valid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "missing_key": {
+                    "summary": "Missing key",
+                    "value": {
+                      "message": "The 'x-api-key' header is missing. Please provide your API key.",
+                      "status_code": 401,
+                      "status": "Unauthorized"
+                    }
+                  },
+                  "invalid_key": {
+                    "summary": "Invalid key",
+                    "value": {
+                      "message": "The 'x-api-key' parameter has an invalid value. Please provide a valid API key.",
+                      "status_code": 401,
+                      "status": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "429": {
+            "description": "You are over a rate limit of your plan: requests per second (per effort level, and in all) or requests per day. Wait for `Retry-After` seconds and send the request again; a refused request is not charged.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again: until the next second for the per-second limits, until 00:00 UTC for the daily limit.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1.0,
+                  "examples": [
+                    1
+                  ]
+                }
+              },
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "per_second": {
+                    "summary": "Per second",
+                    "value": {
+                      "message": "Rate limit reached: your plan allows 1 requests per second for your organization. Please slow down and retry.",
+                      "status_code": 429,
+                      "status": "Too many requests"
+                    }
+                  },
+                  "per_day": {
+                    "summary": "Per day",
+                    "value": {
+                      "message": "Daily request limit reached: your plan allows 500 requests per day. The count restarts at 00:00 UTC.",
+                      "status_code": 429,
+                      "status": "Too many requests"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Something failed on our side. Quote the `Correlation-ID` response header when you contact support. A failed request is not charged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "internal_error": {
+                    "summary": "Internal error",
+                    "value": {
+                      "message": "Internal server error occurred. Please contact support.",
+                      "status_code": 500,
+                      "status": "Internal error occurred"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "503": {
+            "description": "A part of the service is temporarily unavailable. Send the same request again after a short wait; it was not charged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "limits_unavailable": {
+                    "summary": "Limits unavailable",
+                    "value": {
+                      "message": "Request limits are temporarily unavailable. Please retry shortly.",
+                      "status_code": 503,
+                      "status": "Service unavailable"
+                    }
+                  },
+                  "search_unavailable": {
+                    "summary": "Search unavailable",
+                    "value": {
+                      "message": "The news search backend is not available.",
+                      "status_code": 503,
+                      "status": "Service unavailable"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "EffortCredits": {
+        "properties": {
+          "low": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "description": "NCC a successful `low` effort search costs.",
+            "examples": [
+              1
+            ]
+          },
+          "medium": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "description": "NCC a successful `medium` effort search costs.",
+            "examples": [
+              5
+            ]
+          },
+          "high": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "description": "NCC a successful `high` effort search costs.",
+            "examples": [
+              10
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "title": "EffortCredits",
+        "description": "Credits per effort level."
+      },
+      "EffortRates": {
+        "properties": {
+          "low": {
+            "type": "integer",
+            "description": "Requests per second for `low` effort searches.",
+            "examples": [
+              1
+            ]
+          },
+          "medium": {
+            "type": "integer",
+            "description": "Requests per second for `medium` effort searches.",
+            "examples": [
+              1
+            ]
+          },
+          "high": {
+            "type": "integer",
+            "description": "Requests per second for `high` effort searches.",
+            "examples": [
+              1
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "title": "EffortRates",
+        "description": "Requests per second per effort level."
+      },
+      "ErrorResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "What went wrong and, where it helps, what to do about it. Meant to be read by a person; do not parse it.",
+            "examples": [
+              "The 'limit' parameter must be between 1 and 100."
+            ]
+          },
+          "status_code": {
+            "type": "integer",
+            "description": "The HTTP status code of the response, repeated.",
+            "examples": [
+              422
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "Bad request",
+              "Unauthorized",
+              "Payment required",
+              "Forbidden",
+              "Not found",
+              "Method not allowed",
+              "Payload too large",
+              "Validation error",
+              "Too many requests",
+              "Internal error occurred",
+              "Service unavailable"
+            ],
+            "description": "Short label of the status code.",
+            "examples": [
+              "Validation error"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "status_code",
+          "status"
+        ],
+        "title": "Error",
+        "description": "The body of every error response.",
+        "examples": [
+          {
+            "message": "The 'limit' parameter must be between 1 and 100.",
+            "status": "Validation error",
+            "status_code": 422
+          }
+        ]
+      },
+      "NewsEntities": {
+        "properties": {
+          "ner_PER": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "People.",
+            "examples": [
+              [
+                "Aurangzeb",
+                "Muhammad Aurangzeb"
+              ]
+            ]
+          },
+          "ner_ORG": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Organizations.",
+            "examples": [
+              [
+                "State Bank of Pakistan"
+              ]
+            ]
+          },
+          "ner_LOC": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Locations.",
+            "examples": [
+              [
+                "Pakistan",
+                "Islamabad"
+              ]
+            ]
+          },
+          "ner_MISC": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Other named entities (events, products, laws, …).",
+            "examples": [
+              [
+                "National Private Equity Framework"
+              ]
+            ]
+          },
+          "translation_ner_PER": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "People found in the English translation (non-English articles).",
+            "examples": [
+              [
+                "Nikola Grbić"
+              ]
+            ]
+          },
+          "translation_ner_ORG": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Organizations found in the English translation (non-English articles).",
+            "examples": [
+              [
+                "WTA"
+              ]
+            ]
+          },
+          "translation_ner_LOC": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Locations found in the English translation (non-English articles).",
+            "examples": [
+              [
+                "Wuhan"
+              ]
+            ]
+          },
+          "translation_ner_MISC": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Other named entities found in the English translation (non-English articles).",
+            "examples": [
+              [
+                "Nations League"
+              ]
+            ]
+          }
+        },
+        "type": "object",
+        "title": "NewsEntities",
+        "description": "Named entities found in the article (`include=entities`; Enterprise). Each list holds the distinct names, in the order found; empty lists are left out."
+      },
+      "NewsResult": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Article id.",
+            "examples": [
+              "876a97d2bc58f3c2437ad7b03a06ebfe"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "description": "Headline as published.",
+            "examples": [
+              "Major disaster declared in Florida following Hurricane Isaias; federal aid approved"
+            ]
+          },
+          "title_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "English translation of the headline (non-English articles only).",
+            "examples": [
+              "Elections in Argentina: what is at stake"
+            ]
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Language of the article, an ISO 639-1 code (Chinese is `cn` for simplified, `tw` for traditional).",
+            "examples": [
+              "en"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "description": "Link to the article.",
+            "default": "",
+            "examples": [
+              "https://www.fox10tv.com/2026/10/28/major-disaster-declared-florida-following-hurricane-isaias-federal-aid-approved"
+            ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/NewsSource",
+            "description": "The publisher."
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When the article was published (UTC, ISO 8601).",
+            "examples": [
+              "2026-10-28T01:05:37+00:00"
+            ]
+          },
+          "crawled_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When NewsCatcher crawled the article (UTC, ISO 8601).",
+            "examples": [
+              "2026-10-28T01:06:57+00:00"
+            ]
+          },
+          "content_type": {
+            "type": "string",
+            "description": "Type of content the article was classified as.",
+            "default": "news",
+            "examples": [
+              "news_report"
+            ]
+          },
+          "story": {
+            "$ref": "#/components/schemas/NewsStory",
+            "description": "The story the article belongs to."
+          },
+          "score": {
+            "type": "number",
+            "description": "Ranking score; only the order of the results is meaningful, not the value.",
+            "examples": [
+              36.1871
+            ]
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country of the publisher, an ISO 3166-1 alpha-2 code.",
+            "examples": [
+              "US"
+            ]
+          },
+          "snippet": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Start of the publisher's description (up to your plan's snippet length, 200 characters on the free plan).",
+            "examples": [
+              "President Donald J. Trump approved a Major Disaster Declaration for Florida on Tuesday, releasing federal funding to assist with recovery…"
+            ]
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "One-line summary in the article's language. Absent when the article has none.",
+            "examples": [
+              "Trump approved a major disaster declaration for Florida after Hurricane Isaias, unlocking federal recovery funds."
+            ]
+          },
+          "summary_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "One-line summary in English (non-English articles). Absent when the article has none.",
+            "examples": [
+              "Argentina votes on Sunday in a closely watched midterm election."
+            ]
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Full description from the publisher (`include=description`; Enterprise).",
+            "examples": [
+              "President Donald J. Trump approved a Major Disaster Declaration for Florida on Tuesday."
+            ]
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Full article text (`include=content`; Enterprise).",
+            "examples": [
+              "TALLAHASSEE, Fla. — President Donald J. Trump approved a Major Disaster Declaration for Florida on Tuesday…"
+            ]
+          },
+          "entities": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NewsEntities"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Named entities (`include=entities`; Enterprise)."
+          },
+          "sentiment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NewsSentiment"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Sentiment scores (`include=sentiment`; Enterprise)."
+          },
+          "themes": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Themes of the article (`include=themes`; Enterprise).",
+            "examples": [
+              [
+                "Finance",
+                "Economics",
+                "Business"
+              ]
+            ]
+          },
+          "translation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NewsTranslation"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "English translation of the article (`include=translation`; Enterprise)."
+          },
+          "embedding": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Dense vector of the article, 1,024 values each rounded to 4 decimal places (`include=embedding`; Enterprise).",
+            "examples": [
+              [
+                0.0123,
+                -0.0456,
+                0.0789
+              ]
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "source",
+          "story",
+          "score"
+        ],
+        "title": "NewsResult",
+        "description": "One ranked article."
+      },
+      "NewsSearchRequest": {
+        "properties": {
+          "q": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "description": "What to look for: keywords with AND/OR/NOT or a plain-language question, in any language. An upper-case `NOT` (`Apple NOT iPhone`, `NOT \"model y\"`) drops the articles whose headline, description or summary mention the term; the article text is not checked.",
+            "examples": [
+              "Tesla recall NOT Cybertruck"
+            ]
+          },
+          "effort": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "description": "How much work goes into the ranking, and the price: `low` ranks by relevance, authority, coverage and freshness (1 NCC); `medium` adds a cross-encoder rerank of the top stories (5 NCC); `high` adds an LLM rerank and merges stories about the same event (10 NCC). Charged only when the search succeeds.",
+            "default": "medium",
+            "examples": [
+              "medium"
+            ]
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "description": "Number of articles to return (1 to 100; a plan may allow fewer, e.g. 50 on Free: the request is refused with 403 above it).",
+            "default": 20,
+            "examples": [
+              20
+            ]
+          },
+          "collapse": {
+            "type": "string",
+            "enum": [
+              "diverse",
+              "story",
+              "duplicates",
+              "none"
+            ],
+            "description": "`diverse` (default) discounts repeated articles of one story, `story` keeps one article per story, `duplicates` and `none` keep every article.",
+            "default": "diverse",
+            "examples": [
+              "diverse"
+            ]
+          },
+          "window_hours": {
+            "type": "integer",
+            "maximum": 720.0,
+            "minimum": 1.0,
+            "description": "Look-back window in hours, from 1 up to your plan's history (30 days = 720 hours on the free plan; a longer request is cut to it and the response says `window.clamped`). Default: 24.",
+            "examples": [
+              48
+            ]
+          },
+          "sources": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Comma-separated values.",
+                "examples": [
+                  "reuters.com,bbc.co.uk"
+                ]
+              },
+              {
+                "items": {
+                  "type": "string",
+                  "description": "Domain of a publisher, e.g. `reuters.com`."
+                },
+                "type": "array",
+                "maxItems": 100,
+                "examples": [
+                  [
+                    "reuters.com",
+                    "bbc.co.uk"
+                  ]
+                ]
+              }
+            ],
+            "description": "Only search these publishers: domains, comma-separated or as an array (at most 100). Matches any copy of an article, and the result shows the requested domain."
+          },
+          "languages": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Comma-separated values.",
+                "examples": [
+                  "en,de"
+                ]
+              },
+              {
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z]{2}$",
+                  "description": "ISO 639-1 language code; Chinese is `cn` (simplified) or `tw` (traditional), `zh` means `cn`."
+                },
+                "type": "array",
+                "maxItems": 100,
+                "examples": [
+                  [
+                    "en",
+                    "de"
+                  ]
+                ]
+              }
+            ],
+            "description": "Only articles in these languages: ISO 639-1 codes, comma-separated or as an array (at most 100). `zh` is searched as `cn`."
+          },
+          "countries": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Comma-separated values.",
+                "examples": [
+                  "US,GB"
+                ]
+              },
+              {
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z]{2}$",
+                  "description": "ISO 3166-1 alpha-2 country code."
+                },
+                "type": "array",
+                "maxItems": 100,
+                "examples": [
+                  [
+                    "US",
+                    "GB"
+                  ]
+                ]
+              }
+            ],
+            "description": "Only articles from publishers in these countries: ISO 3166-1 alpha-2 codes, comma-separated or as an array (at most 100)."
+          },
+          "min_newsrooms": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "description": "Only stories carried by at least this many newsrooms.",
+            "default": 0,
+            "examples": [
+              3
+            ]
+          },
+          "content_type": {
+            "type": "string",
+            "enum": [
+              "news",
+              "all"
+            ],
+            "description": "`news` (default) keeps real news articles only; `all` returns every article, whatever its type.",
+            "default": "news",
+            "examples": [
+              "news"
+            ]
+          },
+          "include": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Comma-separated values.",
+                "examples": [
+                  "entities,sentiment"
+                ]
+              },
+              {
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "description",
+                    "content",
+                    "entities",
+                    "sentiment",
+                    "themes",
+                    "translation",
+                    "embedding"
+                  ]
+                },
+                "type": "array",
+                "maxItems": 100,
+                "examples": [
+                  [
+                    "entities",
+                    "sentiment"
+                  ]
+                ]
+              }
+            ],
+            "description": "Heavy fields to add to every result, comma-separated or as an array: description, content, entities, sentiment, themes, translation, embedding. Enterprise accounts only (403 `enterprise_field` otherwise)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "q"
+        ],
+        "title": "NewsSearchRequest",
+        "description": "What to search for and how. The same parameters are accepted in the query string of `GET /search` and in the JSON body of `POST /search`."
+      },
+      "NewsSearchResponse": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "The query as received (control characters replaced, ends trimmed).",
+            "examples": [
+              "hurricane recovery florida"
+            ]
+          },
+          "effort": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "description": "The effort level that ran: `low`, `medium` or `high`.",
+            "examples": [
+              "medium"
+            ]
+          },
+          "took_ms": {
+            "type": "integer",
+            "minimum": 0.0,
+            "description": "Time the search took on our side, in milliseconds.",
+            "examples": [
+              3664
+            ]
+          },
+          "window": {
+            "$ref": "#/components/schemas/NewsWindow",
+            "description": "The time window that was searched: `hours` back from `to`, which is when the search ran."
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "description": "Number of results returned (at most `limit`).",
+            "examples": [
+              1
+            ]
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/NewsResult"
+            },
+            "type": "array",
+            "description": "The articles, best first."
+          },
+          "excluded": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The terms of the `NOT` clauses of `q`: articles whose headline, description or summary mention one are left out. Absent when `q` has no `NOT`.",
+            "examples": [
+              [
+                "iPhone"
+              ]
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "effort",
+          "took_ms",
+          "window",
+          "count",
+          "results"
+        ],
+        "title": "NewsSearchResponse",
+        "description": "The articles that match a search, with the window that was searched.",
+        "examples": [
+          {
+            "count": 1,
+            "effort": "medium",
+            "query": "hurricane recovery florida",
+            "results": [
+              {
+                "content_type": "news_report",
+                "country": "US",
+                "crawled_at": "2026-10-28T01:06:57+00:00",
+                "id": "876a97d2bc58f3c2437ad7b03a06ebfe",
+                "language": "en",
+                "published_at": "2026-10-28T01:05:37+00:00",
+                "score": 36.1871,
+                "snippet": "President Donald J. Trump approved a Major Disaster Declaration for Florida on Tuesday, releasing federal funding to assist with recovery…",
+                "source": {
+                  "domain": "fox10tv.com",
+                  "name": "FOX10News"
+                },
+                "story": {
+                  "id": "6f1c2b0e-2f0f-4d52-9a0b-5d0e8a5f9d11",
+                  "newsrooms": 40
+                },
+                "summary": "Trump approved a major disaster declaration for Florida after Hurricane Isaias, unlocking federal recovery funds.",
+                "title": "Major disaster declared in Florida following Hurricane Isaias; federal aid approved",
+                "url": "https://www.fox10tv.com/2026/10/28/major-disaster-declared-florida-following-hurricane-isaias-federal-aid-approved"
+              }
+            ],
+            "took_ms": 3664,
+            "window": {
+              "hours": 24,
+              "to": "2026-10-28T14:12:35.408254+00:00"
+            }
+          }
+        ]
+      },
+      "NewsSentiment": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Sentiment of the headline.",
+            "examples": [
+              -0.2
+            ]
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Sentiment of the article text.",
+            "examples": [
+              0.1
+            ]
+          }
+        },
+        "type": "object",
+        "title": "NewsSentiment",
+        "description": "Sentiment of the article (`include=sentiment`; Enterprise): from -1 (very negative) through 0 (neutral) to 1 (very positive)."
+      },
+      "NewsSource": {
+        "properties": {
+          "domain": {
+            "type": "string",
+            "description": "Domain of the publisher, without `www.`.",
+            "default": "",
+            "examples": [
+              "reuters.com"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the publisher.",
+            "default": "",
+            "examples": [
+              "Reuters"
+            ]
+          }
+        },
+        "type": "object",
+        "title": "NewsSource",
+        "description": "The publisher of a result."
+      },
+      "NewsStory": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Story id; pass it to `GET /stories/{story_id}` to list every article of the story.",
+            "examples": [
+              "6f1c2b0e-2f0f-4d52-9a0b-5d0e8a5f9d11"
+            ]
+          },
+          "newsrooms": {
+            "type": "integer",
+            "description": "Number of newsrooms (distinct publishers) that cover the story.",
+            "default": 1,
+            "examples": [
+              40
+            ]
+          }
+        },
+        "type": "object",
+        "title": "NewsStory",
+        "description": "The story (a group of articles about the same event) a result belongs to."
+      },
+      "NewsStoryArticle": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Article id.",
+            "examples": [
+              "876a97d2bc58f3c2437ad7b03a06ebfe"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "description": "Headline as published.",
+            "default": "",
+            "examples": [
+              "Major disaster declared in Florida following Hurricane Isaias; federal aid approved"
+            ]
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Language of the article, an ISO 639-1 code.",
+            "examples": [
+              "en"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "description": "Link to the article.",
+            "default": "",
+            "examples": [
+              "https://www.fox10tv.com/2026/10/28/major-disaster-declared-florida-following-hurricane-isaias-federal-aid-approved"
+            ]
+          },
+          "domain": {
+            "type": "string",
+            "description": "Domain of the publisher.",
+            "default": "",
+            "examples": [
+              "fox10tv.com"
+            ]
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When the article was published (UTC, ISO 8601).",
+            "examples": [
+              "2026-10-28T01:05:37+00:00"
+            ]
+          },
+          "content_type": {
+            "type": "string",
+            "description": "Type of content the article was classified as.",
+            "default": "news",
+            "examples": [
+              "news_report"
+            ]
+          }
+        },
+        "type": "object",
+        "title": "NewsStoryArticle",
+        "description": "One distinct article of a story."
+      },
+      "NewsStoryResponse": {
+        "properties": {
+          "story_id": {
+            "type": "string",
+            "description": "Id of the story.",
+            "examples": [
+              "6f1c2b0e-2f0f-4d52-9a0b-5d0e8a5f9d11"
+            ]
+          },
+          "articles_total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "description": "Number of distinct articles of the story.",
+            "examples": [
+              43
+            ]
+          },
+          "newsrooms": {
+            "type": "integer",
+            "minimum": 0.0,
+            "description": "Number of newsrooms (distinct publishers) that cover the story.",
+            "examples": [
+              40
+            ]
+          },
+          "first_seen": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Publication time of the earliest article (UTC, ISO 8601).",
+            "examples": [
+              "2026-10-28T00:41:10+00:00"
+            ]
+          },
+          "last_seen": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Publication time of the latest article (UTC, ISO 8601).",
+            "examples": [
+              "2026-10-28T13:58:02+00:00"
+            ]
+          },
+          "articles": {
+            "items": {
+              "$ref": "#/components/schemas/NewsStoryArticle"
+            },
+            "type": "array",
+            "description": "The articles of the story, best sources first."
+          }
+        },
+        "type": "object",
+        "required": [
+          "story_id",
+          "articles_total",
+          "newsrooms",
+          "articles"
+        ],
+        "title": "NewsStoryResponse",
+        "description": "A story and its articles.",
+        "examples": [
+          {
+            "articles": [
+              {
+                "content_type": "news_report",
+                "domain": "fox10tv.com",
+                "id": "876a97d2bc58f3c2437ad7b03a06ebfe",
+                "language": "en",
+                "published_at": "2026-10-28T01:05:37+00:00",
+                "title": "Major disaster declared in Florida following Hurricane Isaias; federal aid approved",
+                "url": "https://www.fox10tv.com/2026/10/28/major-disaster-declared-florida-following-hurricane-isaias-federal-aid-approved"
+              }
+            ],
+            "articles_total": 43,
+            "first_seen": "2026-10-28T00:41:10+00:00",
+            "last_seen": "2026-10-28T13:58:02+00:00",
+            "newsrooms": 40,
+            "story_id": "6f1c2b0e-2f0f-4d52-9a0b-5d0e8a5f9d11"
+          }
+        ]
+      },
+      "NewsTranslation": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "English headline.",
+            "examples": [
+              "He searched for the right word and found it."
+            ]
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "English article text.",
+            "examples": [
+              "Add us to your preferred sources so that our news always appears at the top of your Google results…"
+            ]
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "English summary of the article.",
+            "examples": [
+              "Maja Chwalińska won the WTA 1000 tournament in Wuhan and reached the final of Roland Garros."
+            ]
+          }
+        },
+        "type": "object",
+        "title": "NewsTranslation",
+        "description": "English translation of a non-English article (`include=translation`; Enterprise). Parts that do not exist are left out."
+      },
+      "NewsWindow": {
+        "properties": {
+          "hours": {
+            "type": "integer",
+            "minimum": 1.0,
+            "description": "Length of the window in hours, counted back from `to`.",
+            "examples": [
+              24
+            ]
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time",
+            "description": "End of the window: the moment the search ran (UTC, ISO 8601).",
+            "examples": [
+              "2026-10-28T14:12:35.408254+00:00"
+            ]
+          },
+          "clamped": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "True when the requested window was longer than your plan allows and was cut to it. Absent otherwise.",
+            "examples": [
+              true
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "hours",
+          "to"
+        ],
+        "title": "NewsWindow",
+        "description": "The time window that was searched."
+      },
+      "OrganizationSubscriptionResponse": {
+        "properties": {
+          "plan": {
+            "type": "string",
+            "description": "Code of your subscription plan.",
+            "examples": [
+              "platform_free"
+            ]
+          },
+          "max_articles_per_page": {
+            "type": "integer",
+            "description": "Largest `limit` your plan allows; a larger one is refused with 403.",
+            "examples": [
+              50
+            ]
+          },
+          "historical_days": {
+            "type": "integer",
+            "description": "How many days back your plan allows searching; a longer `window_hours` is cut to it.",
+            "examples": [
+              30
+            ]
+          },
+          "requests_per_second": {
+            "$ref": "#/components/schemas/EffortRates",
+            "description": "Requests per second allowed for your whole organization, per effort level."
+          },
+          "shared_requests_per_second": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Requests per second allowed for your organization across all effort levels, if limited.",
+            "examples": [
+              1
+            ]
+          },
+          "daily_request_limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Requests allowed per UTC day, if limited. Null when your plan has no daily limit.",
+            "examples": [
+              500
+            ]
+          },
+          "daily_requests_used": {
+            "type": "integer",
+            "description": "Requests counted today (UTC).",
+            "examples": [
+              12
+            ]
+          },
+          "credits_per_search": {
+            "$ref": "#/components/schemas/EffortCredits",
+            "description": "NCC one successful search costs, per effort level."
+          },
+          "story": {
+            "$ref": "#/components/schemas/StoryAccess",
+            "description": "Story pages: whether your plan allows them, their requests per second and their price."
+          },
+          "extra_fields": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "description",
+                "content",
+                "entities",
+                "sentiment",
+                "themes",
+                "translation",
+                "embedding"
+              ]
+            },
+            "type": "array",
+            "description": "Heavy article fields your plan unlocks with `include`. Empty when your plan has none.",
+            "examples": [
+              [
+                "entities",
+                "sentiment"
+              ]
+            ]
+          },
+          "credits_balance": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "description": "Remaining NCC credits. Cached for up to 2 minutes, and usage reaches it 1 to 3 minutes late.",
+            "examples": [
+              8950.0
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "plan",
+          "max_articles_per_page",
+          "historical_days",
+          "requests_per_second",
+          "daily_requests_used",
+          "credits_per_search",
+          "story",
+          "extra_fields",
+          "credits_balance"
+        ],
+        "title": "OrganizationSubscriptionResponse",
+        "description": "Plan, limits and credits of the authenticated organization.",
+        "examples": [
+          {
+            "credits_balance": 8950.0,
+            "credits_per_search": {
+              "high": 10,
+              "low": 1,
+              "medium": 5
+            },
+            "daily_request_limit": 500,
+            "daily_requests_used": 12,
+            "extra_fields": [],
+            "historical_days": 30,
+            "max_articles_per_page": 50,
+            "plan": "platform_free",
+            "requests_per_second": {
+              "high": 1,
+              "low": 1,
+              "medium": 1
+            },
+            "shared_requests_per_second": 1,
+            "story": {
+              "credits_per_request": 1,
+              "enabled": true,
+              "requests_per_second": 1
+            }
+          }
+        ]
+      },
+      "StoryAccess": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether your plan allows story pages; when it does not they are refused with 403.",
+            "examples": [
+              true
+            ]
+          },
+          "requests_per_second": {
+            "type": "integer",
+            "description": "Story requests per second allowed for your whole organization. 0 when story pages are not enabled.",
+            "examples": [
+              1
+            ]
+          },
+          "credits_per_request": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "description": "NCC a successful story request costs, whatever the number of articles returned.",
+            "examples": [
+              1
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "enabled",
+          "requests_per_second",
+          "credits_per_request"
+        ],
+        "title": "StoryAccess",
+        "description": "Story pages (`GET /stories/{story_id}`) on your plan."
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "description": "Your NewsCatcher API key, created in the NewsCatcher platform. Send it in the `x-api-key` header of every request.",
+        "in": "header",
+        "name": "x-api-key"
+      }
+    },
+    "headers": {
+      "Correlation-ID": {
+        "description": "Id of this request. Quote it when you contact support: it finds the request in our logs.",
+        "schema": {
+          "type": "string",
+          "format": "uuid",
+          "examples": [
+            "6f1c2b0e-2f0f-4d52-9a0b-5d0e8a5f9d11"
+          ]
+        }
+      },
+      "X-Process-Time": {
+        "description": "Seconds the API spent on the request.",
+        "schema": {
+          "type": "string",
+          "examples": [
+            "0.1884448528289795"
+          ]
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Search",
+      "description": "Search the news and read every article of a story. The articles are real news, ranked and grouped into stories.",
+      "externalDocs": {
+        "description": "Search guide",
+        "url": "https://docs.newscatcherapi.com/"
+      }
+    },
+    {
+      "name": "Subscription",
+      "description": "Your plan, its limits and your credit balance.",
+      "externalDocs": {
+        "description": "Plans and limits",
+        "url": "https://docs.newscatcherapi.com/"
+      }
+    }
+  ],
+  "externalDocs": {
+    "description": "NewsCatcher documentation",
+    "url": "https://docs.newscatcherapi.com"
+  }
+}

@@ -19,6 +19,7 @@ Requirements:
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -30,15 +31,26 @@ BASE_URL = "https://www.newscatcherapi.com/docs"
 DOCS_JSON_PATH = "docs.json"
 OUTPUT_PATH = "sitemap.xml"
 
+# Navigation entries like "GET /search" are endpoints Mintlify generates from
+# an OpenAPI spec, not MDX pages.
+OPENAPI_ENDPOINT_RE = re.compile(r"^(GET|POST|PUT|PATCH|DELETE) /")
+
 # ---------------------------------------------------------------------------
 # Navigation traversal (mirrors generate_llms_txt.py)
 # ---------------------------------------------------------------------------
 
 
+def nav_tabs(navigation: dict) -> list:
+    """Return the navigation's tabs, from every version when it has versions."""
+    if "versions" in navigation:
+        return [tab for version in navigation["versions"] for tab in version.get("tabs", [])]
+    return navigation.get("tabs", [])
+
+
 def iter_leaves(node) -> list:
     """Recursively return all leaf page path strings from a navigation node."""
     if isinstance(node, str):
-        return [node]
+        return [] if OPENAPI_ENDPOINT_RE.match(node) else [node]
     if isinstance(node, dict):
         result = []
         for p in node.get("pages", []):
@@ -57,7 +69,7 @@ def iter_leaves(node) -> list:
 def collect_pages(docs_json: dict) -> list:
     """Return all leaf page paths from docs.json navigation in document order."""
     pages = []
-    for tab in docs_json.get("navigation", {}).get("tabs", []):
+    for tab in nav_tabs(docs_json.get("navigation", {})):
         pages.extend(iter_leaves(tab))
     return pages
 

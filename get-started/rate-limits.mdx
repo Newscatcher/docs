@@ -1,0 +1,57 @@
+---
+title: Rate limits and plan limits
+sidebarTitle: Rate limits
+description: Requests per second, daily limits, result limits and history on your plan.
+---
+
+Your plan sets:
+
+- requests per second for each effort level, and optionally across all of
+  them;
+- an optional number of requests per UTC day;
+- the largest `limit` (results per search);
+- how far back you can search;
+- whether you can open story pages, and how often;
+- which Enterprise fields you can add with `include`.
+
+## Check your plan
+
+[`GET /subscription`](/api-reference/subscription/get-subscription-info)
+returns all of your limits and your credit balance. It is free.
+
+```bash
+curl "https://dev-api.newscatcherapi.dev/news-api/subscription" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY"
+```
+
+| Field | What it tells you |
+|---|---|
+| `plan` | Your plan's code. |
+| `max_articles_per_page` | The largest `limit` you can send. A larger one gets `403`. |
+| `historical_days` | How many days back you can search. A longer `window_hours` is cut to it. |
+| `requests_per_second` | Requests per second for each effort level, for your whole organization. |
+| `shared_requests_per_second` | Requests per second across all effort levels, if limited. |
+| `daily_request_limit` / `daily_requests_used` | Requests allowed and used today (UTC). |
+| `credits_per_search` | Credits one successful search costs, per effort level. |
+| `story` | Whether story pages are on, their requests per second and their price. |
+| `extra_fields` | The Enterprise fields you can `include`. |
+| `credits_balance` | Credits left. Cached for up to 2 minutes; usage reaches it 1 to 3 minutes late. |
+
+## When you hit a limit
+
+Over a rate limit you get `429` with a `Retry-After` header. Wait that many
+seconds, then retry the same request.
+
+A `window_hours` longer than your plan's history is not refused: it is cut to
+your history, and the response says `"clamped": true` in `window`.
+
+## Agent limits
+
+- `max_rows` can be 50, 100, 150 or 200, up to your plan's cap. More is refused
+  with `too_many_rows`.
+- Monitors can run more often than daily only when your plan allows it. A
+  shorter interval is refused with `invalid_schedule`.
+- A company list too big for one run is split into runs of up to 50
+  companies, grouped in a [batch](/agent/runs#batches).
+
+{/* TODO: document the agent's request rate limits once they are set. */}

@@ -1,0 +1,119 @@
+---
+title: Monitors
+description: Repeat research on a schedule and get only what is new.
+---
+
+A monitor repeats research on a schedule and delivers only what is new since
+its last run.
+
+| Kind | Made from | Delivers |
+|---|---|---|
+| `companies` | Companies, a company list, or a companies run | New stories about its companies |
+| `dataset` (event monitor) | A finished events run | New rows for the run's question |
+
+## Create a monitor
+
+<Tabs>
+  <Tab title="Keep a run updated">
+    Add `keep_updated` when you start a run. Once the run succeeds, the agent
+    makes a monitor of it, and the run counts as the monitor's first run:
+
+    ```json POST /runs
+    {
+      "query": "Product recalls announced by US food companies",
+      "mode": "fast",
+      "keep_updated": {
+        "name": "Food recalls",
+        "schedule": { "every": "day", "at": "08:00", "tz": "America/New_York" }
+      }
+    }
+    ```
+
+    The run's `keep_updated.status` goes from `pending` to `created` (with the
+    `monitor_id`), `failed` or `not_created`.
+  </Tab>
+  <Tab title="From a finished run">
+    ```json POST /monitors
+    {
+      "kind": "dataset",
+      "from_run_id": "RUN_ID",
+      "schedule": { "every": "week", "weekday": 0, "at": "09:00", "tz": "Europe/Berlin" }
+    }
+    ```
+
+    A companies run gives a company monitor of its companies.
+  </Tab>
+  <Tab title="Company monitor">
+    ```json POST /monitors
+    {
+      "kind": "companies",
+      "name": "Portfolio",
+      "list_id": "LIST_ID",
+      "query": "funding, acquisitions and leadership changes",
+      "settings": { "include_market_activity": false }
+    }
+    ```
+
+    Use `companies` instead of `list_id` to type them in. A monitor that
+    follows a list monitors the companies added to it from the next run on.
+  </Tab>
+</Tabs>
+
+A new monitor first runs at its next scheduled time. `POST
+/monitors/{monitor_id}/run` runs it at the scheduler's next tick, within 5
+minutes; its schedule then continues as before.
+
+## Schedule
+
+<ParamField body="schedule.every" type="string" default="day">
+  `day`, `week`, or `hours` when your plan allows runs more often than daily.
+</ParamField>
+<ParamField body="schedule.at" type="string" default="09:00">
+  Local time, `HH:MM` (24-hour).
+</ParamField>
+<ParamField body="schedule.tz" type="string" default="UTC">
+  IANA timezone, for example `Europe/Berlin`.
+</ParamField>
+<ParamField body="schedule.weekday" type="integer">
+  Weekly only: `0` is Monday, `6` is Sunday.
+</ParamField>
+<ParamField body="schedule.hours" type="integer">
+  With `every: hours`: hours between runs, counted from `at` each day. Below
+  your plan's minimum interval (24 hours on Free and pay-as-you-go) it is
+  refused with `invalid_schedule`.
+</ParamField>
+
+The default is daily at 09:00 UTC. Event monitors made from `standard` or
+`max` runs default to weekly, on the weekday the run was made, and may run
+daily too.
+
+## Get what a monitor delivered
+
+| To | Call |
+|---|---|
+| A company monitor's story feed, most recent first | `GET /monitors/{monitor_id}/stories` |
+| An event monitor's rows, newest first | `GET /monitors/{monitor_id}/rows` |
+| The monitor's past runs | `GET /monitors/{monitor_id}/runs` |
+| What one run delivered | `GET /monitors/runs/{run_id}` |
+| One run's delivery as a file | `GET /monitors/runs/{run_id}/export.csv` or `.xlsx` |
+
+Each delivered row has a `change`: `new`, or `update` for a story that grew
+materially since it was last delivered (its `version` rises).
+
+{/* TODO: monitors have no webhooks today; document push delivery here if it ships. */}
+
+## Pause, resume and change
+
+`PATCH /monitors/{monitor_id}` changes its name, companies, query, schedule or
+settings. `"enabled": false` pauses it and `"enabled": true` resumes it. When
+you resume, `fill_gap: true` (the default) makes the next delivery cover the
+days it was paused, up to 30 days; `false` starts from today.
+
+The service pauses a monitor by itself in two cases, shown in `paused_reason`:
+
+- `out_of_credits`: your balance no longer covers its runs. Top up, then
+  resume it.
+- `idle`: your organization's free monitor was not opened for 14 days. Resume
+  it.
+
+Deleting a monitor keeps its past runs in your history.

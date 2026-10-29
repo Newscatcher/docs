@@ -1,0 +1,48 @@
+---
+title: Effort levels
+description: Choose how much work goes into ranking, and what a search costs.
+---
+
+Every search scores each article on relevance to your request, the authority
+of its publisher, how many newsrooms cover its story and how fresh it is.
+`effort` decides how much further work goes into the order.
+
+| Effort | What it adds | Credits |
+|---|---|---|
+| `low` | Nothing: the first ranking is the answer. Fastest. | 1 NCC |
+| `medium` (default) | A cross-encoder rerank of the top stories. | 5 NCC |
+| `high` | An LLM judgement of the top stories, and merges stories that report the same event. Slowest, best quality. | 10 NCC |
+
+```bash
+curl -G "https://dev-api.newscatcherapi.dev/news-api/search" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY" \
+  --data-urlencode "q=EU AI Act enforcement" \
+  --data-urlencode "effort=high"
+```
+
+The response repeats the effort that ran in `effort`, and how long the search
+took in `took_ms`.
+
+## Which effort to use
+
+<AccordionGroup>
+  <Accordion title="low: high volume, keyword-style queries" icon="bolt">
+    Feeds, alerts and dashboards that send many searches with clear keywords,
+    where speed and price matter more than the exact order.
+  </Accordion>
+  <Accordion title="medium: the default for most requests" icon="scale-balanced">
+    Questions in plain words, user-facing search and agent tool calls.
+  </Accordion>
+  <Accordion title="high: when the top results must be right" icon="bullseye">
+    Research, briefings and reports, where a wrong top result costs more than
+    the extra seconds. Stories about the same event are merged, so the top
+    results cover more distinct events.
+  </Accordion>
+</AccordionGroup>
+
+{/* TODO: add measured latency and precision per effort level once they are approved for publication. */}
+
+## Rate limits per effort
+
+Your plan sets requests per second for each effort level. See
+[Rate limits](/get-started/rate-limits).

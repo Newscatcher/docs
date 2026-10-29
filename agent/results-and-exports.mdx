@@ -1,0 +1,48 @@
+---
+title: Results and exports
+description: Read a run's table, and download it as CSV or Excel.
+---
+
+## The table
+
+`GET /runs/{run_id}` returns the run with its result once it has finished:
+
+<ResponseField name="columns" type="string[]">
+  The column order. An events run has the columns its question needed; a
+  companies run has one story per row, company first.
+</ResponseField>
+<ResponseField name="rows" type="object[]">
+  The table, one event or story per row, keyed by column.
+</ResponseField>
+<ResponseField name="companies" type="object[]">
+  Companies runs: one row per company asked for, with its
+  [coverage status](/agent/company-research#coverage-per-company).
+</ResponseField>
+<ResponseField name="window_from / window_to" type="string">
+  The time window the run covered.
+</ResponseField>
+<ResponseField name="report" type="string">
+  The briefing written with the table, when the mode writes one.
+</ResponseField>
+<ResponseField name="evidence" type="object[]">
+  The sources behind the rows.
+</ResponseField>
+
+{/* TODO: document the row shape (citations, dates, company column) with a real example. */}
+
+## Downloads
+
+| File | Run | Batch | Monitor run |
+|---|---|---|---|
+| The table as CSV | `/runs/{run_id}/export.csv` | `/batches/{batch_id}/export.csv` | `/monitors/runs/{run_id}/export.csv` |
+| The table as Excel | `/runs/{run_id}/export.xlsx` | `/batches/{batch_id}/export.xlsx` | `/monitors/runs/{run_id}/export.xlsx` |
+| Company coverage as CSV | `/runs/{run_id}/companies.csv` | `/batches/{batch_id}/companies.csv` | |
+| Company coverage as Excel | `/runs/{run_id}/companies.xlsx` | `/batches/{batch_id}/companies.xlsx` | |
+
+A monitor run's file starts with the `change` column (`new` or `update`), then
+the stories' or rows' columns.
+
+```bash
+curl -o result.xlsx "https://dev-api.newscatcherapi.dev/agent/runs/RUN_ID/export.xlsx" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY"
+```

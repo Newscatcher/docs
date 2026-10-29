@@ -4,7 +4,61 @@
 
 - [NewsCatcher documentation](https://www.newscatcherapi.com/docs/home/index): Enterprise APIs for web search, news and local news data
 
-## Web Search API
+## Documentation
+
+### Get started
+
+- [NewsCatcher API](https://www.newscatcherapi.com/docs/get-started/overview): Search the world's news in any language, or let the agent research events and companies for you.
+- [Quickstart](https://www.newscatcherapi.com/docs/get-started/quickstart): Get an API key and make your first News API search and agent run.
+- [Choose an API](https://www.newscatcherapi.com/docs/get-started/choose-an-api): When to use a News API search, an agent run or a monitor.
+- [Authentication](https://www.newscatcherapi.com/docs/get-started/authentication): Send your API key in the x-api-key header.
+- [Credits and pricing](https://www.newscatcherapi.com/docs/get-started/credits-and-pricing): What each search, story and agent run costs, and when you are not charged.
+- [Rate limits and plan limits](https://www.newscatcherapi.com/docs/get-started/rate-limits): Requests per second, daily limits, result limits and history on your plan.
+- [Errors](https://www.newscatcherapi.com/docs/get-started/errors): Error responses, what they mean and when to retry.
+
+### News API
+
+- [News API quickstart](https://www.newscatcherapi.com/docs/news/quickstart): Search the last 30 days of news in any language with one request.
+- [Effort levels](https://www.newscatcherapi.com/docs/news/effort-levels): Choose how much work goes into ranking, and what a search costs.
+- [Writing queries](https://www.newscatcherapi.com/docs/news/writing-queries): Ask in plain words or keywords, in any language, and exclude terms with NOT.
+- [Stories](https://www.newscatcherapi.com/docs/news/stories): How articles are grouped into stories, and how to get every article of one story.
+- [Filters](https://www.newscatcherapi.com/docs/news/filters): Narrow a search by time window, language, country, publisher, coverage and content type.
+- [Response fields](https://www.newscatcherapi.com/docs/news/response-fields): Every field of a search response and of an article.
+- [Best practices](https://www.newscatcherapi.com/docs/news/best-practices): Get better results and spend fewer credits with the News API.
+- [How to evaluate the News API](https://www.newscatcherapi.com/docs/news/evaluate-search): Measure search quality on your own queries before you integrate.
+
+### Agent
+
+- [Agent overview](https://www.newscatcherapi.com/docs/agent/overview): Research events or companies in the background, once or on a schedule.
+- [Agent quickstart](https://www.newscatcherapi.com/docs/agent/quickstart): Start a run, follow it, and download the result.
+- [Event research](https://www.newscatcherapi.com/docs/agent/event-research): Turn a description of events into a verified table, one event per row.
+- [Company research](https://www.newscatcherapi.com/docs/agent/company-research): Find each company's news stories from a list of domains.
+- [Company lists](https://www.newscatcherapi.com/docs/agent/company-lists): Save the companies you follow, fix how they resolve, and reuse them in runs and monitors.
+- [Monitors](https://www.newscatcherapi.com/docs/agent/monitors): Repeat research on a schedule and get only what is new.
+- [Runs](https://www.newscatcherapi.com/docs/agent/runs): Follow, cancel, rename and delete runs, and work with batches.
+- [Results and exports](https://www.newscatcherapi.com/docs/agent/results-and-exports): Read a run's table, and download it as CSV or Excel.
+- [Best practices](https://www.newscatcherapi.com/docs/agent/best-practices): Write better requests, pick the right mode and keep monitors cheap.
+- [Examples](https://www.newscatcherapi.com/docs/agent/examples): Agent runs and monitors for common jobs.
+
+### Resources
+
+- [Migrate from the v3 News API](https://www.newscatcherapi.com/docs/resources/migrate-from-v3): Map v3 search requests to the new News API.
+- [Glossary](https://www.newscatcherapi.com/docs/resources/glossary): Terms used across the News API and agent docs.
+- [FAQ](https://www.newscatcherapi.com/docs/resources/faq): Common questions about the News API and the agent.
+
+## Integrations
+
+### For AI agents
+
+- [MCP server](https://www.newscatcherapi.com/docs/integrations/mcp): Use NewsCatcher from Claude, Cursor and other MCP clients.
+- [Agent skills](https://www.newscatcherapi.com/docs/integrations/agent-skills): Give coding agents the know-how to build with NewsCatcher.
+- [Docs for AI agents](https://www.newscatcherapi.com/docs/integrations/docs-for-agents): Let your coding agent read these docs through llms.txt, Markdown pages or MCP.
+
+## Changelog
+
+- [Changelog](https://www.newscatcherapi.com/docs/changelog): New features and changes to the News API and the agent.
+
+## Web Search API (Classic)
 
 ### Get started
 
@@ -258,11 +312,15 @@ deleted — it becomes unassigned and continues to exist.
 - [TypeScript SDK](https://www.newscatcherapi.com/docs/web-search-api/libraries/typescript): TypeScript client library for CatchAll API
 - [Java SDK](https://www.newscatcherapi.com/docs/web-search-api/libraries/java): Java client library for CatchAll API
 
-## Event Monitors
+## Event Monitors (Classic)
 
-## Company Monitors
+- [Event Monitors](https://www.newscatcherapi.com/docs/web-search-api/concepts/event-monitors): Schedule recurring CatchAll jobs with webhook notifications.
 
-## News API
+## Company Monitors (Classic)
+
+- [Company Monitors](https://www.newscatcherapi.com/docs/web-search-api/concepts/company-monitors): Track specific companies across CatchAll jobs with per-company relevance scores.
+
+## News API (Classic)
 
 ### Get started
 
@@ -357,7 +415,7 @@ deleted — it becomes unassigned and continues to exist.
 - [TypeScript SDK](https://www.newscatcherapi.com/docs/news-api/libraries/typescript): TypeScript client library for News API
 - [Java SDK](https://www.newscatcherapi.com/docs/news-api/libraries/java): Java client library for News API
 
-## Local News API
+## Local News API (Classic)
 
 ### Get started
 
@@ -395,3 +453,5 @@ deleted — it becomes unassigned and continues to exist.
 - [catch-all-api](https://github.com/NewscatcherAPI/docs/blob/main/web-search-api/api-reference/catch-all-api.yml): CatchAll is a web search API that generates unique datasets that don't exist anywhere else on the web.
 - [news-api-v3](https://github.com/NewscatcherAPI/docs/blob/main/news-api/api-reference/news-api-v3.yml): NewsCatcher News API provides programmatic access to a continuously updated global news index.
 - [local-news-api](https://github.com/NewscatcherAPI/docs/blob/main/local-news-api/api-reference/local-news-api.yml): The Local News API provides access to local news articles with location-specific filtering capabilities.
+- [news-api](https://github.com/NewscatcherAPI/docs/blob/main/api-reference/news-api/openapi.json): Search the news NewsCatcher has crawled in the last **30 days**, in every language: ranked by relevance, source authority and freshness, and
+- [agent](https://github.com/NewscatcherAPI/docs/blob/main/api-reference/agent/openapi.json): Agent runs (events from a query, or news about companies), company lists and monitors.

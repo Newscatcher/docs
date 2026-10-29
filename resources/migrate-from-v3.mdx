@@ -1,0 +1,38 @@
+---
+title: Migrate from the v3 News API
+sidebarTitle: Migrate from v3
+description: Map v3 search requests to the new News API.
+---
+
+The v3 News API keeps working, and its docs stay under **Classic** in the
+version menu. Move to the new `/search` when you want ranked, story-grouped
+results for recent news. Stay on v3 when you need every match of a boolean
+query, deep pagination or the full archive.
+
+{/* TODO: confirm with the team which v3 features have no equivalent at launch, and what to recommend for each. */}
+
+## Requests
+
+| v3 | New News API |
+|---|---|
+| `https://v3-api.newscatcherapi.com/api/search` | `/search` (`GET` or `POST`) |
+| `x-api-token` header | `x-api-key` header |
+| `q` (boolean) | `q`: plain words or keywords with `AND`, `OR`, `NOT` |
+| `lang` | `languages` |
+| `countries` | `countries` |
+| `sources` | `sources` |
+| `from_`, `to_` | `window_hours`, up to the last 30 days |
+| `page_size` | `limit`, 1 to 100 |
+| `page` | No pagination: results are the best `limit` articles |
+| `clustering_enabled` | Always on: every result has a `story` |
+| `include_nlp_data` | `include` (Enterprise) |
+
+## Responses
+
+| v3 | New News API |
+|---|---|
+| `articles` | `results`, best first |
+| `total_hits`, `total_pages` | `count`: the number of results returned |
+| `cluster_id`, per response page | `story.id` on every result, and `/stories/{story_id}` for its articles |
+| `nlp.summary` | `summary` (and `summary_en`) on every result |
+| `domain_url` | `source.domain` |

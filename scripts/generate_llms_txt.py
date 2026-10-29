@@ -43,6 +43,8 @@ OAS_SPECS: dict[str, str] = {
     "catch-all-api": "web-search-api/api-reference/catch-all-api.yml",
     "news-api-v3": "news-api/api-reference/news-api-v3.yml",
     "local-news-api": "local-news-api/api-reference/local-news-api.yml",
+    "news-api": "api-reference/news-api/openapi.json",
+    "agent": "api-reference/agent/openapi.json",
 }
 
 BLOCKQUOTE = (
@@ -62,6 +64,10 @@ BLOCKQUOTE = (
 import re
 
 _FRONTMATTER_RE = re.compile(r"^---[ \t]*\n(.*?)\n---", re.DOTALL)
+
+# Navigation entries like "GET /search" are endpoints Mintlify generates from
+# an OpenAPI spec, not MDX pages.
+OPENAPI_ENDPOINT_RE = re.compile(r"^(GET|POST|PUT|PATCH|DELETE) /")
 
 
 def parse_frontmatter(text: str) -> dict:
@@ -225,7 +231,8 @@ def iter_leaves(node) -> list[str]:
     """Recursively yield all leaf page paths from a navigation node."""
     pages: list[str] = []
     if isinstance(node, str):
-        pages.append(node)
+        if not OPENAPI_ENDPOINT_RE.match(node):
+            pages.append(node)
     elif isinstance(node, dict):
         for child in node.get("pages", []):
             pages.extend(iter_leaves(child))
@@ -323,7 +330,18 @@ def generate(root: Path) -> tuple[str, list[str]]:
         `missing` list as a hard error.
     """
     docs_json: dict = json.loads((root / DOCS_JSON_PATH).read_text(encoding="utf-8"))
-    tabs: list = docs_json["navigation"]["tabs"]
+    navigation: dict = docs_json["navigation"]
+    # (tab, H2 label) pairs. With versions, tabs of the non-default versions
+    # are labelled "<tab> (<version>)".
+    if "versions" in navigation:
+        tabs: list = []
+        for i, version in enumerate(navigation["versions"]):
+            is_default = version.get("default", i == 0)
+            for tab in version.get("tabs", []):
+                label = tab.get("tab", "")
+                tabs.append((tab, label if is_default else f"{label} ({version['version']})"))
+    else:
+        tabs = [(tab, tab.get("tab", "")) for tab in navigation["tabs"]]
 
     lines: list[str] = []
     missing: list[str] = []
@@ -342,7 +360,7 @@ def generate(root: Path) -> tuple[str, list[str]]:
     lines.append("")
 
     # Home page as a preamble link (outside any H2 section)
-    for tab in tabs:
+    for tab, _ in tabs:
         if tab.get("tab") == "Home":
             for page_path in tab.get("pages", []):
                 lines.append(emit(page_path))
@@ -350,17 +368,24 @@ def generate(root: Path) -> tuple[str, list[str]]:
             break
 
     # Product tabs
-    for tab in tabs:
-        tab_name: str = tab.get("tab", "")
-        if tab_name == "Home":
+    for tab, tab_name in tabs:
+        if tab.get("tab") == "Home" or not iter_leaves(tab.get("groups", []) or tab.get("pages", [])):
             continue
 
         lines.append(f"## {tab_name}")
         lines.append("")
 
+        # A tab with pages and no groups (e.g. Changelog)
+        for page_path in iter_leaves([p for p in tab.get("pages", []) if isinstance(p, str)]):
+            lines.append(emit(page_path))
+        if tab.get("pages") and not tab.get("groups"):
+            lines.append("")
+
         for group in tab.get("groups", []):
             group_name: str = group.get("group", "")
             group_pages: list = group.get("pages", [])
+            if not iter_leaves(group_pages):
+                continue
 
             has_nested = any(isinstance(p, dict) for p in group_pages)
 

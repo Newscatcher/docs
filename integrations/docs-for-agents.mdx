@@ -1,0 +1,27 @@
+---
+title: Docs for AI agents
+description: Let your coding agent read these docs through llms.txt, Markdown pages or MCP.
+---
+
+These docs are built to be read by AI agents as well as people.
+
+## Docs MCP server
+
+Search and read these docs from any MCP client:
+
+```bash
+claude mcp add --transport http newscatcher-docs https://www.newscatcherapi.com/docs/mcp
+```
+
+For other clients, add `https://www.newscatcherapi.com/docs/mcp` as a remote
+(HTTP) MCP server.
+
+## llms.txt
+
+[`llms.txt`](https://www.newscatcherapi.com/docs/llms.txt) lists every page
+with a one-line description, so an agent can find the page it needs.
+
+## Markdown pages
+
+Every page is available as Markdown: use the menu at the top of any page to
+copy it or open it in ChatGPT, Claude or Cursor.

@@ -1,0 +1,70 @@
+---
+title: News API quickstart
+sidebarTitle: Quickstart
+description: Search the last 30 days of news in any language with one request.
+---
+
+The News API searches the news NewsCatcher has crawled in the last 30 days, in
+every language. Results are ranked by relevance, publisher authority, coverage
+and freshness, and grouped into [stories](/news/stories): the articles that
+report the same event. Each article comes with a one-line summary.
+
+## Endpoints
+
+| Endpoint | What it does | Charged |
+|---|---|---|
+| `GET` or `POST /search` | Ranked articles for a request in plain words or keywords. | Yes, by [effort](/news/effort-levels) |
+| `GET /stories/{story_id}` | Every article of one story. | 1 NCC |
+| `GET /subscription` | Your plan, limits and credit balance. | No |
+
+## Your first search
+
+`GET /search` takes the parameters in the query string. `POST /search` takes
+the same parameters as a JSON body, where list parameters can also be arrays.
+
+<CodeGroup>
+```bash GET
+curl -G "https://dev-api.newscatcherapi.dev/news-api/search" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY" \
+  --data-urlencode "q=Tesla recall NOT Cybertruck" \
+  --data-urlencode "effort=medium" \
+  --data-urlencode "window_hours=48" \
+  --data-urlencode "languages=en,de"
+```
+
+```bash POST
+curl -X POST "https://dev-api.newscatcherapi.dev/news-api/search" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "q": "Tesla recall NOT Cybertruck",
+    "effort": "medium",
+    "window_hours": 48,
+    "languages": ["en", "de"]
+  }'
+```
+</CodeGroup>
+
+This search:
+
+- ranks with a cross-encoder rerank (`effort=medium`, 5 NCC);
+- looks back 48 hours instead of the default 24;
+- keeps English and German articles only;
+- drops articles whose headline, description or summary mention "Cybertruck".
+
+## What comes back
+
+The response has the query as received, the effort that ran, the window that
+was searched and the `results`, best first. See
+[Response fields](/news/response-fields) for every field.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Writing queries" icon="pen" href="/news/writing-queries">
+    Plain words, keywords and NOT.
+  </Card>
+  <Card title="Filters" icon="filter" href="/news/filters">
+    Time window, languages, countries, sources and coverage.
+  </Card>
+</CardGroup>

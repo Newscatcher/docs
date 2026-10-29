@@ -1,0 +1,72 @@
+---
+title: Filters
+description: Narrow a search by time window, language, country, publisher, coverage and content type.
+---
+
+Filters narrow the articles a search ranks. In `GET /search` list filters are
+comma-separated strings; in the JSON body of `POST /search` they can also be
+arrays.
+
+<ParamField query="window_hours" type="integer" default="24">
+  How many hours back to search, from 1 up to your plan's history (720 hours =
+  30 days on the free plan). A longer window is cut to your history, and the
+  response says `"clamped": true` in `window`.
+</ParamField>
+
+<ParamField query="languages" type="string | string[]">
+  Only articles in these languages: ISO 639-1 codes, at most 100, for example
+  `en,de`. `zh` is searched as `cn`. If none of them is English, the original
+  text is searched instead of the English translation.
+</ParamField>
+
+<ParamField query="countries" type="string | string[]">
+  Only articles from publishers in these countries: ISO 3166-1 alpha-2 codes,
+  at most 100, for example `US,GB`.
+</ParamField>
+
+<ParamField query="sources" type="string | string[]">
+  Only these publishers: domains, at most 100, for example
+  `reuters.com,bbc.co.uk`. Matches any copy of an article, and the result shows
+  the domain you asked for.
+</ParamField>
+
+<ParamField query="min_newsrooms" type="integer" default="0">
+  Only stories carried by at least this many newsrooms (0 to 1,000). See
+  [Stories](/news/stories).
+</ParamField>
+
+<ParamField query="content_type" type="string" default="news">
+  `news` keeps real news articles only. `all` returns every article, whatever
+  its type.
+</ParamField>
+
+## Shaping the results
+
+<ParamField query="limit" type="integer" default="20">
+  Number of articles to return, 1 to 100. Your plan may allow fewer (50 on the
+  free plan); a larger `limit` gets `403`.
+</ParamField>
+
+<ParamField query="collapse" type="string" default="diverse">
+  What happens to several articles of one story: `diverse`, `story`,
+  `duplicates` or `none`. See [Stories](/news/stories#repeated-articles-of-one-story).
+</ParamField>
+
+<ParamField query="include" type="string | string[]">
+  Enterprise fields to add to every result: `description`, `content`,
+  `entities`, `sentiment`, `themes`, `translation`, `embedding`. Other plans get
+  `403` with `enterprise_field`. See [Response fields](/news/response-fields#enterprise-fields).
+</ParamField>
+
+## Example
+
+```json POST /search
+{
+  "q": "port strike",
+  "window_hours": 72,
+  "countries": ["US", "CA"],
+  "min_newsrooms": 3,
+  "collapse": "story",
+  "limit": 50
+}
+```

@@ -1,0 +1,68 @@
+---
+title: Runs
+description: Follow, cancel, rename and delete runs, and work with batches.
+---
+
+## Lifecycle
+
+A run starts `queued`, then `running`, and ends `succeeded` or `failed`. A
+failed run has an `error`. While it runs, `phases` shows each step with its
+status (`done`, `active`, `pending` or `skipped`) and timing.
+
+{/* TODO: confirm the status of a cancelled run and list every run status. */}
+
+## Follow a run live
+
+`GET /runs/{run_id}/progress` streams the run's progress as Server-Sent
+Events:
+
+| Event | When |
+|---|---|
+| `run_status` | The run's status changed. |
+| `run_event` | The agent took a step. |
+| `run_result` | The run finished with its result. |
+| `run_error` | The run failed. |
+
+```bash
+curl -N "https://dev-api.newscatcherapi.dev/agent/runs/RUN_ID/progress" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY" \
+  -H "Accept: text/event-stream"
+```
+
+If the connection drops, reconnect with the `Last-Event-ID` header (or
+`?after=` with the last event id) to resume without missing events.
+
+## List your runs
+
+`GET /runs` returns your events and companies runs, newest first. Filter with
+`kind` and cap with `limit`. Scheduled monitor runs are listed under
+[monitors](/agent/monitors#get-what-a-monitor-delivered).
+
+## Cancel, rename, delete
+
+| To | Call | Notes |
+|---|---|---|
+| Cancel | `POST /runs/{run_id}/cancel` | A queued run stops at once; a running one before its next step. |
+| Rename | `PATCH /runs/{run_id}` | Send `title`, 1 to 200 characters. |
+| Delete | `DELETE /runs/{run_id}` | Finished runs only. The run leaves your history and its content is erased. |
+
+## Batches
+
+A company list too big for one run is split into runs of up to 50 companies:
+a batch. `POST /runs` then returns a `batch_id` and the `run_ids` of every
+part.
+
+Work with the batch as one run:
+
+| To | Call |
+|---|---|
+| Get status, progress, stories and companies | `GET /batches/{batch_id}` |
+| Follow every part live, in one stream | `GET /batches/{batch_id}/progress` |
+| Cancel every part that has not ended | `POST /batches/{batch_id}/cancel` |
+| Rename every part (`<title> (k/n)`) | `PATCH /batches/{batch_id}` |
+| Delete every part of a finished batch | `DELETE /batches/{batch_id}` |
+| Download | `GET /batches/{batch_id}/export.csv`, `companies.csv` and the `.xlsx` versions |
+
+`progress` counts the parts and companies done out of the total. In the batch
+stream each event's data has its part's `run_id`, and the stream ends with
+`batch_status`.
