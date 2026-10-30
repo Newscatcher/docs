@@ -33,5 +33,5 @@ query, deep pagination or the full archive.
 | `articles` | `results`, in the order of `sort_by` |
 | `total_hits`, `total_pages` | `count`: the number of results returned |
 | `cluster_id`, per response page | `story.id` on every result, and `/stories/{story_id}` for its articles |
-| `nlp.summary` | `summary` (and `summary_en`) on every result |
+| `nlp.summary` | `summary` when the article has one, and `summary_en` for non-English articles |
 | `domain_url` | `source.domain` |

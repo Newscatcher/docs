@@ -25,7 +25,8 @@ description: Start a run, follow it, and download the result.
   </Step>
 
   <Step title="Follow it">
-    Poll `GET /runs/{run_id}` until `status` is `succeeded` or `failed`:
+    Poll `GET /runs/{run_id}` until `status` is no longer `queued` or
+    `running`:
 
     ```python
     import os
@@ -43,10 +44,12 @@ description: Start a run, follow it, and download the result.
 
     while True:
         detail = requests.get(f"{BASE}/runs/{run['run_id']}", headers=HEADERS).json()
-        if detail["status"] in ("succeeded", "failed"):
+        if detail["status"] not in ("queued", "running"):
             break
         time.sleep(15)
 
+    if detail["status"] != "succeeded":
+        raise RuntimeError(detail.get("error"))
     print(detail["columns"])
     for row in detail["rows"]:
         print(row)
@@ -66,7 +69,7 @@ description: Start a run, follow it, and download the result.
   </Step>
 
   <Step title="Keep it updated (optional)">
-    Turn the finished run into a monitor that delivers new deals every week:
+    Turn the succeeded run into a monitor that delivers new deals every week:
 
     ```bash
     curl -X POST "https://api.newscatcherapi.com/agent/monitors" \

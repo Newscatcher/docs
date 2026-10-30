@@ -9,11 +9,11 @@ delivers only what is new.
 
 | | News API `/search` | Agent run | Monitor |
 |---|---|---|---|
-| Input | A question or keywords | An event description, or a list of companies | A finished run, or a list of companies |
+| Input | A question or keywords | An event description, or a list of companies | A succeeded run, or a list of companies |
 | Output | Ranked articles, grouped into stories | A table: one event or story per row | New rows or stories, each run |
-| Time | Seconds | About 1 to 30 minutes, by mode | Hourly, daily or weekly |
+| Time | Seconds | Minutes, by mode | Hourly, daily or weekly |
 | Time window | Up to the last 30 days | Read from your query, or `lookback_days` for companies | Since its last run |
-| Charged | Per search, by effort | Per run | Per scheduled run |
+| Charged | Per search, by effort | Per run (company research: per company) | Per scheduled run (company monitors: per company per month) |
 
 ## Use the News API when
 

@@ -42,8 +42,9 @@ curl "https://api.newscatcherapi.com/news-api/subscription" \
 Over a rate limit you get `429` with a `Retry-After` header. Wait that many
 seconds, then retry the same request.
 
-A `window_hours` longer than your plan's history is not refused: it is cut to
-your history, and the response says `"clamped": true` in `window`.
+A `window_hours` longer than your plan's history, up to 720, is not refused:
+it is cut to your history, and the response says `"clamped": true` in
+`window`. Above 720 the request gets `422`.
 
 ## Agent limits
 

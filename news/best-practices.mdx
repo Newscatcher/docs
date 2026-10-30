@@ -33,7 +33,7 @@ description: Get better results and spend fewer credits with the News API.
 ## Reliability
 
 - Retry `429` after the `Retry-After` header, and `500` and `503` after a short
-  wait. Do not retry `4xx` errors unchanged.
+  wait. Do not retry other `4xx` errors unchanged.
 - Log the `Correlation-ID` header of failed requests and send it to support.
 - Treat `window.clamped: true` as a sign your plan's history is shorter than
   what you asked for.

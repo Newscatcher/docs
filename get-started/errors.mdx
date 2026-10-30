@@ -9,11 +9,11 @@ Use the HTTP status to decide what to do:
 |---|---|---|
 | `400` | The request was refused; its `code` says why (agent). | No, fix it first |
 | `401` | The API key is missing or invalid. | No |
-| `402` | Your credit balance does not cover the request. | After topping up |
+| `402` | Your credit balance does not cover the request (News API). | After topping up |
 | `403` | Your plan does not include what you asked for, or the key may not use this API. | No |
 | `404` | Unknown story, run, list or monitor. | No |
 | `409` | The request conflicts with the current state of the run, list or monitor (agent). | After the state changes |
-| `413` | The uploaded file is too large (agent). | No |
+| `413` | The request body or the uploaded file is too large (agent). | No |
 | `422` | A parameter is missing, invalid or unknown, or the body is not valid JSON. | No, fix it first |
 | `429` | A rate limit of your plan. | Yes, after `Retry-After` seconds |
 | `500` | Something failed on our side. | Yes, and send us the `Correlation-ID` |

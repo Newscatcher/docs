@@ -38,8 +38,8 @@ curl -X POST "https://api.newscatcherapi.com/agent/companies/lists/from-run/RUN_
 - A file can be `.csv`, `.xlsx`, `.json` or `.txt`. Lines that give no company
   come back in `skipped`, with the line number and the reason.
 - Repeated companies are dropped.
-- Send your own `list_id` (a UUID) to make the request safe to retry: the same
-  id returns the same list.
+- When you create a list from JSON, send your own `list_id` (a UUID) to make
+  the request safe to retry: the same id returns the same list.
 
 ## Resolution
 

@@ -5,9 +5,10 @@ description: Follow, cancel, rename and delete runs, and work with batches.
 
 ## Lifecycle
 
-A run starts `queued`, then `running`, and ends `succeeded` or `failed`,
-unless you [cancel](#cancel-rename-delete) it. A failed run has an `error`. While it runs, `phases` shows each step with its
-status (`done`, `active`, `pending` or `skipped`) and timing.
+A run is `queued`, then `running`, until it ends. A run that worked ends
+`succeeded`. Any other end status means it did not, and `error` says why.
+While it runs, `phases` shows each step with its status (`done`, `active`,
+`pending` or `skipped`) and timing.
 
 ## Follow a run live
 

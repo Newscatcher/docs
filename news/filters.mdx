@@ -13,8 +13,9 @@ list filters are arrays or comma-separated strings; in the query string of
 <ParamField body="window_hours" type="integer" default="24">
   How many hours back to search, from 1 up to your plan's history (720 hours =
   30 days on the free plan). The window applies to the publication date, or to
-  the crawl date with `sort_by=crawled_at`. A longer window is cut to your
-  history, and the response says `"clamped": true` in `window`.
+  the crawl date with `sort_by=crawled_at`. A window longer than your history
+  is cut to it, and the response says `"clamped": true` in `window`. Above
+  720 the request gets `422`.
 </ParamField>
 
 ## Languages, countries and publishers

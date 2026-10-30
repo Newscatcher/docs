@@ -76,9 +76,12 @@ and copy your API key. The same key works for the News API and the agent.
           "url": "https://www.fox10tv.com/2026/10/28/major-disaster-declared-florida-following-hurricane-isaias-federal-aid-approved",
           "source": { "domain": "fox10tv.com", "name": "FOX10News" },
           "published_at": "2026-10-28T01:05:37+00:00",
+          "crawled_at": "2026-10-28T01:06:57+00:00",
           "content_type": "news_report",
           "story": { "id": "6f1c2b0e-2f0f-4d52-9a0b-5d0e8a5f9d11", "newsrooms": 40 },
+          "score": 36.1871,
           "country": "US",
+          "snippet": "President Donald J. Trump approved a Major Disaster Declaration for Florida on Tuesday, releasing federal funding to assist with recovery…",
           "summary": "Trump approved a major disaster declaration for Florida after Hurricane Isaias, unlocking federal recovery funds."
         }
       ]
@@ -108,7 +111,8 @@ and copy your API key. The same key works for the News API and the agent.
 
   <Step title="Get the result">
     A `fast` run takes about 1 to 3 minutes. Poll the run until its `status`
-    is `succeeded`, then read its `columns` and `rows`:
+    is no longer `queued` or `running`. When it is `succeeded`, read its
+    `columns` and `rows`:
 
     ```bash
     curl "https://api.newscatcherapi.com/agent/runs/RUN_ID" \

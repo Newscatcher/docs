@@ -25,8 +25,8 @@ description: Write better requests, pick the right mode and keep monitors cheap.
 
 - Make monitors from runs whose results you checked, with `keep_updated` or
   `from_run_id`, so every delivery has the same columns.
-- Use weekly schedules for slow-moving topics. A daily event monitor costs half
-  a run per run; a weekly one costs a full run per run.
+- Use weekly schedules for slow-moving topics: every scheduled run is
+  charged. See [Credits and pricing](/get-started/credits-and-pricing#agent).
 - Follow a company list instead of typing companies into each monitor, so one
   change to the list updates every monitor that uses it.
 - Fix wrongly resolved companies in the list: runs and monitors from it use the
@@ -36,5 +36,5 @@ description: Write better requests, pick the right mode and keep monitors cheap.
 
 - Follow runs with the [progress stream](/agent/runs#follow-a-run-live) in
   user-facing apps, and poll `GET /runs/{run_id}` in background jobs.
-- Send your own `list_id` when you create lists, so retries do not create
-  duplicates.
+- Send your own `list_id` when you create a list with
+  `POST /companies/lists`, so retries do not create duplicates.

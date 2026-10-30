@@ -9,7 +9,7 @@ its last run.
 | Kind | Made from | Delivers |
 |---|---|---|
 | `companies` | Companies, a company list, or a companies run | New stories about its companies |
-| `dataset` (event monitor) | A finished events run | New rows for the run's question |
+| `dataset` (event monitor) | A succeeded events run | New rows for the run's question |
 
 ## Create a monitor
 
@@ -84,7 +84,7 @@ minutes; its schedule then continues as before.
 </ParamField>
 
 The default is daily at 09:00 UTC. Event monitors made from `standard` or
-`max` runs default to weekly, on the weekday the run was made, and may run
+`max` runs default to weekly, on the weekday the monitor is created, and may run
 daily too.
 
 ## Get what a monitor delivered
