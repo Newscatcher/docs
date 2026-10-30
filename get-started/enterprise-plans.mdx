@@ -1,0 +1,57 @@
+---
+title: Enterprise plans
+description: Everything Enterprise plans add to the News API and the agent.
+---
+
+Enterprise plans include everything in the public plans, and add the data,
+limits and terms below. The Enterprise APIs are documented under
+**Enterprise** in the version menu.
+
+## More data on every result
+
+Add these to every `/search` result with `include`:
+
+- **Named entities**: people, organizations, locations and other names, also
+  found in the English translation.
+- **Sentiment** of the headline and of the article, from -1 to 1.
+- **Themes** of the article.
+- **Publisher descriptions**: the description the publisher wrote for the
+  article.
+- **English translations** of the headline and summary of non-English
+  articles.
+- **Embeddings**: a 1,024-value vector of the article.
+
+See [Response fields](/news/response-fields#enterprise-fields) for the field
+names.
+
+## Local news data
+
+The [Local News API](/local-news-api/get-started/introduction) returns
+location-specific news, with geographic relevance detection and GeoNames
+filtering.
+
+## Every match and the archive
+
+The [v3 News API](/news-api/get-started/introduction) returns every article
+that matches a boolean query, with pagination, from 2019 onward.
+
+## Larger company runs
+
+Company runs of more than 50 companies, split into
+[batches](/agent/runs#batches) and handled as one run.
+
+## Higher limits
+
+- Up to 100 results per search (50 on the free plan).
+- Higher requests per second and higher daily limits.
+
+## Contract terms
+
+A signed Enterprise agreement can include terms the public plans don't, such
+as rights to redistribute data, an uptime SLA and volume pricing. Where the
+agreement differs from the public terms, the agreement applies.
+
+## Talk to us
+
+[Book a demo](https://www.newscatcherapi.com/book-a-demo) or email
+[sales@newscatcherapi.com](mailto:sales@newscatcherapi.com).

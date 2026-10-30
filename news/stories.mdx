@@ -1,0 +1,76 @@
+---
+title: Stories
+description: How articles are grouped into stories, and how to get every article of one story.
+---
+
+A **story** is the group of articles that report the same event. Every search
+result says which story it belongs to and how many newsrooms cover it:
+
+```json
+"story": { "id": "6f1c2b0e-2f0f-4d52-9a0b-5d0e8a5f9d11", "newsrooms": 40 }
+```
+
+`newsrooms` is the number of distinct publishers that cover the story. It is
+part of the ranking: a story many newsrooms carry ranks higher.
+
+## Repeated articles of one story
+
+`collapse` decides what happens when several results belong to one story:
+
+| `collapse` | Result |
+|---|---|
+| `diverse` (default) | Repeated articles of a story rank lower, so the top results cover more stories. |
+| `story` | One article per story. |
+| `duplicates` | Every article of every story. |
+
+Copies of one article are always one result, whatever `collapse` says. At
+`effort=high`, stories that report the same event are also merged.
+
+## Only widely covered stories
+
+`min_newsrooms` keeps only stories carried by at least that many newsrooms:
+
+```bash
+curl -X POST "https://api.newscatcherapi.com/news-api/search" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"q": "semiconductor tariffs", "collapse": "story", "min_newsrooms": 5}'
+```
+
+## Every article of a story
+
+Pass a result's `story.id` to `GET /stories/{story_id}`:
+
+```bash
+curl "https://api.newscatcherapi.com/news-api/stories/6f1c2b0e-2f0f-4d52-9a0b-5d0e8a5f9d11?limit=100" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY"
+```
+
+```json
+{
+  "story_id": "6f1c2b0e-2f0f-4d52-9a0b-5d0e8a5f9d11",
+  "articles_total": 43,
+  "newsrooms": 40,
+  "first_seen": "2026-10-28T00:41:10+00:00",
+  "last_seen": "2026-10-28T13:58:02+00:00",
+  "articles": [
+    {
+      "id": "876a97d2bc58f3c2437ad7b03a06ebfe",
+      "title": "Major disaster declared in Florida following Hurricane Isaias; federal aid approved",
+      "language": "en",
+      "url": "https://www.fox10tv.com/2026/10/28/major-disaster-declared-florida-following-hurricane-isaias-federal-aid-approved",
+      "domain": "fox10tv.com",
+      "published_at": "2026-10-28T01:05:37+00:00",
+      "content_type": "news_report"
+    }
+  ]
+}
+```
+
+- Articles come best sources first. `limit` returns 1 to 500 of them.
+- `first_seen` and `last_seen` are the publication times of the earliest and
+  the latest article.
+- A successful request costs 1 NCC, whatever the number of articles.
+- Story pages must be on in your plan: check `story.enabled` in
+  [`GET /subscription`](/get-started/rate-limits#check-your-plan). An unknown
+  story gets `404`.

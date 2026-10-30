@@ -1,0 +1,57 @@
+---
+title: Credits and pricing
+description: What each search, story and agent run costs, and when you are not charged.
+---
+
+Requests are paid from one balance of **NCC** credits. Only successful work is
+charged.
+
+## News API
+
+A search is charged by the [effort](/news/effort-levels) you ask for:
+
+| Request | Credits |
+|---|---|
+| `/search` with `effort=low` | 1 NCC |
+| `/search` with `effort=medium` (default) | 5 NCC |
+| `/search` with `effort=high` | 10 NCC |
+| `/stories/{story_id}` | 1 NCC, whatever the number of articles |
+| `/subscription` | Free |
+
+- A search is charged only when it succeeds (`200`). A search that finds
+  nothing is still charged.
+- A request that is refused or fails (`401`, `402`, `403`, `422`, `429`, `500`,
+  `503`) is never charged.
+
+Your plan's prices are in the `credits_per_search` and `story` fields of
+[`GET /subscription`](/get-started/rate-limits#check-your-plan).
+
+## Agent
+
+An events run is charged per run, by its mode, and per extra 50 rows past the
+first 50. Company research and company monitors are charged per company.
+
+{/* TODO: confirm the agent prices, then remove this warning. */}
+
+<Warning>
+  Draft prices, to be confirmed before launch.
+</Warning>
+
+| Run | Price |
+|---|---|
+| Event research, `fast` | $1 per run, 50 rows included |
+| Event research, `standard` | $3 per run, 50 rows included |
+| Event research, `max` | $6 per run, 50 rows included |
+| Each extra 50 rows (`fast` / `standard` / `max`) | +$0.50 / +$1.50 / +$3 |
+| Company research | $0.50 per company |
+| Event monitor, daily | Half a run of its mode |
+| Event monitor, weekly or less often | One run of its mode |
+| Company monitor | $1.50 per company per month |
+
+Failed runs are free. A run that finds nothing is still charged.
+
+## When your balance runs out
+
+A News API request your balance does not cover gets `402`. A monitor whose
+runs your balance no longer covers is paused with `paused_reason:
+"out_of_credits"`: top up, then resume it.

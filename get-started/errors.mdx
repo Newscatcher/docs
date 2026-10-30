@@ -1,0 +1,53 @@
+---
+title: Errors
+description: Error responses, what they mean and when to retry.
+---
+
+Use the HTTP status to decide what to do:
+
+| Status | Meaning | Retry the same request? |
+|---|---|---|
+| `400` | The request was refused; its `code` says why (agent). | No, fix it first |
+| `401` | The API key is missing or invalid. | No |
+| `402` | Your credit balance does not cover the request (News API). | After topping up |
+| `403` | Your plan does not include what you asked for, or the key may not use this API. | No |
+| `404` | Unknown story, run, list or monitor. | No |
+| `409` | The request conflicts with the current state of the run, list or monitor (agent). | After the state changes |
+| `413` | The request body or the uploaded file is too large (agent). | No |
+| `422` | A parameter is missing, invalid or unknown, or the body is not valid JSON. | No, fix it first |
+| `429` | A rate limit of your plan. | Yes, after `Retry-After` seconds |
+| `500` | Something failed on our side. | Yes, and send us the `Correlation-ID` |
+| `503` | A part of the service is temporarily unavailable. | Yes, after a short wait |
+
+## Error body
+
+The News API and the agent return different error bodies.
+
+<Tabs>
+  <Tab title="News API">
+    ```json
+    {
+      "message": "The 'x-api-key' header is missing. Please provide your API key.",
+      "status_code": 401,
+      "status": "Unauthorized"
+    }
+    ```
+
+    `message` is meant for people: do not parse it. Use `status_code`.
+  </Tab>
+  <Tab title="Agent">
+    ```json
+    {
+      "code": "api_key_required",
+      "message": "Send your API key in the x-api-key header."
+    }
+    ```
+
+    `code` is stable: use it in your code. `message` is meant for people.
+  </Tab>
+</Tabs>
+
+## Tracing a request
+
+Every News API response carries a `Correlation-ID` header and an
+`X-Process-Time` header. Quote the `Correlation-ID` when you contact support.

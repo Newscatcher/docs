@@ -1,0 +1,59 @@
+---
+title: Writing queries
+description: Ask in plain words or keywords, in any language, and exclude terms with NOT.
+---
+
+`q` is what you are looking for: a question in plain words, or keywords with
+`AND`, `OR` and `NOT`. It can be in any language and up to 500 characters long.
+
+<CodeGroup>
+```text Plain words
+What did central banks decide about interest rates this week?
+```
+
+```text Keywords
+ECB OR "Federal Reserve"
+```
+
+```text With NOT
+Apple NOT iPhone
+```
+</CodeGroup>
+
+## Excluding terms with NOT
+
+Put an upper-case `NOT` before a term or a quoted phrase to drop the articles
+that mention it: `Tesla recall NOT Cybertruck`, `NOT "model y"`.
+
+- `NOT` checks the headline, the description and the summary.
+- The response lists the excluded terms in `excluded`.
+- `NOT` must be upper-case.
+
+To leave out whole languages, countries or publishers, use `not_languages`,
+`not_countries` and `not_sources`. See [Filters](/news/filters).
+
+## Languages
+
+Articles in every language are searched through their English translation, so
+an English query finds German, Japanese or Arabic articles too.
+
+If every language you ask for in `languages` is not English, the search runs in
+the original language instead. Use this to search in the language itself. Languages are
+[ISO 639-1 codes](https://en.wikipedia.org/wiki/ISO_639-1):
+
+```bash
+curl -X POST "https://api.newscatcherapi.com/news-api/search" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"q": "Bundestag Haushalt", "languages": ["de"]}'
+```
+
+`zh` is searched as `cn` (simplified Chinese). Traditional Chinese is `tw`.
+
+## Tips
+
+- Say what happened, not only who: `Nvidia export restrictions China` finds
+  more of what you want than `Nvidia`.
+- Use quotes for exact names and phrases: `"Silicon Valley Bank"`.
+- Put the time window in `window_hours`, not in `q`.
+- Narrow with [filters](/news/filters) instead of long keyword lists.

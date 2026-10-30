@@ -1,0 +1,30 @@
+---
+title: FAQ
+description: Common questions about the News API and the agent.
+---
+
+<AccordionGroup>
+  <Accordion title="How far back can I search?">
+    The News API searches the last 30 days, up to your plan's history
+    (`historical_days` in `GET /subscription`). Agent runs read their time
+    window from your query; company runs look back up to 365 days with
+    `lookback_days`.
+  </Accordion>
+  <Accordion title="Which languages are covered?">
+    Every language NewsCatcher crawls. Articles are searched through their
+    English translation, so a query in one language finds articles in all of
+    them. See [Writing queries](/news/writing-queries#languages).
+  </Accordion>
+  <Accordion title="Am I charged for a search that finds nothing?">
+    Yes. A successful search is charged by its effort even when it returns no
+    results. Refused and failed requests are never charged.
+  </Accordion>
+  <Accordion title="Is the v3 News API going away?">
+    The v3 News API keeps working on its own host. Its docs are under
+    **Enterprise** in the version menu.
+  </Accordion>
+  <Accordion title="Do monitors push results to me?">
+    Not yet. Read new results with `GET /monitors/{monitor_id}/stories`,
+    `/rows` or `/runs`.
+  </Accordion>
+</AccordionGroup>

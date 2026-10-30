@@ -1,0 +1,39 @@
+---
+title: Best practices
+description: Get better results and spend fewer credits with the News API.
+---
+
+## Quality
+
+- **Pick the effort per use case, not per app.** Use `low` for high-volume
+  feeds, `medium` for most questions and `high` when the top results must be
+  right. See [Effort levels](/news/effort-levels).
+- **Use `collapse=story` to see more events.** One article per story fits
+  more distinct events into the same `limit`.
+- **Use `min_newsrooms` to find what matters.** Stories carried by many
+  newsrooms are the ones most people saw.
+- **Filter instead of piling up keywords.** `languages`, `countries`,
+  `sources` and their `not_` versions narrow the search without changing what
+  `q` means.
+- **Use a date order for feeds.** `sort_by=published_at` lists the best
+  matches of `q` newest first. It sorts the best matches, not every article of
+  the window.
+
+## Cost
+
+- **Ask for what you will show.** The price of a search does not depend on
+  `limit`, but a larger `limit` gives your users or your model more to read.
+- **Cache repeated searches.** Every successful search is charged, so serve
+  the same query from your cache when a few minutes' freshness is enough.
+- **Use story pages for depth.** One `/stories/{story_id}` call (1 NCC) lists
+  every article of a story; do not run more searches to find them.
+- **Check `/subscription` for free.** It shows your balance, prices and limits
+  without spending credits.
+
+## Reliability
+
+- Retry `429` after the `Retry-After` header, and `500` and `503` after a short
+  wait. Do not retry other `4xx` errors unchanged.
+- Log the `Correlation-ID` header of failed requests and send it to support.
+- Treat `window.clamped: true` as a sign your plan's history is shorter than
+  what you asked for.

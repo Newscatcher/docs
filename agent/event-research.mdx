@@ -1,0 +1,73 @@
+---
+title: Event research
+description: Turn a description of events into a verified table, one event per row.
+---
+
+Send a `query` without `companies` to `POST /runs`. The agent finds the events
+that match, decides which columns the question needs, and fills one row per
+event.
+
+```json
+{
+  "query": "Bank M&A deals announced in the US since Sep 15",
+  "mode": "standard",
+  "max_rows": 100
+}
+```
+
+## Writing the request
+
+The `query` is the whole brief. Put in it:
+
+- **what happened**: deals, recalls, layoffs, lawsuits, product launches;
+- **who or where**: an industry, a country, a type of company;
+- **when**: "since Sep 15", "in Q3 2026", "last week". Event runs read their
+  time window from the query;
+- **what to capture**, if it matters: "with the buyer, the target and the deal
+  value".
+
+<CodeGroup>
+```text Good
+Data breaches disclosed by US hospitals since July 1, with the number of patients affected
+```
+
+```text Too vague
+hospital breaches
+```
+</CodeGroup>
+
+## Parameters
+
+<ParamField body="query" type="string" required>
+  What to find, with its time window.
+</ParamField>
+
+<ParamField body="mode" type="string" default="fast">
+  `fast`, `standard` or `max`. See [modes](/agent/overview#modes).
+</ParamField>
+
+<ParamField body="max_rows" type="integer" default="50">
+  The most rows to return: 50 or 100. More is refused with `too_many_rows`.
+  A run is charged per 50 rows delivered past the first 50.
+</ParamField>
+
+<ParamField body="keep_updated" type="object">
+  Make a monitor of the run once it succeeds. See [Monitors](/agent/monitors).
+</ParamField>
+
+## Choosing a mode
+
+- **`fast`** for a first look, or when 1 to 3 minutes matters more than recall.
+- **`standard`** when every row must be checked against its sources and you
+  want a cited briefing with the table.
+- **`max`** for the hardest lists, where missing an event costs more than the
+  extra time and price.
+
+## What you get
+
+`GET /runs/{run_id}` returns, once the run has finished:
+
+- `columns` and `rows`: the table;
+- `window_from` and `window_to`: the time window the agent read from your
+  query;
+- `report`: the cited briefing that `standard` and `max` runs write.

@@ -1,0 +1,86 @@
+---
+title: Response fields
+description: Every field of a search response and of an article.
+---
+
+## Search response
+
+<ResponseField name="query" type="string">
+  The query as received, with control characters replaced and the ends trimmed.
+</ResponseField>
+<ResponseField name="effort" type="string">
+  The effort that ran: `low`, `medium` or `high`.
+</ResponseField>
+<ResponseField name="sort_by" type="string">
+  The order of the results: `relevancy` (best match first), `published_at` or
+  `crawled_at` (newest first).
+</ResponseField>
+<ResponseField name="took_ms" type="integer">
+  How long the search took on our side, in milliseconds.
+</ResponseField>
+<ResponseField name="window" type="object">
+  The time window that was searched.
+  <Expandable title="properties">
+    <ResponseField name="hours" type="integer">Length of the window in hours, counted back from `to`.</ResponseField>
+    <ResponseField name="to" type="string">End of the window: when the search ran (UTC, ISO 8601).</ResponseField>
+    <ResponseField name="clamped" type="boolean">True when the window you asked for was longer than your plan allows and was cut. Absent otherwise.</ResponseField>
+  </Expandable>
+</ResponseField>
+<ResponseField name="count" type="integer">
+  Number of results returned, at most `limit`.
+</ResponseField>
+<ResponseField name="results" type="object[]">
+  The articles, in the order of `sort_by`. See below.
+</ResponseField>
+<ResponseField name="excluded" type="string[]">
+  The terms of the `NOT` clauses of `q`. Absent when `q` has no `NOT`.
+</ResponseField>
+
+## Article
+
+<ResponseField name="id" type="string">Article id.</ResponseField>
+<ResponseField name="title" type="string">Headline as published.</ResponseField>
+<ResponseField name="title_en" type="string">English translation of the headline. Non-English articles only.</ResponseField>
+<ResponseField name="summary" type="string">
+  One-line summary in the article's language. Absent when the article has none.
+</ResponseField>
+<ResponseField name="summary_en" type="string">
+  One-line summary in English. Non-English articles only.
+</ResponseField>
+<ResponseField name="snippet" type="string">
+  Start of the publisher's description, up to your plan's snippet length (200
+  characters on the free plan).
+</ResponseField>
+<ResponseField name="url" type="string">Link to the article.</ResponseField>
+<ResponseField name="source" type="object">
+  The publisher: `domain` (without `www.`) and `name`.
+</ResponseField>
+<ResponseField name="language" type="string">
+  ISO 639-1 code. Chinese is `cn` (simplified) or `tw` (traditional).
+</ResponseField>
+<ResponseField name="country" type="string">Country of the publisher, ISO 3166-1 alpha-2.</ResponseField>
+<ResponseField name="published_at" type="string">When the article was published (UTC, ISO 8601).</ResponseField>
+<ResponseField name="crawled_at" type="string">When NewsCatcher crawled it (UTC, ISO 8601).</ResponseField>
+<ResponseField name="content_type" type="string">The type of content the article was classified as, for example `news_report`.</ResponseField>
+<ResponseField name="story" type="object">
+  The [story](/news/stories) it belongs to: `id` and `newsrooms`.
+</ResponseField>
+<ResponseField name="score" type="number">
+  Ranking score. Only the order of the results means something, not the value.
+</ResponseField>
+
+## Enterprise fields
+
+Enterprise plans can add heavy fields to every result with `include`. Other
+plans get `403` with `enterprise_field`. Your plan's fields are in
+`extra_fields` of `GET /subscription`. For everything else Enterprise plans
+add, see [Enterprise plans](/get-started/enterprise-plans).
+
+| `include` | Field | What it holds |
+|---|---|---|
+| `description` | `description` | The description the publisher wrote for the article. |
+| `entities` | `entities` | People (`ner_PER`), organizations (`ner_ORG`), locations (`ner_LOC`) and other names (`ner_MISC`), plus the same found in the English translation. |
+| `sentiment` | `sentiment` | Sentiment of the headline and of the article, from -1 (very negative) to 1 (very positive). |
+| `themes` | `themes` | Themes of the article. |
+| `translation` | `translation` | English headline and summary of a non-English article. |
+| `embedding` | `embedding` | A 1,024-value vector of the article, rounded to 4 decimal places. |

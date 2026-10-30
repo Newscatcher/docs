@@ -1,0 +1,51 @@
+---
+title: NewsCatcher API
+sidebarTitle: Overview
+description: Search the world's news in any language, or let the agent research events and companies for you.
+mode: wide
+---
+
+NewsCatcher gives your application and your AI agents two ways to work with
+the news. Both use one API key and one credit balance.
+
+<CardGroup cols={2}>
+  <Card title="News API" icon="magnifying-glass" href="/news/quickstart">
+    Ask in plain words or keywords and get the best articles of the last 30
+    days in seconds, ranked and grouped into stories.
+  </Card>
+  <Card title="Agent" icon="robot" href="/agent/quickstart">
+    Describe the events you need, or give a list of companies. The agent
+    researches in the background and returns a table, once or on a schedule.
+  </Card>
+</CardGroup>
+
+## Which one do I need?
+
+| You want | Use | Answer in |
+|---|---|---|
+| The top articles about something, right now | [`/search`](/news/quickstart) | Seconds |
+| Every article of one story | [`/stories/{story_id}`](/news/stories) | Seconds |
+| A table of events, for example every bank M&A deal since September 15 | [Event research](/agent/event-research) | Minutes, by mode |
+| The news about each company in a list | [Company research](/agent/company-research) | Minutes |
+| New events or company news delivered hourly, daily or weekly | [Monitors](/agent/monitors) | On a schedule |
+
+See [Choose an API](/get-started/choose-an-api) for the full comparison.
+
+## Start building
+
+<CardGroup cols={3}>
+  <Card title="Quickstart" icon="rocket" href="/get-started/quickstart">
+    Make your first request in a few minutes.
+  </Card>
+  <Card title="Docs for AI agents" icon="plug" href="/resources/docs-for-agents">
+    Let your coding agent read these docs through MCP or llms.txt.
+  </Card>
+  <Card title="API reference" icon="code" href="/api-reference/search/search-news">
+    Every endpoint, parameter and response field.
+  </Card>
+</CardGroup>
+
+<Note>
+  Looking for the v3 News API, the Web Search API or the Local News API? Pick
+  **Enterprise** in the version menu at the top of the sidebar.
+</Note>

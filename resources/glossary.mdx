@@ -1,0 +1,47 @@
+---
+title: Glossary
+description: Terms used across the News API and agent docs.
+---
+
+<AccordionGroup>
+  <Accordion title="Article">
+    One news article from one publisher, with its headline, link, publication
+    time, language and one-line summary.
+  </Accordion>
+  <Accordion title="Story">
+    The group of articles that report the same event. Every search result has
+    the `story` it belongs to.
+  </Accordion>
+  <Accordion title="Newsrooms">
+    The number of distinct publishers that cover a story.
+  </Accordion>
+  <Accordion title="Effort">
+    How much ranking work a search gets: `low`, `medium` or `high`. It sets the
+    price of the search.
+  </Accordion>
+  <Accordion title="NCC">
+    NewsCatcher credits, the unit your requests are charged in.
+  </Accordion>
+  <Accordion title="Run">
+    One piece of agent research, started with `POST /runs`: events from a
+    question, or news about companies.
+  </Accordion>
+  <Accordion title="Mode">
+    How deep an events run goes: `fast`, `standard` or `max`.
+  </Accordion>
+  <Accordion title="Row">
+    One line of a run's table: one event, or one story about a company.
+  </Accordion>
+  <Accordion title="Batch">
+    A company list too big for one run, split into runs of up to 50 companies
+    and handled as one.
+  </Accordion>
+  <Accordion title="Company list">
+    A saved set of companies, resolved to the businesses they are, that runs
+    and monitors can use.
+  </Accordion>
+  <Accordion title="Monitor">
+    Research repeated on a schedule that delivers only what is new: a company
+    monitor or an event (dataset) monitor.
+  </Accordion>
+</AccordionGroup>

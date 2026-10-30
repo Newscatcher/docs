@@ -1,0 +1,79 @@
+---
+title: Company lists
+description: Save the companies you follow, fix how they resolve, and reuse them in runs and monitors.
+---
+
+A company list is a saved set of companies. Runs and monitors can use a list
+instead of typed companies, and a monitor that follows a list picks up the
+companies you add or remove from its next run on.
+
+## Create a list
+
+<CodeGroup>
+```bash From JSON
+curl -X POST "https://api.newscatcherapi.com/agent/companies/lists" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Payments",
+    "companies": [{ "domain": "stripe.com" }, { "domain": "adyen.com" }]
+  }'
+```
+
+```bash From a file
+curl -X POST "https://api.newscatcherapi.com/agent/companies/lists/upload" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY" \
+  -F "file=@companies.csv" \
+  -F "name=Payments"
+```
+
+```bash From a run
+curl -X POST "https://api.newscatcherapi.com/agent/companies/lists/from-run/RUN_ID" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Payments"}'
+```
+</CodeGroup>
+
+- A file can be `.csv`, `.xlsx`, `.json` or `.txt`. Lines that give no company
+  come back in `skipped`, with the line number and the reason.
+- Repeated companies are dropped.
+- When you create a list from JSON, send your own `list_id` (a UUID) to make
+  the request safe to retry: the same id returns the same list.
+
+## Resolution
+
+New companies are resolved in the background: the agent works out which
+business each domain is. While it works, the list's `status` is `resolving`;
+poll `GET /companies/lists/{list_id}` until it is `ready`. Each company has an
+`identity_status` and, once resolved, a `profile`.
+
+Runs started from a list wait for companies that are not resolved yet.
+
+## Fix a company
+
+If a company resolved to the wrong business, or was not found, correct it:
+
+```bash
+curl -X PATCH "https://api.newscatcherapi.com/agent/companies/lists/LIST_ID/companies/acme.com" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Acme Robotics", "other_names": ["Acme Robotics Inc."]}'
+```
+
+Send any of `domain` (its right domain), `name` (`""` clears it) and
+`other_names` (brands, former or local names, at most 10; `[]` clears them).
+The company goes back to pending and is resolved again as this list's own
+company. Runs and monitors from the list use the correction.
+
+## Change a list
+
+| To | Call |
+|---|---|
+| Add companies | `POST /companies/lists/{list_id}/companies` (JSON) or `.../companies/upload` (file) |
+| Remove a company | `DELETE /companies/lists/{list_id}/companies/{domain}` |
+| Rename the list | `PATCH /companies/lists/{list_id}` |
+| Delete the list | `DELETE /companies/lists/{list_id}` |
+
+Deleting a list does not change the runs and monitors started from it: they
+keep their companies.

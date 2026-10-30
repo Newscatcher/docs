@@ -1,0 +1,86 @@
+---
+title: Company research
+description: Find each company's news stories from a list of domains.
+---
+
+Send `companies` to `POST /runs`. The agent finds each company's news stories
+in the window you set, optionally only the ones about a topic.
+
+```json
+{
+  "companies": {
+    "items": [
+      { "domain": "stripe.com" },
+      { "domain": "adyen.com", "name": "Adyen" }
+    ],
+    "save_as_list": true,
+    "list_name": "Payments"
+  },
+  "query": "funding and acquisitions",
+  "lookback_days": 90
+}
+```
+
+## Parameters
+
+<ParamField body="companies" type="object" required>
+  The companies: `list_id` of a [company list](/agent/company-lists), or
+  `items`, each with a `domain` (a URL works too) and an optional `name`.
+  `save_as_list: true` also saves typed items as a list, named `list_name`.
+</ParamField>
+
+<ParamField body="query" type="string">
+  Keep only stories about this, for example "funding and acquisitions". Blank:
+  every story about the companies.
+</ParamField>
+
+<ParamField body="lookback_days" type="integer" default="30">
+  How many days back from today: 1 to 365.
+</ParamField>
+
+<ParamField body="include_market_activity" type="boolean" default="true">
+  Keep market activity stories: stock moves and analyst ratings.
+</ParamField>
+
+<ParamField body="read_web" type="boolean" default="true">
+  Also read each company's own newsroom and the web, not only the news.
+</ParamField>
+
+<ParamField body="recheck_borderline" type="boolean" default="true">
+  A stronger model rechecks borderline web pages for companies with little
+  coverage.
+</ParamField>
+
+<ParamField body="keep_updated" type="object">
+  Make a company monitor of the run once it succeeds. See
+  [Monitors](/agent/monitors).
+</ParamField>
+
+Company runs always use the `standard` mode.
+
+## Large lists
+
+Free and pay-as-you-go runs take up to 50 companies. On
+[Enterprise plans](/get-started/enterprise-plans), a run of more than 50
+companies is split into runs of up to 50, grouped in a
+[batch](/agent/runs#batches). The response then has a `batch_id` and the
+`run_ids` of every part.
+
+## Coverage per company
+
+Besides the stories, a companies run returns one row per company in
+`companies`, with what the agent found:
+
+| Status | Meaning |
+|---|---|
+| `found` | Stories were found. |
+| `no_news` | The company was searched and has no stories in the window. |
+| `incomplete` | The search for the company did not finish. |
+| `identity_unknown` | The agent could not tell which company the domain is. |
+| `pending` | Not reached yet; the run is still going. |
+| `not_searched` | The run ended before reaching the company. |
+
+Download it with `GET /runs/{run_id}/companies.csv` or `companies.xlsx`.
+
+If the run used a company list, fix a company with `identity_unknown` in the
+list: see [Fix a company](/agent/company-lists#fix-a-company).

@@ -1,0 +1,29 @@
+---
+title: Authentication
+description: Send your API key in the x-api-key header.
+---
+
+Every request to the News API and the agent carries your API key in the
+`x-api-key` header:
+
+```bash
+curl -X POST "https://api.newscatcherapi.com/news-api/search" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"q": "central bank rate decision"}'
+```
+
+Get your key in the [NewsCatcher platform](https://platform.newscatcherapi.com).
+One key works for both APIs and draws on one credit balance.
+
+A missing or invalid key gets `401`. A key that may not use an API, or a
+request for something your plan does not include, gets `403`.
+
+## Keep your key safe
+
+- Keep the key on your server or in an environment variable. Do not ship it in
+  browser or mobile code.
+- Use a separate key for each application, so you can revoke one without
+  touching the others.
+- If a key leaks, revoke it in the [platform](https://platform.newscatcherapi.com)
+  and create a new one.

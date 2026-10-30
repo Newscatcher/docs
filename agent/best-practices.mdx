@@ -1,0 +1,40 @@
+---
+title: Best practices
+description: Write better requests, pick the right mode and keep monitors cheap.
+---
+
+## Requests
+
+- **Put the time window in the query.** Event runs read it from your words:
+  "since Sep 15", "in Q3 2026".
+- **Say what each row is.** "Each deal: buyer, target, value, date" gives you
+  the columns you need instead of the ones the agent guesses.
+- **One kind of event per run.** "Layoffs at US banks" and "bank M&A deals"
+  are better as two runs than one.
+- **Narrow company runs with `query`.** Without it you get every story about
+  the companies, including routine ones.
+
+## Modes
+
+- Start with `fast` to check that the request finds the right kind of event,
+  then rerun in `standard` or `max` for the list you will use.
+- Ask for the rows you need: a run is charged per 50 rows delivered past the
+  first 50.
+
+## Monitors
+
+- Make monitors from runs whose results you checked, with `keep_updated` or
+  `from_run_id`, so every delivery has the same columns.
+- Use weekly schedules for slow-moving topics: every scheduled run is
+  charged. See [Credits and pricing](/get-started/credits-and-pricing#agent).
+- Follow a company list instead of typing companies into each monitor, so one
+  change to the list updates every monitor that uses it.
+- Fix wrongly resolved companies in the list: runs and monitors from it use the
+  correction.
+
+## Integration
+
+- Follow runs with the [progress stream](/agent/runs#follow-a-run-live) in
+  user-facing apps, and poll `GET /runs/{run_id}` in background jobs.
+- Send your own `list_id` when you create a list with
+  `POST /companies/lists`, so retries do not create duplicates.

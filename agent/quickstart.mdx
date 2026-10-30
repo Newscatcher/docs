@@ -1,0 +1,81 @@
+---
+title: Agent quickstart
+sidebarTitle: Quickstart
+description: Start a run, follow it, and download the result.
+---
+
+<Steps>
+  <Step title="Start a run">
+    ```bash
+    curl -X POST "https://api.newscatcherapi.com/agent/runs" \
+      -H "x-api-key: $NEWSCATCHER_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "query": "Bank M&A deals announced in the US since Sep 15",
+        "mode": "fast",
+        "max_rows": 50
+      }'
+    ```
+
+    The run is queued and you get its id:
+
+    ```json
+    { "run_id": "RUN_ID", "status": "queued", "kind": "events" }
+    ```
+  </Step>
+
+  <Step title="Follow it">
+    Poll `GET /runs/{run_id}` until `status` is no longer `queued` or
+    `running`:
+
+    ```python
+    import os
+    import time
+    import requests
+
+    BASE = "https://api.newscatcherapi.com/agent"
+    HEADERS = {"x-api-key": os.environ["NEWSCATCHER_API_KEY"]}
+
+    run = requests.post(
+        f"{BASE}/runs",
+        headers=HEADERS,
+        json={"query": "Bank M&A deals announced in the US since Sep 15", "mode": "fast"},
+    ).json()
+
+    while True:
+        detail = requests.get(f"{BASE}/runs/{run['run_id']}", headers=HEADERS).json()
+        if detail["status"] not in ("queued", "running"):
+            break
+        time.sleep(15)
+
+    if detail["status"] != "succeeded":
+        raise RuntimeError(detail.get("error"))
+    print(detail["columns"])
+    for row in detail["rows"]:
+        print(row)
+    ```
+
+    Or open the [progress stream](/agent/runs#follow-a-run-live) to see each
+    step as it happens.
+  </Step>
+
+  <Step title="Download the table">
+    ```bash
+    curl -o deals.csv "https://api.newscatcherapi.com/agent/runs/RUN_ID/export.csv" \
+      -H "x-api-key: $NEWSCATCHER_API_KEY"
+    ```
+
+    `export.xlsx` gives the same table as an Excel file.
+  </Step>
+
+  <Step title="Keep it updated (optional)">
+    Turn the succeeded run into a monitor that delivers new deals every week:
+
+    ```bash
+    curl -X POST "https://api.newscatcherapi.com/agent/monitors" \
+      -H "x-api-key: $NEWSCATCHER_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"kind": "dataset", "from_run_id": "RUN_ID", "schedule": {"every": "week"}}'
+    ```
+  </Step>
+</Steps>

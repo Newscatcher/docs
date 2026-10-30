@@ -1,0 +1,38 @@
+---
+title: How to evaluate the News API
+sidebarTitle: How to evaluate
+description: Measure search quality on your own queries before you integrate.
+---
+
+The best test of a search API is your own queries. This method takes a day
+and gives you numbers you can compare across effort levels and providers.
+
+## 1. Collect real queries
+
+Take 50 to 100 queries from your logs or your users, across the topics and
+languages you care about. Avoid queries you wrote to make one provider look
+good.
+
+## 2. Run every query at each effort level
+
+Run each query at `low`, `medium` and `high` with the same `window_hours`, and
+store the top 10 results.
+
+## 3. Judge relevance
+
+For each result, ask one question: does this article answer the query? Judge
+one result at a time, with a person or an LLM judge, and check a sample of the
+LLM verdicts by hand.
+
+## 4. Compare
+
+- **Precision at 10**: the share of the top 10 results that are relevant.
+- **Distinct events in the top 10**: how many different stories the results
+  cover.
+- **Freshness**: how old the relevant results are.
+- **Latency and cost** per query.
+
+## 5. Compare with other providers
+
+Run the same queries, with the same time window, through each provider and
+judge them the same way.

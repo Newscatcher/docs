@@ -1,0 +1,40 @@
+---
+title: Choose an API
+description: When to use a News API search, an agent run or a monitor.
+---
+
+The News API answers right away. The agent does research that takes minutes
+and returns a table. A monitor repeats agent research on a schedule and
+delivers only what is new.
+
+| | News API `/search` | Agent run | Monitor |
+|---|---|---|---|
+| Input | A question or keywords | An event description, or a list of companies | A succeeded run, or a list of companies |
+| Output | Ranked articles, grouped into stories | A table: one event or story per row | New rows or stories, each run |
+| Time | Seconds | Minutes, by mode | Hourly, daily or weekly |
+| Time window | Up to the last 30 days | Read from your query, or `lookback_days` for companies | Since its last run |
+| Charged | Per search, by effort | Per run (company research: per company) | Per scheduled run (company monitors: per company per month) |
+
+## Use the News API when
+
+- You need an answer inside a user request or an agent step.
+- The top articles are enough: you do not need every match.
+- You want to show headlines, summaries and stories in your product.
+
+## Use an agent run when
+
+- You need a list, for example every product recall announced this month, and
+  each row should be checked against its sources.
+- You need the news about each company in a list.
+- You want a CSV or Excel file of the result.
+
+## Use a monitor when
+
+- You ran the research once and want what is new every hour, day or week.
+- You follow a portfolio, a watchlist or a set of accounts.
+
+## Need every match?
+
+The News API returns the best articles, not every article that matches. For
+every match of a boolean query, deep pagination or the full archive, use the
+v3 News API: pick **Enterprise** in the version menu.

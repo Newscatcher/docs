@@ -26,350 +26,527 @@
     ]
   },
   "navigation": {
-    "tabs": [
+    "versions": [
       {
-        "tab": "Home",
-        "pages": ["home/index"]
-      },
-      {
-        "tab": "Web Search API",
-        "groups": [
+        "version": "Latest",
+        "default": true,
+        "tabs": [
           {
-            "group": "Get started",
-            "pages": [
-              "web-search-api/get-started/introduction",
-              "web-search-api/get-started/quickstart",
-              "web-search-api/get-started/changelog"
-            ]
-          },
-          {
-            "group": "Concepts",
-            "pages": [
-              "web-search-api/concepts/jobs",
-              "web-search-api/concepts/event-monitors",
-              "web-search-api/concepts/company-monitors",
-              "web-search-api/concepts/projects",
-              "web-search-api/concepts/source-groups",
-              "web-search-api/concepts/index-and-search-depth",
-              "web-search-api/concepts/dynamic-schemas"
-            ]
-          },
-          {
-            "group": "How to",
-            "pages": [
-              "web-search-api/how-to/write-effective-queries",
-              "web-search-api/how-to/set-up-webhooks",
-              "web-search-api/how-to/configure-event-monitors",
-              "web-search-api/how-to/troubleshoot-event-monitors",
-              "web-search-api/how-to/build-an-event-feed",
-              "web-search-api/how-to/monitor-a-portfolio",
-              "web-search-api/how-to/send-events-to-slack"
-            ]
-          },
-          {
-            "group": "API Reference",
-            "pages": [
+            "tab": "Documentation",
+            "groups": [
               {
-                "group": "Jobs",
+                "group": "Get started",
                 "pages": [
-                  "web-search-api/api-reference/jobs/validate-query",
-                  "web-search-api/api-reference/jobs/initialize-job",
-                  "web-search-api/api-reference/jobs/create-job",
-                  "web-search-api/api-reference/jobs/get-job-status",
-                  "web-search-api/api-reference/jobs/get-job-results",
-                  "web-search-api/api-reference/jobs/get-job-results-as-csv",
-                  "web-search-api/api-reference/jobs/continue-job",
-                  "web-search-api/api-reference/jobs/list-user-jobs",
-                  "web-search-api/api-reference/jobs/delete-job",
-                  "web-search-api/api-reference/jobs/list-source-groups",
-                  "web-search-api/api-reference/jobs/company-enrichment-dto"
+                  "get-started/overview",
+                  "get-started/quickstart",
+                  "get-started/choose-an-api",
+                  "get-started/authentication",
+                  "get-started/credits-and-pricing",
+                  "get-started/enterprise-plans",
+                  "get-started/rate-limits",
+                  "get-started/errors"
                 ]
               },
               {
-                "group": "Event Monitors",
+                "group": "News API",
                 "pages": [
-                  "web-search-api/api-reference/event-monitors/create-monitor",
-                  "web-search-api/api-reference/event-monitors/get-monitor-results",
-                  "web-search-api/api-reference/event-monitors/get-latest-monitor-results-as-csv",
-                  "web-search-api/api-reference/event-monitors/list-monitors",
-                  "web-search-api/api-reference/event-monitors/list-monitor-jobs",
-                  "web-search-api/api-reference/event-monitors/get-monitor-status-history",
-                  "web-search-api/api-reference/event-monitors/enable-monitor",
-                  "web-search-api/api-reference/event-monitors/disable-monitor",
-                  "web-search-api/api-reference/event-monitors/update-monitor",
-                  "web-search-api/api-reference/event-monitors/delete-monitor"
+                  "news/quickstart",
+                  "news/effort-levels",
+                  "news/writing-queries",
+                  "news/stories",
+                  "news/filters",
+                  "news/response-fields",
+                  "news/best-practices",
+                  "news/evaluate-search"
                 ]
               },
               {
-                "group": "Webhooks",
+                "group": "Agent",
                 "pages": [
-                  "web-search-api/api-reference/webhooks/create-webhook",
-                  "web-search-api/api-reference/webhooks/list-webhooks",
-                  "web-search-api/api-reference/webhooks/get-webhook",
-                  "web-search-api/api-reference/webhooks/update-webhook",
-                  "web-search-api/api-reference/webhooks/delete-webhook",
-                  "web-search-api/api-reference/webhooks/test-webhook",
-                  "web-search-api/api-reference/webhooks/assign-resource",
-                  "web-search-api/api-reference/webhooks/list-webhook-resources",
-                  "web-search-api/api-reference/webhooks/remove-resource",
-                  "web-search-api/api-reference/webhooks/list-resource-webhooks",
-                  "web-search-api/api-reference/webhooks/get-delivery-history",
-                  "web-search-api/api-reference/webhooks/trigger-webhook",
-                  "web-search-api/api-reference/webhooks/webhook-payload"
+                  "agent/overview",
+                  "agent/quickstart",
+                  "agent/event-research",
+                  "agent/company-research",
+                  "agent/company-lists",
+                  "agent/monitors",
+                  "agent/runs",
+                  "agent/results-and-exports",
+                  "agent/best-practices"
                 ]
               },
               {
-                "group": "Entities",
+                "group": "Resources",
                 "pages": [
-                  "web-search-api/api-reference/entities/list-entities",
-                  "web-search-api/api-reference/entities/create-entity",
-                  "web-search-api/api-reference/entities/create-entities-batch",
-                  "web-search-api/api-reference/entities/get-entity",
-                  "web-search-api/api-reference/entities/update-entity",
-                  "web-search-api/api-reference/entities/delete-entity"
-                ]
-              },
-              {
-                "group": "Datasets",
-                "pages": [
-                  "web-search-api/api-reference/datasets/list-datasets",
-                  "web-search-api/api-reference/datasets/create-dataset",
-                  "web-search-api/api-reference/datasets/create-dataset-from-csv",
-                  "web-search-api/api-reference/datasets/get-dataset",
-                  "web-search-api/api-reference/datasets/update-dataset",
-                  "web-search-api/api-reference/datasets/delete-dataset",
-                  "web-search-api/api-reference/datasets/list-entities-in-dataset",
-                  "web-search-api/api-reference/datasets/add-entities-to-dataset",
-                  "web-search-api/api-reference/datasets/remove-entities-from-dataset",
-                  "web-search-api/api-reference/datasets/get-dataset-status-history",
-                  "web-search-api/api-reference/datasets/upload-csv-to-dataset"
-                ]
-              },
-              {
-                "group": "Projects",
-                "pages": [
-                  "web-search-api/api-reference/projects/list-projects",
-                  "web-search-api/api-reference/projects/create-project",
-                  "web-search-api/api-reference/projects/get-project",
-                  "web-search-api/api-reference/projects/update-project",
-                  "web-search-api/api-reference/projects/delete-project",
-                  "web-search-api/api-reference/projects/get-project-overview",
-                  "web-search-api/api-reference/projects/list-resources",
-                  "web-search-api/api-reference/projects/add-resource",
-                  "web-search-api/api-reference/projects/remove-resource"
-                ]
-              },
-              {
-                "group": "Meta",
-                "pages": [
-                  "web-search-api/api-reference/meta/health",
-                  "web-search-api/api-reference/meta/version",
-                  "web-search-api/api-reference/meta/get-plan-limits"
+                  "resources/migrate-from-v3",
+                  "resources/docs-for-agents",
+                  "resources/glossary",
+                  "resources/faq"
                 ]
               }
             ]
           },
           {
-            "group": "Integrations",
-            "pages": [
-              "web-search-api/integrations/mcp",
-              "web-search-api/integrations/skill",
-              "web-search-api/integrations/claude",
-              "web-search-api/integrations/langchain",
-              "web-search-api/integrations/make",
-              "web-search-api/integrations/n8n",
-              "web-search-api/integrations/apify"
-            ]
-          },
-          {
-            "group": "Libraries",
-            "pages": [
-              "web-search-api/libraries/python",
-              "web-search-api/libraries/typescript",
-              "web-search-api/libraries/java"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Event Monitors",
-        "pages": ["web-search-api/concepts/event-monitors"]
-      },
-      {
-        "tab": "Company Monitors",
-        "pages": ["web-search-api/concepts/company-monitors"]
-      },
-      {
-        "tab": "News API",
-        "groups": [
-          {
-            "group": "Get started",
-            "pages": [
-              "news-api/get-started/introduction",
-              "news-api/get-started/quickstart",
-              "news-api/get-started/subscription-plans"
-            ]
-          },
-          {
-            "group": "Guides and concepts",
-            "pages": [
-              "news-api/guides-and-concepts/advanced-querying",
-              "news-api/guides-and-concepts/clustering-news-articles",
-              "news-api/guides-and-concepts/articles-deduplication",
-              "news-api/guides-and-concepts/nlp-enrichments",
-              "news-api/guides-and-concepts/custom-tags",
-              "news-api/guides-and-concepts/breaking-news",
-              "news-api/guides-and-concepts/robots-txt-compliance",
-              "news-api/guides-and-concepts/working-with-historical-data"
-            ]
-          },
-          {
-            "group": "How to",
-            "pages": [
-              "news-api/how-to/build-search-queries",
-              "news-api/how-to/filter-by-date",
-              "news-api/how-to/search-by-entity",
-              "news-api/how-to/search-by-url",
-              "news-api/how-to/search-in-translations",
-              "news-api/how-to/retrieve-more-than-10k-articles",
-              "news-api/how-to/check-sources-coverage",
-              "news-api/how-to/validate-queries-python-sdk"
-            ]
-          },
-          {
-            "group": "Troubleshooting",
-            "pages": [
-              "news-api/troubleshooting/error-handling",
-              "news-api/troubleshooting/report-bugs",
-              "news-api/troubleshooting/request-tracing-correlation-ids"
-            ]
-          },
-          {
-            "group": "API Reference",
-            "pages": [
-              "news-api/api-reference/overview",
-              "news-api/api-reference/authentication",
-              "news-api/api-reference/rate-limits",
-              "news-api/api-reference/errors",
-              "news-api/api-reference/http-headers",
-              "news-api/api-reference/enumerated-parameters",
+            "tab": "API Reference",
+            "groups": [
               {
-                "group": "Search",
+                "group": "News API",
                 "pages": [
-                  "news-api/api-reference/search/search-articles-get",
-                  "news-api/api-reference/search/search-articles-post"
+                  {
+                    "group": "Search",
+                    "openapi": "api-reference/news-api/openapi.json",
+                    "pages": [
+                      "GET /search",
+                      "POST /search",
+                      "GET /stories/{story_id}"
+                    ]
+                  },
+                  {
+                    "group": "Subscription",
+                    "openapi": "api-reference/news-api/openapi.json",
+                    "pages": [
+                      "GET /subscription"
+                    ]
+                  }
                 ]
               },
               {
-                "group": "Latest headlines",
+                "group": "Agent",
                 "pages": [
-                  "news-api/api-reference/latest-headlines/retrieve-latest-headlines-get",
-                  "news-api/api-reference/latest-headlines/retrieve-latest-headlines-post"
-                ]
-              },
-              {
-                "group": "Breaking news",
-                "pages": [
-                  "news-api/api-reference/breaking-news/retrieve-breaking-news-get",
-                  "news-api/api-reference/breaking-news/retrieve-breaking-news-post"
-                ]
-              },
-              {
-                "group": "Authors",
-                "pages": [
-                  "news-api/api-reference/authors/search-articles-by-author-get",
-                  "news-api/api-reference/authors/search-articles-by-author-post"
-                ]
-              },
-              {
-                "group": "Search by link",
-                "pages": [
-                  "news-api/api-reference/search-by-link/search-articles-by-links-or-ids-get",
-                  "news-api/api-reference/search-by-link/search-articles-by-links-or-ids-post"
-                ]
-              },
-              {
-                "group": "Sources",
-                "pages": [
-                  "news-api/api-reference/sources/retrieve-sources-get",
-                  "news-api/api-reference/sources/retrieve-sources-post"
-                ]
-              },
-              {
-                "group": "Aggregation count",
-                "pages": [
-                  "news-api/api-reference/aggregation-count/get-aggregation-count-by-interval-get",
-                  "news-api/api-reference/aggregation-count/get-aggregation-count-by-interval-post"
-                ]
-              },
-              {
-                "group": "Subscription",
-                "pages": [
-                  "news-api/api-reference/subscription/retrieve-subscription-plan-information-get",
-                  "news-api/api-reference/subscription/retrieve-subscription-plan-information-post"
+                  {
+                    "group": "Runs",
+                    "openapi": "api-reference/agent/openapi.json",
+                    "pages": [
+                      "POST /runs",
+                      "GET /runs",
+                      "GET /runs/{run_id}",
+                      "GET /runs/{run_id}/progress",
+                      "POST /runs/{run_id}/cancel",
+                      "PATCH /runs/{run_id}",
+                      "DELETE /runs/{run_id}",
+                      "GET /runs/{run_id}/export.csv",
+                      "GET /runs/{run_id}/export.xlsx",
+                      "GET /runs/{run_id}/companies.csv",
+                      "GET /runs/{run_id}/companies.xlsx"
+                    ]
+                  },
+                  {
+                    "group": "Batches",
+                    "openapi": "api-reference/agent/openapi.json",
+                    "pages": [
+                      "GET /batches/{batch_id}",
+                      "GET /batches/{batch_id}/progress",
+                      "POST /batches/{batch_id}/cancel",
+                      "PATCH /batches/{batch_id}",
+                      "DELETE /batches/{batch_id}",
+                      "GET /batches/{batch_id}/export.csv",
+                      "GET /batches/{batch_id}/export.xlsx",
+                      "GET /batches/{batch_id}/companies.csv",
+                      "GET /batches/{batch_id}/companies.xlsx"
+                    ]
+                  },
+                  {
+                    "group": "Company lists",
+                    "openapi": "api-reference/agent/openapi.json",
+                    "pages": [
+                      "GET /companies/lists",
+                      "POST /companies/lists",
+                      "POST /companies/lists/upload",
+                      "POST /companies/lists/from-run/{run_id}",
+                      "GET /companies/lists/{list_id}",
+                      "PATCH /companies/lists/{list_id}",
+                      "DELETE /companies/lists/{list_id}",
+                      "POST /companies/lists/{list_id}/companies",
+                      "POST /companies/lists/{list_id}/companies/upload",
+                      "PATCH /companies/lists/{list_id}/companies/{domain}",
+                      "DELETE /companies/lists/{list_id}/companies/{domain}"
+                    ]
+                  },
+                  {
+                    "group": "Monitors",
+                    "openapi": "api-reference/agent/openapi.json",
+                    "pages": [
+                      "POST /monitors",
+                      "GET /monitors",
+                      "GET /monitors/{monitor_id}",
+                      "PATCH /monitors/{monitor_id}",
+                      "DELETE /monitors/{monitor_id}",
+                      "POST /monitors/{monitor_id}/run",
+                      "GET /monitors/{monitor_id}/runs",
+                      "GET /monitors/runs/{run_id}",
+                      "GET /monitors/{monitor_id}/stories",
+                      "GET /monitors/{monitor_id}/rows",
+                      "GET /monitors/runs/{run_id}/export.csv",
+                      "GET /monitors/runs/{run_id}/export.xlsx"
+                    ]
+                  }
                 ]
               }
             ]
           },
           {
-            "group": "Integrations",
-            "pages": ["news-api/integrations/mcp"]
-          },
-          {
-            "group": "Libraries",
+            "tab": "Changelog",
             "pages": [
-              "news-api/libraries/python",
-              "news-api/libraries/typescript",
-              "news-api/libraries/java"
+              "changelog"
             ]
           }
         ]
       },
       {
-        "tab": "Local News API",
-        "groups": [
+        "version": "Enterprise",
+        "tabs": [
           {
-            "group": "Get started",
+            "tab": "Home",
             "pages": [
-              "local-news-api/get-started/introduction",
-              "local-news-api/get-started/quickstart",
-              "local-news-api/get-started/subscription-plans"
+              "home/index"
             ]
           },
           {
-            "group": "Guides and concepts",
-            "pages": [
-              "local-news-api/guides-and-concepts/location-detection-methods",
-              "local-news-api/guides-and-concepts/geonames-filtering"
+            "tab": "Web Search API",
+            "groups": [
+              {
+                "group": "Get started",
+                "pages": [
+                  "web-search-api/get-started/introduction",
+                  "web-search-api/get-started/quickstart",
+                  "web-search-api/get-started/changelog"
+                ]
+              },
+              {
+                "group": "Concepts",
+                "pages": [
+                  "web-search-api/concepts/jobs",
+                  "web-search-api/concepts/event-monitors",
+                  "web-search-api/concepts/company-monitors",
+                  "web-search-api/concepts/projects",
+                  "web-search-api/concepts/source-groups",
+                  "web-search-api/concepts/index-and-search-depth",
+                  "web-search-api/concepts/dynamic-schemas"
+                ]
+              },
+              {
+                "group": "How to",
+                "pages": [
+                  "web-search-api/how-to/write-effective-queries",
+                  "web-search-api/how-to/set-up-webhooks",
+                  "web-search-api/how-to/configure-event-monitors",
+                  "web-search-api/how-to/troubleshoot-event-monitors",
+                  "web-search-api/how-to/build-an-event-feed",
+                  "web-search-api/how-to/monitor-a-portfolio",
+                  "web-search-api/how-to/send-events-to-slack"
+                ]
+              },
+              {
+                "group": "API Reference",
+                "pages": [
+                  {
+                    "group": "Jobs",
+                    "pages": [
+                      "web-search-api/api-reference/jobs/validate-query",
+                      "web-search-api/api-reference/jobs/initialize-job",
+                      "web-search-api/api-reference/jobs/create-job",
+                      "web-search-api/api-reference/jobs/get-job-status",
+                      "web-search-api/api-reference/jobs/get-job-results",
+                      "web-search-api/api-reference/jobs/get-job-results-as-csv",
+                      "web-search-api/api-reference/jobs/continue-job",
+                      "web-search-api/api-reference/jobs/list-user-jobs",
+                      "web-search-api/api-reference/jobs/delete-job",
+                      "web-search-api/api-reference/jobs/list-source-groups",
+                      "web-search-api/api-reference/jobs/company-enrichment-dto"
+                    ]
+                  },
+                  {
+                    "group": "Event Monitors",
+                    "pages": [
+                      "web-search-api/api-reference/event-monitors/create-monitor",
+                      "web-search-api/api-reference/event-monitors/get-monitor-results",
+                      "web-search-api/api-reference/event-monitors/get-latest-monitor-results-as-csv",
+                      "web-search-api/api-reference/event-monitors/list-monitors",
+                      "web-search-api/api-reference/event-monitors/list-monitor-jobs",
+                      "web-search-api/api-reference/event-monitors/get-monitor-status-history",
+                      "web-search-api/api-reference/event-monitors/enable-monitor",
+                      "web-search-api/api-reference/event-monitors/disable-monitor",
+                      "web-search-api/api-reference/event-monitors/update-monitor",
+                      "web-search-api/api-reference/event-monitors/delete-monitor"
+                    ]
+                  },
+                  {
+                    "group": "Webhooks",
+                    "pages": [
+                      "web-search-api/api-reference/webhooks/create-webhook",
+                      "web-search-api/api-reference/webhooks/list-webhooks",
+                      "web-search-api/api-reference/webhooks/get-webhook",
+                      "web-search-api/api-reference/webhooks/update-webhook",
+                      "web-search-api/api-reference/webhooks/delete-webhook",
+                      "web-search-api/api-reference/webhooks/test-webhook",
+                      "web-search-api/api-reference/webhooks/assign-resource",
+                      "web-search-api/api-reference/webhooks/list-webhook-resources",
+                      "web-search-api/api-reference/webhooks/remove-resource",
+                      "web-search-api/api-reference/webhooks/list-resource-webhooks",
+                      "web-search-api/api-reference/webhooks/get-delivery-history",
+                      "web-search-api/api-reference/webhooks/trigger-webhook",
+                      "web-search-api/api-reference/webhooks/webhook-payload"
+                    ]
+                  },
+                  {
+                    "group": "Entities",
+                    "pages": [
+                      "web-search-api/api-reference/entities/list-entities",
+                      "web-search-api/api-reference/entities/create-entity",
+                      "web-search-api/api-reference/entities/create-entities-batch",
+                      "web-search-api/api-reference/entities/get-entity",
+                      "web-search-api/api-reference/entities/update-entity",
+                      "web-search-api/api-reference/entities/delete-entity"
+                    ]
+                  },
+                  {
+                    "group": "Datasets",
+                    "pages": [
+                      "web-search-api/api-reference/datasets/list-datasets",
+                      "web-search-api/api-reference/datasets/create-dataset",
+                      "web-search-api/api-reference/datasets/create-dataset-from-csv",
+                      "web-search-api/api-reference/datasets/get-dataset",
+                      "web-search-api/api-reference/datasets/update-dataset",
+                      "web-search-api/api-reference/datasets/delete-dataset",
+                      "web-search-api/api-reference/datasets/list-entities-in-dataset",
+                      "web-search-api/api-reference/datasets/add-entities-to-dataset",
+                      "web-search-api/api-reference/datasets/remove-entities-from-dataset",
+                      "web-search-api/api-reference/datasets/get-dataset-status-history",
+                      "web-search-api/api-reference/datasets/upload-csv-to-dataset"
+                    ]
+                  },
+                  {
+                    "group": "Projects",
+                    "pages": [
+                      "web-search-api/api-reference/projects/list-projects",
+                      "web-search-api/api-reference/projects/create-project",
+                      "web-search-api/api-reference/projects/get-project",
+                      "web-search-api/api-reference/projects/update-project",
+                      "web-search-api/api-reference/projects/delete-project",
+                      "web-search-api/api-reference/projects/get-project-overview",
+                      "web-search-api/api-reference/projects/list-resources",
+                      "web-search-api/api-reference/projects/add-resource",
+                      "web-search-api/api-reference/projects/remove-resource"
+                    ]
+                  },
+                  {
+                    "group": "Meta",
+                    "pages": [
+                      "web-search-api/api-reference/meta/health",
+                      "web-search-api/api-reference/meta/version",
+                      "web-search-api/api-reference/meta/get-plan-limits"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Integrations",
+                "pages": [
+                  "web-search-api/integrations/mcp",
+                  "web-search-api/integrations/skill",
+                  "web-search-api/integrations/claude",
+                  "web-search-api/integrations/langchain",
+                  "web-search-api/integrations/make",
+                  "web-search-api/integrations/n8n",
+                  "web-search-api/integrations/apify"
+                ]
+              },
+              {
+                "group": "Libraries",
+                "pages": [
+                  "web-search-api/libraries/python",
+                  "web-search-api/libraries/typescript",
+                  "web-search-api/libraries/java"
+                ]
+              }
             ]
           },
           {
-            "group": "API Reference",
+            "tab": "Event Monitors",
             "pages": [
+              "web-search-api/concepts/event-monitors"
+            ]
+          },
+          {
+            "tab": "Company Monitors",
+            "pages": [
+              "web-search-api/concepts/company-monitors"
+            ]
+          },
+          {
+            "tab": "News API",
+            "groups": [
               {
-                "group": "Search",
+                "group": "Get started",
                 "pages": [
-                  "local-news-api/api-reference/search/search-articles-post",
-                  "local-news-api/api-reference/search/search-advanced-post"
+                  "news-api/get-started/introduction",
+                  "news-api/get-started/quickstart",
+                  "news-api/get-started/subscription-plans"
                 ]
               },
               {
-                "group": "Latest headlines",
+                "group": "Guides and concepts",
                 "pages": [
-                  "local-news-api/api-reference/latest-headlines/retrieve-latest-headlines-post",
-                  "local-news-api/api-reference/latest-headlines/latest-headlines-advanced-post"
+                  "news-api/guides-and-concepts/advanced-querying",
+                  "news-api/guides-and-concepts/clustering-news-articles",
+                  "news-api/guides-and-concepts/articles-deduplication",
+                  "news-api/guides-and-concepts/nlp-enrichments",
+                  "news-api/guides-and-concepts/custom-tags",
+                  "news-api/guides-and-concepts/breaking-news",
+                  "news-api/guides-and-concepts/robots-txt-compliance",
+                  "news-api/guides-and-concepts/working-with-historical-data"
                 ]
               },
               {
-                "group": "Sources",
+                "group": "How to",
                 "pages": [
-                  "local-news-api/api-reference/sources/retrieve-sources-post"
+                  "news-api/how-to/build-search-queries",
+                  "news-api/how-to/filter-by-date",
+                  "news-api/how-to/search-by-entity",
+                  "news-api/how-to/search-by-url",
+                  "news-api/how-to/search-in-translations",
+                  "news-api/how-to/retrieve-more-than-10k-articles",
+                  "news-api/how-to/check-sources-coverage",
+                  "news-api/how-to/validate-queries-python-sdk"
                 ]
               },
               {
-                "group": "Search by identifiers",
+                "group": "Troubleshooting",
                 "pages": [
-                  "local-news-api/api-reference/search-by/search-articles-by-identifiers-post"
+                  "news-api/troubleshooting/error-handling",
+                  "news-api/troubleshooting/report-bugs",
+                  "news-api/troubleshooting/request-tracing-correlation-ids"
+                ]
+              },
+              {
+                "group": "API Reference",
+                "pages": [
+                  "news-api/api-reference/overview",
+                  "news-api/api-reference/authentication",
+                  "news-api/api-reference/rate-limits",
+                  "news-api/api-reference/errors",
+                  "news-api/api-reference/http-headers",
+                  "news-api/api-reference/enumerated-parameters",
+                  {
+                    "group": "Search",
+                    "pages": [
+                      "news-api/api-reference/search/search-articles-get",
+                      "news-api/api-reference/search/search-articles-post"
+                    ]
+                  },
+                  {
+                    "group": "Latest headlines",
+                    "pages": [
+                      "news-api/api-reference/latest-headlines/retrieve-latest-headlines-get",
+                      "news-api/api-reference/latest-headlines/retrieve-latest-headlines-post"
+                    ]
+                  },
+                  {
+                    "group": "Breaking news",
+                    "pages": [
+                      "news-api/api-reference/breaking-news/retrieve-breaking-news-get",
+                      "news-api/api-reference/breaking-news/retrieve-breaking-news-post"
+                    ]
+                  },
+                  {
+                    "group": "Authors",
+                    "pages": [
+                      "news-api/api-reference/authors/search-articles-by-author-get",
+                      "news-api/api-reference/authors/search-articles-by-author-post"
+                    ]
+                  },
+                  {
+                    "group": "Search by link",
+                    "pages": [
+                      "news-api/api-reference/search-by-link/search-articles-by-links-or-ids-get",
+                      "news-api/api-reference/search-by-link/search-articles-by-links-or-ids-post"
+                    ]
+                  },
+                  {
+                    "group": "Sources",
+                    "pages": [
+                      "news-api/api-reference/sources/retrieve-sources-get",
+                      "news-api/api-reference/sources/retrieve-sources-post"
+                    ]
+                  },
+                  {
+                    "group": "Aggregation count",
+                    "pages": [
+                      "news-api/api-reference/aggregation-count/get-aggregation-count-by-interval-get",
+                      "news-api/api-reference/aggregation-count/get-aggregation-count-by-interval-post"
+                    ]
+                  },
+                  {
+                    "group": "Subscription",
+                    "pages": [
+                      "news-api/api-reference/subscription/retrieve-subscription-plan-information-get",
+                      "news-api/api-reference/subscription/retrieve-subscription-plan-information-post"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Integrations",
+                "pages": [
+                  "news-api/integrations/mcp"
+                ]
+              },
+              {
+                "group": "Libraries",
+                "pages": [
+                  "news-api/libraries/python",
+                  "news-api/libraries/typescript",
+                  "news-api/libraries/java"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Local News API",
+            "groups": [
+              {
+                "group": "Get started",
+                "pages": [
+                  "local-news-api/get-started/introduction",
+                  "local-news-api/get-started/quickstart",
+                  "local-news-api/get-started/subscription-plans"
+                ]
+              },
+              {
+                "group": "Guides and concepts",
+                "pages": [
+                  "local-news-api/guides-and-concepts/location-detection-methods",
+                  "local-news-api/guides-and-concepts/geonames-filtering"
+                ]
+              },
+              {
+                "group": "API Reference",
+                "pages": [
+                  {
+                    "group": "Search",
+                    "pages": [
+                      "local-news-api/api-reference/search/search-articles-post",
+                      "local-news-api/api-reference/search/search-advanced-post"
+                    ]
+                  },
+                  {
+                    "group": "Latest headlines",
+                    "pages": [
+                      "local-news-api/api-reference/latest-headlines/retrieve-latest-headlines-post",
+                      "local-news-api/api-reference/latest-headlines/latest-headlines-advanced-post"
+                    ]
+                  },
+                  {
+                    "group": "Sources",
+                    "pages": [
+                      "local-news-api/api-reference/sources/retrieve-sources-post"
+                    ]
+                  },
+                  {
+                    "group": "Search by identifiers",
+                    "pages": [
+                      "local-news-api/api-reference/search-by/search-articles-by-identifiers-post"
+                    ]
+                  }
                 ]
               }
             ]
@@ -385,8 +562,8 @@
   "navbar": {
     "primary": {
       "type": "button",
-      "label": "Search API Platform",
-      "href": "https://platform.newscatcherapi.com/catchall"
+      "label": "Get API key",
+      "href": "https://platform.newscatcherapi.com"
     }
   },
   "footer": {
