@@ -5,11 +5,9 @@ description: Follow, cancel, rename and delete runs, and work with batches.
 
 ## Lifecycle
 
-A run starts `queued`, then `running`, and ends `succeeded` or `failed`. A
-failed run has an `error`. While it runs, `phases` shows each step with its
+A run starts `queued`, then `running`, and ends `succeeded` or `failed`,
+unless you [cancel](#cancel-rename-delete) it. A failed run has an `error`. While it runs, `phases` shows each step with its
 status (`done`, `active`, `pending` or `skipped`) and timing.
-
-{/* TODO: confirm the status of a cancelled run and list every run status. */}
 
 ## Follow a run live
 
@@ -24,7 +22,7 @@ Events:
 | `run_error` | The run failed. |
 
 ```bash
-curl -N "https://dev-api.newscatcherapi.dev/agent/runs/RUN_ID/progress" \
+curl -N "https://api.newscatcherapi.com/agent/runs/RUN_ID/progress" \
   -H "x-api-key: $NEWSCATCHER_API_KEY" \
   -H "Accept: text/event-stream"
 ```

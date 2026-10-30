@@ -11,7 +11,7 @@ delivers only what is new.
 |---|---|---|---|
 | Input | A question or keywords | An event description, or a list of companies | A finished run, or a list of companies |
 | Output | Ranked articles, grouped into stories | A table: one event or story per row | New rows or stories, each run |
-| Time | Seconds | About 1 to 30 minutes, by mode | Daily, weekly or every few hours |
+| Time | Seconds | About 1 to 30 minutes, by mode | Hourly, daily or weekly |
 | Time window | Up to the last 30 days | Read from your query, or `lookback_days` for companies | Since its last run |
 | Charged | Per search, by effort | Per run | Per scheduled run |
 
@@ -30,7 +30,11 @@ delivers only what is new.
 
 ## Use a monitor when
 
-- You ran the research once and want what is new every day or week.
+- You ran the research once and want what is new every hour, day or week.
 - You follow a portfolio, a watchlist or a set of accounts.
 
-{/* TODO: add the completeness endpoint here if it ships at launch; until then, Classic v3 covers it. */}
+## Need every match?
+
+The News API returns the best articles, not every article that matches. For
+every match of a boolean query, deep pagination or the full archive, use the
+v3 News API: pick **Enterprise** in the version menu.

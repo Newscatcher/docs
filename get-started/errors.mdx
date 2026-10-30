@@ -21,15 +21,15 @@ Use the HTTP status to decide what to do:
 
 ## Error body
 
-{/* TODO: the two APIs use different error bodies today; align them before launch or keep both documented. */}
+The News API and the agent return different error bodies.
 
 <Tabs>
   <Tab title="News API">
     ```json
     {
-      "message": "What went wrong and what to do about it.",
-      "status_code": 402,
-      "status": "Payment Required"
+      "message": "The 'x-api-key' header is missing. Please provide your API key.",
+      "status_code": 401,
+      "status": "Unauthorized"
     }
     ```
 
@@ -38,8 +38,8 @@ Use the HTTP status to decide what to do:
   <Tab title="Agent">
     ```json
     {
-      "code": "too_many_rows",
-      "message": "What went wrong and what to do about it."
+      "code": "api_key_required",
+      "message": "Send your API key in the x-api-key header."
     }
     ```
 

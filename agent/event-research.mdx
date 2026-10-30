@@ -47,9 +47,8 @@ hospital breaches
 </ParamField>
 
 <ParamField body="max_rows" type="integer" default="50">
-  The most rows to return: 50, 100, 150 or 200, up to your plan's cap. More is
-  refused with `too_many_rows`. A run is charged per 50 rows delivered past the
-  first 50.
+  The most rows to return: 50 or 100. More is refused with `too_many_rows`.
+  A run is charged per 50 rows delivered past the first 50.
 </ParamField>
 
 <ParamField body="keep_updated" type="object">
@@ -71,7 +70,4 @@ hospital breaches
 - `columns` and `rows`: the table;
 - `window_from` and `window_to`: the time window the agent read from your
   query;
-- `report` and `evidence`: the briefing and its sources, in `standard` and
-  `max`.
-
-{/* TODO: confirm the exact shape of report and evidence, and which modes return them. */}
+- `report`: the cited briefing that `standard` and `max` runs write.

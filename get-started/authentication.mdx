@@ -7,13 +7,14 @@ Every request to the News API and the agent carries your API key in the
 `x-api-key` header:
 
 ```bash
-curl -G "https://dev-api.newscatcherapi.dev/news-api/search" \
+curl -X POST "https://api.newscatcherapi.com/news-api/search" \
   -H "x-api-key: $NEWSCATCHER_API_KEY" \
-  --data-urlencode "q=central bank rate decision"
+  -H "Content-Type: application/json" \
+  -d '{"q": "central bank rate decision"}'
 ```
 
-Keys are created in the NewsCatcher platform. One key works for both APIs and
-draws on one credit balance.
+Get your key in the [NewsCatcher platform](https://platform.newscatcherapi.com).
+One key works for both APIs and draws on one credit balance.
 
 A missing or invalid key gets `401`. A key that may not use an API, or a
 request for something your plan does not include, gets `403`.
@@ -24,6 +25,5 @@ request for something your plan does not include, gets `403`.
   browser or mobile code.
 - Use a separate key for each application, so you can revoke one without
   touching the others.
-- If a key leaks, revoke it in the platform and create a new one.
-
-{/* TODO: link the platform's API keys page once its URL is final. */}
+- If a key leaks, revoke it in the [platform](https://platform.newscatcherapi.com)
+  and create a new one.

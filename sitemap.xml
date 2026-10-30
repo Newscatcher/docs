@@ -73,25 +73,16 @@
         <loc>https://www.newscatcherapi.com/docs/agent/best-practices</loc>
     </url>
     <url>
-        <loc>https://www.newscatcherapi.com/docs/agent/examples</loc>
+        <loc>https://www.newscatcherapi.com/docs/resources/migrate-from-v3</loc>
     </url>
     <url>
-        <loc>https://www.newscatcherapi.com/docs/resources/migrate-from-v3</loc>
+        <loc>https://www.newscatcherapi.com/docs/resources/docs-for-agents</loc>
     </url>
     <url>
         <loc>https://www.newscatcherapi.com/docs/resources/glossary</loc>
     </url>
     <url>
         <loc>https://www.newscatcherapi.com/docs/resources/faq</loc>
-    </url>
-    <url>
-        <loc>https://www.newscatcherapi.com/docs/integrations/mcp</loc>
-    </url>
-    <url>
-        <loc>https://www.newscatcherapi.com/docs/integrations/agent-skills</loc>
-    </url>
-    <url>
-        <loc>https://www.newscatcherapi.com/docs/integrations/docs-for-agents</loc>
     </url>
     <url>
         <loc>https://www.newscatcherapi.com/docs/changelog</loc>

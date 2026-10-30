@@ -2,9 +2,11 @@
 
 The Agent spec comes from FastAPI with Python docstrings in its operation
 descriptions, so the Args/Returns/Raises sections are cut and RST double
-backticks become Markdown code. Everything else is kept as served.
+backticks become Markdown code. A spec without `servers` gets the host it was
+fetched from, so the API playground has a base URL. Everything else is kept as
+served.
 
-Usage: python scripts/sync_latest_oas.py [--base https://dev-api.newscatcherapi.dev]
+Usage: python scripts/sync_latest_oas.py [--base https://api.newscatcherapi.com]
 """
 
 import argparse
@@ -18,6 +20,10 @@ SPECS = {
     "agent": "api-reference/agent/openapi.json",
 }
 DOCSTRING_SECTION = re.compile(r"\n\s*(Args|Returns|Raises|Yields):\s*\n.*", re.DOTALL)
+# Wrong endpoint names in served descriptions, until the service fixes them.
+CORRECTIONS = {
+    "follow it with `/events`": "follow it with `GET /runs/{run_id}/progress`",
+}
 
 
 def fetch(url):
@@ -28,10 +34,14 @@ def fetch(url):
 
 def clean_description(text):
     text = DOCSTRING_SECTION.sub("", text).strip()
-    return re.sub(r"``([^`]+)``", r"`\1`", text)
+    text = re.sub(r"``([^`]+)``", r"`\1`", text)
+    for wrong, right in CORRECTIONS.items():
+        text = text.replace(wrong, right)
+    return text
 
 
-def clean(spec):
+def clean(spec, server_url):
+    spec.setdefault("servers", [{"url": server_url}])
     for operations in spec.get("paths", {}).values():
         for operation in operations.values():
             if isinstance(operation, dict) and "description" in operation:
@@ -47,11 +57,11 @@ def clean(spec):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--base", default="https://dev-api.newscatcherapi.dev")
+    parser.add_argument("--base", default="https://api.newscatcherapi.com")
     args = parser.parse_args()
     root = Path(__file__).resolve().parent.parent
     for name, stored_path in SPECS.items():
-        spec = clean(fetch(f"{args.base}/{name}/openapi.json"))
+        spec = clean(fetch(f"{args.base}/{name}/openapi.json"), f"{args.base}/{name}")
         path = root / stored_path
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(spec, indent=2, ensure_ascii=False) + "\n")

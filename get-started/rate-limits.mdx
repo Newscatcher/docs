@@ -20,7 +20,7 @@ Your plan sets:
 returns all of your limits and your credit balance. It is free.
 
 ```bash
-curl "https://dev-api.newscatcherapi.dev/news-api/subscription" \
+curl "https://api.newscatcherapi.com/news-api/subscription" \
   -H "x-api-key: $NEWSCATCHER_API_KEY"
 ```
 
@@ -47,11 +47,9 @@ your history, and the response says `"clamped": true` in `window`.
 
 ## Agent limits
 
-- `max_rows` can be 50, 100, 150 or 200, up to your plan's cap. More is refused
-  with `too_many_rows`.
-- Monitors can run more often than daily only when your plan allows it. A
-  shorter interval is refused with `invalid_schedule`.
+- `max_rows` can be 50 (default) or 100. More is refused with
+  `too_many_rows`.
+- Monitors can run hourly only when your plan allows it. A shorter interval
+  than your plan allows is refused with `invalid_schedule`.
 - A company list too big for one run is split into runs of up to 50
   companies, grouped in a [batch](/agent/runs#batches).
-
-{/* TODO: document the agent's request rate limits once they are set. */}

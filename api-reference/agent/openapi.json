@@ -7,8 +7,8 @@
   },
   "servers": [
     {
-      "url": "https://dev-api.newscatcherapi.dev/agent",
-      "description": "Dev server"
+      "url": "https://api.newscatcherapi.com/agent",
+      "description": "Production server"
     }
   ],
   "paths": {
@@ -62,7 +62,7 @@
           "runs"
         ],
         "summary": "Create Run",
-        "description": "Start a run. Without `companies`: events from the question (Fast, Standard or Max). With `companies`:\neach company's news (`kind: companies`). It runs in the background; follow it with `/events`.",
+        "description": "Start a run. Without `companies`: events from the question (Fast, Standard or Max). With `companies`:\neach company's news (`kind: companies`). It runs in the background; follow it with `GET /runs/{run_id}/progress`.",
         "operationId": "create_run_runs_post",
         "requestBody": {
           "required": true,

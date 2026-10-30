@@ -19,21 +19,10 @@ report the same event. Each article comes with a one-line summary.
 
 ## Your first search
 
-`GET /search` takes the parameters in the query string. `POST /search` takes
-the same parameters as a JSON body, where list parameters can also be arrays.
+Send the parameters as a JSON body to `POST /search`:
 
-<CodeGroup>
-```bash GET
-curl -G "https://dev-api.newscatcherapi.dev/news-api/search" \
-  -H "x-api-key: $NEWSCATCHER_API_KEY" \
-  --data-urlencode "q=Tesla recall NOT Cybertruck" \
-  --data-urlencode "effort=medium" \
-  --data-urlencode "window_hours=48" \
-  --data-urlencode "languages=en,de"
-```
-
-```bash POST
-curl -X POST "https://dev-api.newscatcherapi.dev/news-api/search" \
+```bash
+curl -X POST "https://api.newscatcherapi.com/news-api/search" \
   -H "x-api-key: $NEWSCATCHER_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -43,7 +32,9 @@ curl -X POST "https://dev-api.newscatcherapi.dev/news-api/search" \
     "languages": ["en", "de"]
   }'
 ```
-</CodeGroup>
+
+`GET /search` takes the same parameters in the query string, with list
+parameters as comma-separated strings.
 
 This search:
 

@@ -19,18 +19,11 @@ description: Common questions about the News API and the agent.
     Yes. A successful search is charged by its effort even when it returns no
     results. Refused and failed requests are never charged.
   </Accordion>
-  <Accordion title="Can I get the full article text?">
-    Enterprise plans can add `content`, entities, sentiment, translations and
-    embeddings with `include`. See
-    [Response fields](/news/response-fields#enterprise-fields).
-  </Accordion>
   <Accordion title="Is the v3 News API going away?">
-    {/* TODO: confirm the official v3 support statement before launch. */}
     The v3 News API keeps working on its own host. Its docs are under
-    **Classic** in the version menu.
+    **Enterprise** in the version menu.
   </Accordion>
   <Accordion title="Do monitors push results to me?">
-    {/* TODO: update if webhooks ship. */}
     Not yet. Read new results with `GET /monitors/{monitor_id}/stories`,
     `/rows` or `/runs`.
   </Accordion>

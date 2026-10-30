@@ -3,12 +3,10 @@ title: Quickstart
 description: Get an API key and make your first News API search and agent run.
 ---
 
-{/* TODO before launch: replace the dev-api host with the production host in every example. */}
-
 ## Before you begin
 
-You need a NewsCatcher API key. Keys are created in the NewsCatcher platform.
-The same key works for the News API and the agent.
+[Create an account in the NewsCatcher platform](https://platform.newscatcherapi.com)
+and copy your API key. The same key works for the News API and the agent.
 
 <Tip>
   Store the key in an environment variable instead of pasting it into code:
@@ -23,20 +21,20 @@ The same key works for the News API and the agent.
 
     <CodeGroup>
     ```bash cURL
-    curl -G "https://dev-api.newscatcherapi.dev/news-api/search" \
+    curl -X POST "https://api.newscatcherapi.com/news-api/search" \
       -H "x-api-key: $NEWSCATCHER_API_KEY" \
-      --data-urlencode "q=hurricane recovery florida" \
-      --data-urlencode "limit=5"
+      -H "Content-Type: application/json" \
+      -d '{"q": "hurricane recovery florida", "limit": 5}'
     ```
 
     ```python Python
     import os
     import requests
 
-    response = requests.get(
-        "https://dev-api.newscatcherapi.dev/news-api/search",
+    response = requests.post(
+        "https://api.newscatcherapi.com/news-api/search",
         headers={"x-api-key": os.environ["NEWSCATCHER_API_KEY"]},
-        params={"q": "hurricane recovery florida", "limit": 5},
+        json={"q": "hurricane recovery florida", "limit": 5},
     )
     response.raise_for_status()
     for article in response.json()["results"]:
@@ -44,11 +42,14 @@ The same key works for the News API and the agent.
     ```
 
     ```javascript JavaScript
-    const params = new URLSearchParams({ q: "hurricane recovery florida", limit: "5" });
-    const response = await fetch(
-      `https://dev-api.newscatcherapi.dev/news-api/search?${params}`,
-      { headers: { "x-api-key": process.env.NEWSCATCHER_API_KEY } },
-    );
+    const response = await fetch("https://api.newscatcherapi.com/news-api/search", {
+      method: "POST",
+      headers: {
+        "x-api-key": process.env.NEWSCATCHER_API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ q: "hurricane recovery florida", limit: 5 }),
+    });
     const { results } = await response.json();
     for (const article of results) console.log(article.published_at, article.title);
     ```
@@ -63,6 +64,7 @@ The same key works for the News API and the agent.
     {
       "query": "hurricane recovery florida",
       "effort": "medium",
+      "sort_by": "relevancy",
       "took_ms": 3664,
       "window": { "hours": 24, "to": "2026-10-28T14:12:35.408254+00:00" },
       "count": 1,
@@ -95,7 +97,7 @@ The same key works for the News API and the agent.
     Describe the events you need. The run starts in the background:
 
     ```bash
-    curl -X POST "https://dev-api.newscatcherapi.dev/agent/runs" \
+    curl -X POST "https://api.newscatcherapi.com/agent/runs" \
       -H "x-api-key: $NEWSCATCHER_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"query": "Bank M&A deals announced in the US since Sep 15", "mode": "fast"}'
@@ -109,7 +111,7 @@ The same key works for the News API and the agent.
     is `succeeded`, then read its `columns` and `rows`:
 
     ```bash
-    curl "https://dev-api.newscatcherapi.dev/agent/runs/RUN_ID" \
+    curl "https://api.newscatcherapi.com/agent/runs/RUN_ID" \
       -H "x-api-key: $NEWSCATCHER_API_KEY"
     ```
 

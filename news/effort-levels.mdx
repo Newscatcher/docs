@@ -14,10 +14,10 @@ of its publisher, how many newsrooms cover its story and how fresh it is.
 | `high` | An LLM judgement of the top stories, and merges stories that report the same event. Slowest, best quality. | 10 NCC |
 
 ```bash
-curl -G "https://dev-api.newscatcherapi.dev/news-api/search" \
+curl -X POST "https://api.newscatcherapi.com/news-api/search" \
   -H "x-api-key: $NEWSCATCHER_API_KEY" \
-  --data-urlencode "q=EU AI Act enforcement" \
-  --data-urlencode "effort=high"
+  -H "Content-Type: application/json" \
+  -d '{"q": "EU AI Act enforcement", "effort": "high"}'
 ```
 
 The response repeats the effort that ran in `effort`, and how long the search
@@ -39,8 +39,6 @@ took in `took_ms`.
     results cover more distinct events.
   </Accordion>
 </AccordionGroup>
-
-{/* TODO: add measured latency and precision per effort level once they are approved for publication. */}
 
 ## Rate limits per effort
 

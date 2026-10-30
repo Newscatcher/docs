@@ -1,6 +1,6 @@
 # NewsCatcher API Documentation
 
-> Enterprise APIs for web search, news, and local news data. Three products: CatchAll (Web Search API) for recall-first structured event extraction from 50,000+ web pages per job; News API for 140,000+ source news search with NLP enrichment, clustering, and deduplication; Local News API for hyper-local news with intelligent geographic detection and filtering.
+> News search and research APIs for applications and AI agents. The News API ranks the last 30 days of news in every language and groups results into stories; the Agent researches events or companies in the background and returns a table, once or on a schedule. Enterprise docs cover the v3 News API, CatchAll (Web Search API) and the Local News API.
 
 - [NewsCatcher documentation](https://www.newscatcherapi.com/docs/home/index): Enterprise APIs for web search, news and local news data
 
@@ -22,7 +22,7 @@
 - [Effort levels](https://www.newscatcherapi.com/docs/news/effort-levels): Choose how much work goes into ranking, and what a search costs.
 - [Writing queries](https://www.newscatcherapi.com/docs/news/writing-queries): Ask in plain words or keywords, in any language, and exclude terms with NOT.
 - [Stories](https://www.newscatcherapi.com/docs/news/stories): How articles are grouped into stories, and how to get every article of one story.
-- [Filters](https://www.newscatcherapi.com/docs/news/filters): Narrow a search by time window, language, country, publisher, coverage and content type.
+- [Filters and sorting](https://www.newscatcherapi.com/docs/news/filters): Narrow a search by time window, language, country, publisher, coverage and content type, and choose the order of the results.
 - [Response fields](https://www.newscatcherapi.com/docs/news/response-fields): Every field of a search response and of an article.
 - [Best practices](https://www.newscatcherapi.com/docs/news/best-practices): Get better results and spend fewer credits with the News API.
 - [How to evaluate the News API](https://www.newscatcherapi.com/docs/news/evaluate-search): Measure search quality on your own queries before you integrate.
@@ -38,27 +38,19 @@
 - [Runs](https://www.newscatcherapi.com/docs/agent/runs): Follow, cancel, rename and delete runs, and work with batches.
 - [Results and exports](https://www.newscatcherapi.com/docs/agent/results-and-exports): Read a run's table, and download it as CSV or Excel.
 - [Best practices](https://www.newscatcherapi.com/docs/agent/best-practices): Write better requests, pick the right mode and keep monitors cheap.
-- [Examples](https://www.newscatcherapi.com/docs/agent/examples): Agent runs and monitors for common jobs.
 
 ### Resources
 
 - [Migrate from the v3 News API](https://www.newscatcherapi.com/docs/resources/migrate-from-v3): Map v3 search requests to the new News API.
+- [Docs for AI agents](https://www.newscatcherapi.com/docs/resources/docs-for-agents): Let your coding agent read these docs through llms.txt, Markdown pages or MCP.
 - [Glossary](https://www.newscatcherapi.com/docs/resources/glossary): Terms used across the News API and agent docs.
 - [FAQ](https://www.newscatcherapi.com/docs/resources/faq): Common questions about the News API and the agent.
-
-## Integrations
-
-### For AI agents
-
-- [MCP server](https://www.newscatcherapi.com/docs/integrations/mcp): Use NewsCatcher from Claude, Cursor and other MCP clients.
-- [Agent skills](https://www.newscatcherapi.com/docs/integrations/agent-skills): Give coding agents the know-how to build with NewsCatcher.
-- [Docs for AI agents](https://www.newscatcherapi.com/docs/integrations/docs-for-agents): Let your coding agent read these docs through llms.txt, Markdown pages or MCP.
 
 ## Changelog
 
 - [Changelog](https://www.newscatcherapi.com/docs/changelog): New features and changes to the News API and the agent.
 
-## Web Search API (Classic)
+## Web Search API (Enterprise)
 
 ### Get started
 
@@ -312,15 +304,15 @@ deleted — it becomes unassigned and continues to exist.
 - [TypeScript SDK](https://www.newscatcherapi.com/docs/web-search-api/libraries/typescript): TypeScript client library for CatchAll API
 - [Java SDK](https://www.newscatcherapi.com/docs/web-search-api/libraries/java): Java client library for CatchAll API
 
-## Event Monitors (Classic)
+## Event Monitors (Enterprise)
 
 - [Event Monitors](https://www.newscatcherapi.com/docs/web-search-api/concepts/event-monitors): Schedule recurring CatchAll jobs with webhook notifications.
 
-## Company Monitors (Classic)
+## Company Monitors (Enterprise)
 
 - [Company Monitors](https://www.newscatcherapi.com/docs/web-search-api/concepts/company-monitors): Track specific companies across CatchAll jobs with per-company relevance scores.
 
-## News API (Classic)
+## News API (Enterprise)
 
 ### Get started
 
@@ -415,7 +407,7 @@ deleted — it becomes unassigned and continues to exist.
 - [TypeScript SDK](https://www.newscatcherapi.com/docs/news-api/libraries/typescript): TypeScript client library for News API
 - [Java SDK](https://www.newscatcherapi.com/docs/news-api/libraries/java): Java client library for News API
 
-## Local News API (Classic)
+## Local News API (Enterprise)
 
 ### Get started
 

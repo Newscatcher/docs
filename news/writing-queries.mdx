@@ -30,19 +30,23 @@ that mention it: `Tesla recall NOT Cybertruck`, `NOT "model y"`.
 - The response lists the excluded terms in `excluded`.
 - A lower-case `not` is a normal word.
 
+To leave out whole languages, countries or publishers, use `not_languages`,
+`not_countries` and `not_sources`. See [Filters](/news/filters).
+
 ## Languages
 
 Articles in every language are searched through their English translation, so
 an English query finds German, Japanese or Arabic articles too.
 
 If every language you ask for in `languages` is not English, the original text
-is searched instead. Use this to search in the language itself:
+is searched instead. Use this to search in the language itself. Languages are
+[ISO 639-1 codes](https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes):
 
 ```bash
-curl -G "https://dev-api.newscatcherapi.dev/news-api/search" \
+curl -X POST "https://api.newscatcherapi.com/news-api/search" \
   -H "x-api-key: $NEWSCATCHER_API_KEY" \
-  --data-urlencode "q=Bundestag Haushalt" \
-  --data-urlencode "languages=de"
+  -H "Content-Type: application/json" \
+  -d '{"q": "Bundestag Haushalt", "languages": ["de"]}'
 ```
 
 `zh` is searched as `cn` (simplified Chinese). Traditional Chinese is `tw`.

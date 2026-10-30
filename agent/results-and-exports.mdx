@@ -22,13 +22,8 @@ description: Read a run's table, and download it as CSV or Excel.
   The time window the run covered.
 </ResponseField>
 <ResponseField name="report" type="string">
-  The briefing written with the table, when the mode writes one.
+  The cited briefing that `standard` and `max` runs write with the table.
 </ResponseField>
-<ResponseField name="evidence" type="object[]">
-  The sources behind the rows.
-</ResponseField>
-
-{/* TODO: document the row shape (citations, dates, company column) with a real example. */}
 
 ## Downloads
 
@@ -43,6 +38,6 @@ A monitor run's file starts with the `change` column (`new` or `update`), then
 the stories' or rows' columns.
 
 ```bash
-curl -o result.xlsx "https://dev-api.newscatcherapi.dev/agent/runs/RUN_ID/export.xlsx" \
+curl -o result.xlsx "https://api.newscatcherapi.com/agent/runs/RUN_ID/export.xlsx" \
   -H "x-api-key: $NEWSCATCHER_API_KEY"
 ```

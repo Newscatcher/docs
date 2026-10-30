@@ -66,7 +66,7 @@ minutes; its schedule then continues as before.
 ## Schedule
 
 <ParamField body="schedule.every" type="string" default="day">
-  `day`, `week`, or `hours` when your plan allows runs more often than daily.
+  `day`, `week`, or `hours` for hourly runs when your plan allows them.
 </ParamField>
 <ParamField body="schedule.at" type="string" default="09:00">
   Local time, `HH:MM` (24-hour).
@@ -99,8 +99,6 @@ daily too.
 
 Each delivered row has a `change`: `new`, or `update` for a story that grew
 materially since it was last delivered (its `version` rises).
-
-{/* TODO: monitors have no webhooks today; document push delivery here if it ships. */}
 
 ## Pause, resume and change
 

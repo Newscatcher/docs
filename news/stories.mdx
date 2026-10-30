@@ -21,21 +21,20 @@ part of the ranking: a story many newsrooms carry ranks higher.
 |---|---|
 | `diverse` (default) | Repeated articles of a story rank lower, so the top results cover more stories. |
 | `story` | One article per story. |
-| `duplicates` | Every article. |
-| `none` | Every article. |
+| `duplicates` | Every article of every story. |
 
-At `effort=high`, stories that report the same event are also merged.
+Copies of one article are always one result, whatever `collapse` says. At
+`effort=high`, stories that report the same event are also merged.
 
 ## Only widely covered stories
 
 `min_newsrooms` keeps only stories carried by at least that many newsrooms:
 
 ```bash
-curl -G "https://dev-api.newscatcherapi.dev/news-api/search" \
+curl -X POST "https://api.newscatcherapi.com/news-api/search" \
   -H "x-api-key: $NEWSCATCHER_API_KEY" \
-  --data-urlencode "q=semiconductor tariffs" \
-  --data-urlencode "collapse=story" \
-  --data-urlencode "min_newsrooms=5"
+  -H "Content-Type: application/json" \
+  -d '{"q": "semiconductor tariffs", "collapse": "story", "min_newsrooms": 5}'
 ```
 
 ## Every article of a story
@@ -43,9 +42,8 @@ curl -G "https://dev-api.newscatcherapi.dev/news-api/search" \
 Pass a result's `story.id` to `GET /stories/{story_id}`:
 
 ```bash
-curl -G "https://dev-api.newscatcherapi.dev/news-api/stories/6f1c2b0e-2f0f-4d52-9a0b-5d0e8a5f9d11" \
-  -H "x-api-key: $NEWSCATCHER_API_KEY" \
-  --data-urlencode "limit=100"
+curl "https://api.newscatcherapi.com/news-api/stories/6f1c2b0e-2f0f-4d52-9a0b-5d0e8a5f9d11?limit=100" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY"
 ```
 
 ```json

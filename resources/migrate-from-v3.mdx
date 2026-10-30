@@ -4,12 +4,10 @@ sidebarTitle: Migrate from v3
 description: Map v3 search requests to the new News API.
 ---
 
-The v3 News API keeps working, and its docs stay under **Classic** in the
+The v3 News API keeps working, and its docs stay under **Enterprise** in the
 version menu. Move to the new `/search` when you want ranked, story-grouped
 results for recent news. Stay on v3 when you need every match of a boolean
 query, deep pagination or the full archive.
-
-{/* TODO: confirm with the team which v3 features have no equivalent at launch, and what to recommend for each. */}
 
 ## Requests
 
@@ -18,9 +16,10 @@ query, deep pagination or the full archive.
 | `https://v3-api.newscatcherapi.com/api/search` | `/search` (`GET` or `POST`) |
 | `x-api-token` header | `x-api-key` header |
 | `q` (boolean) | `q`: plain words or keywords with `AND`, `OR`, `NOT` |
-| `lang` | `languages` |
-| `countries` | `countries` |
-| `sources` | `sources` |
+| `lang`, `not_lang` | `languages`, `not_languages` |
+| `countries`, `not_countries` | `countries`, `not_countries` |
+| `sources`, `not_sources` | `sources`, `not_sources` |
+| `sort_by`: `relevancy`, `date` | `sort_by`: `relevancy`, `published_at`, `crawled_at` |
 | `from_`, `to_` | `window_hours`, up to the last 30 days |
 | `page_size` | `limit`, 1 to 100 |
 | `page` | No pagination: results are the best `limit` articles |
@@ -31,7 +30,7 @@ query, deep pagination or the full archive.
 
 | v3 | New News API |
 |---|---|
-| `articles` | `results`, best first |
+| `articles` | `results`, in the order of `sort_by` |
 | `total_hits`, `total_pages` | `count`: the number of results returned |
 | `cluster_id`, per response page | `story.id` on every result, and `/stories/{story_id}` for its articles |
 | `nlp.summary` | `summary` (and `summary_en`) on every result |

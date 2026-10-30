@@ -11,7 +11,7 @@ companies you add or remove from its next run on.
 
 <CodeGroup>
 ```bash From JSON
-curl -X POST "https://dev-api.newscatcherapi.dev/agent/companies/lists" \
+curl -X POST "https://api.newscatcherapi.com/agent/companies/lists" \
   -H "x-api-key: $NEWSCATCHER_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -21,14 +21,14 @@ curl -X POST "https://dev-api.newscatcherapi.dev/agent/companies/lists" \
 ```
 
 ```bash From a file
-curl -X POST "https://dev-api.newscatcherapi.dev/agent/companies/lists/upload" \
+curl -X POST "https://api.newscatcherapi.com/agent/companies/lists/upload" \
   -H "x-api-key: $NEWSCATCHER_API_KEY" \
   -F "file=@companies.csv" \
   -F "name=Payments"
 ```
 
 ```bash From a run
-curl -X POST "https://dev-api.newscatcherapi.dev/agent/companies/lists/from-run/RUN_ID" \
+curl -X POST "https://api.newscatcherapi.com/agent/companies/lists/from-run/RUN_ID" \
   -H "x-api-key: $NEWSCATCHER_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"name": "Payments"}'
@@ -55,7 +55,7 @@ Runs started from a list wait for companies that are not resolved yet.
 If a company resolved to the wrong business, or was not found, correct it:
 
 ```bash
-curl -X PATCH "https://dev-api.newscatcherapi.dev/agent/companies/lists/LIST_ID/companies/acme.com" \
+curl -X PATCH "https://api.newscatcherapi.com/agent/companies/lists/LIST_ID/companies/acme.com" \
   -H "x-api-key: $NEWSCATCHER_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"name": "Acme Robotics", "other_names": ["Acme Robotics Inc."]}'

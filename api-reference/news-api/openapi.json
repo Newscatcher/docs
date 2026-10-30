@@ -12,11 +12,6 @@
     },
     "version": "1.0.0"
   },
-  "servers": [
-    {
-      "url": "https://dev-api.newscatcherapi.dev/news-api"
-    }
-  ],
   "paths": {
     "/search": {
       "get": {
@@ -24,7 +19,7 @@
           "Search"
         ],
         "summary": "Search news",
-        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\n**How it ranks.** Every article is scored on relevance to the request, the authority of its publisher, how many newsrooms cover its story and how fresh it is.\n`effort` decides how much further work goes into the order: `low` stops there, `medium` adds a cross-encoder rerank of the top stories, `high` adds an LLM judgement of\nthem and merges stories that report the same event. Articles in every language are searched through their English translation, unless every language you ask for is not English\n(then the original text is searched).\n\n**Filters.** `languages`, `countries`, `sources` and `min_newsrooms` narrow the search; `window_hours` sets the look-back window (24 hours by default, up to your plan's\nhistory). `collapse` decides what happens to several articles of one story. An upper-case `NOT` in `q` drops the articles that mention the term in their headline, description or summary.\n\n**Credits.** A successful search (`200`) costs 1, 5 or 10 NCC for `low`, `medium` or `high` effort, also when it finds nothing. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /search` with the parameters in the query string, or `POST /search` with the same parameters as a JSON body. In both, `sources`, `languages`, `countries`\nand `include` take a comma-separated string; in the JSON body they can also be arrays.",
+        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\n**How it ranks.** Every article is scored on relevance to the request, the authority of its publisher, how many newsrooms cover its story and how fresh it is.\n`effort` decides how much further work goes into the order: `low` stops there, `medium` adds a cross-encoder rerank of the top stories, `high` adds an LLM judgement of\nthem and merges stories that report the same event. Articles in every language are searched through their English translation, unless every language you ask for is not English\n(then the original text is searched).\n\n**Filters.** `languages`, `countries`, `sources` and `min_newsrooms` narrow the search, `not_languages`, `not_countries` and `not_sources` leave articles out; `window_hours` sets the look-back window on the publication date (on the crawl date with `sort_by=crawled_at`) (24 hours by default, up to your plan's\nhistory). `collapse` decides what happens to several articles of one story. `sort_by` is `relevancy` (default), `published_at` or `crawled_at` (newest first; it covers the best matches of `q`, not every article of the window). An upper-case `NOT` in `q` drops the articles that mention the term in their headline, description or summary.\n\n**Credits.** A successful search (`200`) costs 1, 5 or 10 NCC for `low`, `medium` or `high` effort, also when it finds nothing. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /search` with the parameters in the query string, or `POST /search` with the same parameters as a JSON body. In both, `sources`, `languages`, `countries`, their `not_` versions\nand `include` take a comma-separated string; in the JSON body they can also be arrays.",
         "operationId": "newsSearchGet",
         "security": [
           {
@@ -91,16 +86,34 @@
               "enum": [
                 "diverse",
                 "story",
-                "duplicates",
-                "none"
+                "duplicates"
               ],
               "examples": [
                 "diverse"
               ],
               "default": "diverse"
             },
-            "description": "`diverse` (default) discounts repeated articles of one story, `story` keeps one article per story, `duplicates` and `none` keep every article.",
+            "description": "`diverse` (default) discounts repeated articles of one story, `story` keeps one article per story, `duplicates` keeps every article (copies of one article are always one result).",
             "example": "diverse"
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "relevancy",
+                "published_at",
+                "crawled_at"
+              ],
+              "examples": [
+                "relevancy"
+              ],
+              "default": "relevancy"
+            },
+            "description": "The order of the results: `relevancy` (default) best match first; `published_at` newest publication first; `crawled_at` newest crawl first. A date order covers the best matches of `q` (at least 100, or 5 times `limit`), not every article of the window, and `collapse=diverse` then keeps every article, as `duplicates` does. A publication date later than the crawl date counts as the crawl date.",
+            "example": "relevancy"
           },
           {
             "name": "window_hours",
@@ -146,7 +159,7 @@
                 }
               ]
             },
-            "description": "Only search these publishers: domains, comma-separated or as an array (at most 100). Matches any copy of an article, and the result shows the requested domain.",
+            "description": "Only search these publishers: domains, comma-separated or as an array (at most 100). Matches any copy of an article. The result then shows the requested domain: its name, and a link of that domain (with several matching domains on one article, the first of them in the article's order).",
             "example": "reuters.com,bbc.co.uk"
           },
           {
@@ -213,6 +226,104 @@
               ]
             },
             "description": "Only articles from publishers in these countries: ISO 3166-1 alpha-2 codes, comma-separated or as an array (at most 100).",
+            "example": "US,GB"
+          },
+          {
+            "name": "not_sources",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "Comma-separated values.",
+                  "examples": [
+                    "reuters.com,bbc.co.uk"
+                  ]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "Domain of a publisher, e.g. `reuters.com`."
+                  },
+                  "maxItems": 100,
+                  "examples": [
+                    [
+                      "reuters.com",
+                      "bbc.co.uk"
+                    ]
+                  ]
+                }
+              ]
+            },
+            "description": "Leave out these publishers: domains, comma-separated or as an array (at most 100). An article is dropped when any of its copies comes from one of them.",
+            "example": "reuters.com,bbc.co.uk"
+          },
+          {
+            "name": "not_languages",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "Comma-separated values.",
+                  "examples": [
+                    "en,de"
+                  ]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z]{2}$",
+                    "description": "ISO 639-1 language code; Chinese is `cn` (simplified) or `tw` (traditional), `zh` means `cn`."
+                  },
+                  "maxItems": 100,
+                  "examples": [
+                    [
+                      "en",
+                      "de"
+                    ]
+                  ]
+                }
+              ]
+            },
+            "description": "Leave out articles in these languages: ISO 639-1 codes, comma-separated or as an array (at most 100). `zh` is excluded as `cn`.",
+            "example": "en,de"
+          },
+          {
+            "name": "not_countries",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "Comma-separated values.",
+                  "examples": [
+                    "US,GB"
+                  ]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z]{2}$",
+                    "description": "ISO 3166-1 alpha-2 country code."
+                  },
+                  "maxItems": 100,
+                  "examples": [
+                    [
+                      "US",
+                      "GB"
+                    ]
+                  ]
+                }
+              ]
+            },
+            "description": "Leave out articles from publishers in these countries: ISO 3166-1 alpha-2 codes, comma-separated or as an array (at most 100).",
             "example": "US,GB"
           },
           {
@@ -562,7 +673,7 @@
                   "unknown_parameter": {
                     "summary": "Unknown parameter",
                     "value": {
-                      "message": "Invalid Parameter: 'mode'. Allowed parameters: q, effort, limit, collapse, window_hours, sources, languages, countries, min_newsrooms, content_type, include.",
+                      "message": "Invalid Parameter: 'mode'. Allowed parameters: q, effort, limit, collapse, sort_by, window_hours, sources, languages, countries, not_sources, not_languages, not_countries, min_newsrooms, content_type, include.",
                       "status_code": 422,
                       "status": "Validation error"
                     }
@@ -715,7 +826,7 @@
           "Search"
         ],
         "summary": "Search news (JSON body)",
-        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\n**How it ranks.** Every article is scored on relevance to the request, the authority of its publisher, how many newsrooms cover its story and how fresh it is.\n`effort` decides how much further work goes into the order: `low` stops there, `medium` adds a cross-encoder rerank of the top stories, `high` adds an LLM judgement of\nthem and merges stories that report the same event. Articles in every language are searched through their English translation, unless every language you ask for is not English\n(then the original text is searched).\n\n**Filters.** `languages`, `countries`, `sources` and `min_newsrooms` narrow the search; `window_hours` sets the look-back window (24 hours by default, up to your plan's\nhistory). `collapse` decides what happens to several articles of one story. An upper-case `NOT` in `q` drops the articles that mention the term in their headline, description or summary.\n\n**Credits.** A successful search (`200`) costs 1, 5 or 10 NCC for `low`, `medium` or `high` effort, also when it finds nothing. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /search` with the parameters in the query string, or `POST /search` with the same parameters as a JSON body. In both, `sources`, `languages`, `countries`\nand `include` take a comma-separated string; in the JSON body they can also be arrays.",
+        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\n**How it ranks.** Every article is scored on relevance to the request, the authority of its publisher, how many newsrooms cover its story and how fresh it is.\n`effort` decides how much further work goes into the order: `low` stops there, `medium` adds a cross-encoder rerank of the top stories, `high` adds an LLM judgement of\nthem and merges stories that report the same event. Articles in every language are searched through their English translation, unless every language you ask for is not English\n(then the original text is searched).\n\n**Filters.** `languages`, `countries`, `sources` and `min_newsrooms` narrow the search, `not_languages`, `not_countries` and `not_sources` leave articles out; `window_hours` sets the look-back window on the publication date (on the crawl date with `sort_by=crawled_at`) (24 hours by default, up to your plan's\nhistory). `collapse` decides what happens to several articles of one story. `sort_by` is `relevancy` (default), `published_at` or `crawled_at` (newest first; it covers the best matches of `q`, not every article of the window). An upper-case `NOT` in `q` drops the articles that mention the term in their headline, description or summary.\n\n**Credits.** A successful search (`200`) costs 1, 5 or 10 NCC for `low`, `medium` or `high` effort, also when it finds nothing. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /search` with the parameters in the query string, or `POST /search` with the same parameters as a JSON body. In both, `sources`, `languages`, `countries`, their `not_` versions\nand `include` take a comma-separated string; in the JSON body they can also be arrays.",
         "operationId": "newsSearchPost",
         "security": [
           {
@@ -1054,7 +1165,7 @@
                   "unknown_parameter": {
                     "summary": "Unknown parameter",
                     "value": {
-                      "message": "Invalid Parameter: 'mode'. Allowed parameters: q, effort, limit, collapse, window_hours, sources, languages, countries, min_newsrooms, content_type, include.",
+                      "message": "Invalid Parameter: 'mode'. Allowed parameters: q, effort, limit, collapse, sort_by, window_hours, sources, languages, countries, not_sources, not_languages, not_countries, min_newsrooms, content_type, include.",
                       "status_code": 422,
                       "status": "Validation error"
                     }
@@ -1458,7 +1569,7 @@
                   "unknown_parameter": {
                     "summary": "Unknown parameter",
                     "value": {
-                      "message": "Invalid Parameter: 'mode'. Allowed parameters: q, effort, limit, collapse, window_hours, sources, languages, countries, min_newsrooms, content_type, include.",
+                      "message": "Invalid Parameter: 'mode'. Allowed parameters: q, effort, limit, collapse, sort_by, window_hours, sources, languages, countries, not_sources, not_languages, not_countries, min_newsrooms, content_type, include.",
                       "status_code": 422,
                       "status": "Validation error"
                     }
@@ -1615,185 +1726,6 @@
         "summary": "Get subscription info",
         "description": "Your plan, its limits and your credit balance: what one search costs per effort level, the requests per second and per day your organization may send (and how many it has used today),\nthe largest `limit`, how many days back you can search, the heavy fields you can `include`, and the NCC credits you have left. Free: it is not charged. The balance is cached for up to\n2 minutes and usage reaches it 1 to 3 minutes late.",
         "operationId": "subscriptionGet",
-        "responses": {
-          "200": {
-            "description": "Your plan, limits and balance.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OrganizationSubscriptionResponse"
-                }
-              }
-            },
-            "headers": {
-              "Correlation-ID": {
-                "$ref": "#/components/headers/Correlation-ID"
-              },
-              "X-Process-Time": {
-                "$ref": "#/components/headers/X-Process-Time"
-              }
-            }
-          },
-          "401": {
-            "description": "The `x-api-key` header is missing, or the key is not valid.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "examples": {
-                  "missing_key": {
-                    "summary": "Missing key",
-                    "value": {
-                      "message": "The 'x-api-key' header is missing. Please provide your API key.",
-                      "status_code": 401,
-                      "status": "Unauthorized"
-                    }
-                  },
-                  "invalid_key": {
-                    "summary": "Invalid key",
-                    "value": {
-                      "message": "The 'x-api-key' parameter has an invalid value. Please provide a valid API key.",
-                      "status_code": 401,
-                      "status": "Unauthorized"
-                    }
-                  }
-                }
-              }
-            },
-            "headers": {
-              "Correlation-ID": {
-                "$ref": "#/components/headers/Correlation-ID"
-              },
-              "X-Process-Time": {
-                "$ref": "#/components/headers/X-Process-Time"
-              }
-            }
-          },
-          "429": {
-            "description": "You are over a rate limit of your plan: requests per second (per effort level, and in all) or requests per day. Wait for `Retry-After` seconds and send the request again; a refused request is not charged.",
-            "headers": {
-              "Retry-After": {
-                "description": "Seconds to wait before sending the request again: until the next second for the per-second limits, until 00:00 UTC for the daily limit.",
-                "schema": {
-                  "type": "integer",
-                  "minimum": 1.0,
-                  "examples": [
-                    1
-                  ]
-                }
-              },
-              "Correlation-ID": {
-                "$ref": "#/components/headers/Correlation-ID"
-              },
-              "X-Process-Time": {
-                "$ref": "#/components/headers/X-Process-Time"
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "examples": {
-                  "per_second": {
-                    "summary": "Per second",
-                    "value": {
-                      "message": "Rate limit reached: your plan allows 1 requests per second for your organization. Please slow down and retry.",
-                      "status_code": 429,
-                      "status": "Too many requests"
-                    }
-                  },
-                  "per_day": {
-                    "summary": "Per day",
-                    "value": {
-                      "message": "Daily request limit reached: your plan allows 500 requests per day. The count restarts at 00:00 UTC.",
-                      "status_code": 429,
-                      "status": "Too many requests"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Something failed on our side. Quote the `Correlation-ID` response header when you contact support. A failed request is not charged.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "examples": {
-                  "internal_error": {
-                    "summary": "Internal error",
-                    "value": {
-                      "message": "Internal server error occurred. Please contact support.",
-                      "status_code": 500,
-                      "status": "Internal error occurred"
-                    }
-                  }
-                }
-              }
-            },
-            "headers": {
-              "Correlation-ID": {
-                "$ref": "#/components/headers/Correlation-ID"
-              },
-              "X-Process-Time": {
-                "$ref": "#/components/headers/X-Process-Time"
-              }
-            }
-          },
-          "503": {
-            "description": "A part of the service is temporarily unavailable. Send the same request again after a short wait; it was not charged.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "examples": {
-                  "limits_unavailable": {
-                    "summary": "Limits unavailable",
-                    "value": {
-                      "message": "Request limits are temporarily unavailable. Please retry shortly.",
-                      "status_code": 503,
-                      "status": "Service unavailable"
-                    }
-                  },
-                  "search_unavailable": {
-                    "summary": "Search unavailable",
-                    "value": {
-                      "message": "The news search backend is not available.",
-                      "status_code": 503,
-                      "status": "Service unavailable"
-                    }
-                  }
-                }
-              }
-            },
-            "headers": {
-              "Correlation-ID": {
-                "$ref": "#/components/headers/Correlation-ID"
-              },
-              "X-Process-Time": {
-                "$ref": "#/components/headers/X-Process-Time"
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ]
-      },
-      "post": {
-        "tags": [
-          "Subscription"
-        ],
-        "summary": "Get subscription info",
-        "description": "Your plan, its limits and your credit balance: what one search costs per effort level, the requests per second and per day your organization may send (and how many it has used today),\nthe largest `limit`, how many days back you can search, the heavy fields you can `include`, and the NCC credits you have left. Free: it is not charged. The balance is cached for up to\n2 minutes and usage reaches it 1 to 3 minutes late.",
-        "operationId": "subscriptionPost",
         "responses": {
           "200": {
             "description": "Your plan, limits and balance.",
@@ -2586,13 +2518,25 @@
             "enum": [
               "diverse",
               "story",
-              "duplicates",
-              "none"
+              "duplicates"
             ],
-            "description": "`diverse` (default) discounts repeated articles of one story, `story` keeps one article per story, `duplicates` and `none` keep every article.",
+            "description": "`diverse` (default) discounts repeated articles of one story, `story` keeps one article per story, `duplicates` keeps every article (copies of one article are always one result).",
             "default": "diverse",
             "examples": [
               "diverse"
+            ]
+          },
+          "sort_by": {
+            "type": "string",
+            "enum": [
+              "relevancy",
+              "published_at",
+              "crawled_at"
+            ],
+            "description": "The order of the results: `relevancy` (default) best match first; `published_at` newest publication first; `crawled_at` newest crawl first. A date order covers the best matches of `q` (at least 100, or 5 times `limit`), not every article of the window, and `collapse=diverse` then keeps every article, as `duplicates` does. A publication date later than the crawl date counts as the crawl date.",
+            "default": "relevancy",
+            "examples": [
+              "relevancy"
             ]
           },
           "window_hours": {
@@ -2628,7 +2572,7 @@
                 ]
               }
             ],
-            "description": "Only search these publishers: domains, comma-separated or as an array (at most 100). Matches any copy of an article, and the result shows the requested domain."
+            "description": "Only search these publishers: domains, comma-separated or as an array (at most 100). Matches any copy of an article. The result then shows the requested domain: its name, and a link of that domain (with several matching domains on one article, the first of them in the article's order)."
           },
           "languages": {
             "anyOf": [
@@ -2683,6 +2627,86 @@
               }
             ],
             "description": "Only articles from publishers in these countries: ISO 3166-1 alpha-2 codes, comma-separated or as an array (at most 100)."
+          },
+          "not_sources": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Comma-separated values.",
+                "examples": [
+                  "reuters.com,bbc.co.uk"
+                ]
+              },
+              {
+                "items": {
+                  "type": "string",
+                  "description": "Domain of a publisher, e.g. `reuters.com`."
+                },
+                "type": "array",
+                "maxItems": 100,
+                "examples": [
+                  [
+                    "reuters.com",
+                    "bbc.co.uk"
+                  ]
+                ]
+              }
+            ],
+            "description": "Leave out these publishers: domains, comma-separated or as an array (at most 100). An article is dropped when any of its copies comes from one of them."
+          },
+          "not_languages": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Comma-separated values.",
+                "examples": [
+                  "en,de"
+                ]
+              },
+              {
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z]{2}$",
+                  "description": "ISO 639-1 language code; Chinese is `cn` (simplified) or `tw` (traditional), `zh` means `cn`."
+                },
+                "type": "array",
+                "maxItems": 100,
+                "examples": [
+                  [
+                    "en",
+                    "de"
+                  ]
+                ]
+              }
+            ],
+            "description": "Leave out articles in these languages: ISO 639-1 codes, comma-separated or as an array (at most 100). `zh` is excluded as `cn`."
+          },
+          "not_countries": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Comma-separated values.",
+                "examples": [
+                  "US,GB"
+                ]
+              },
+              {
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z]{2}$",
+                  "description": "ISO 3166-1 alpha-2 country code."
+                },
+                "type": "array",
+                "maxItems": 100,
+                "examples": [
+                  [
+                    "US",
+                    "GB"
+                  ]
+                ]
+              }
+            ],
+            "description": "Leave out articles from publishers in these countries: ISO 3166-1 alpha-2 codes, comma-separated or as an array (at most 100)."
           },
           "min_newsrooms": {
             "type": "integer",
@@ -2769,6 +2793,20 @@
               "medium"
             ]
           },
+          "sort_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The order of the results: `relevancy` (best match first), `published_at` or `crawled_at` (newest first).",
+            "examples": [
+              "relevancy"
+            ]
+          },
           "took_ms": {
             "type": "integer",
             "minimum": 0.0,
@@ -2794,7 +2832,7 @@
               "$ref": "#/components/schemas/NewsResult"
             },
             "type": "array",
-            "description": "The articles, best first."
+            "description": "The articles, in the order of `sort_by`."
           },
           "excluded": {
             "anyOf": [
@@ -3456,5 +3494,10 @@
   "externalDocs": {
     "description": "NewsCatcher documentation",
     "url": "https://docs.newscatcherapi.com"
-  }
+  },
+  "servers": [
+    {
+      "url": "https://api.newscatcherapi.com/news-api"
+    }
+  ]
 }

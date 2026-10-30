@@ -48,13 +48,12 @@ OAS_SPECS: dict[str, str] = {
 }
 
 BLOCKQUOTE = (
-    "Enterprise APIs for web search, news, and local news data. "
-    "Three products: CatchAll (Web Search API) for recall-first structured "
-    "event extraction from 50,000+ web pages per job; "
-    "News API for 140,000+ source news search with NLP enrichment, "
-    "clustering, and deduplication; "
-    "Local News API for hyper-local news with intelligent geographic "
-    "detection and filtering."
+    "News search and research APIs for applications and AI agents. "
+    "The News API ranks the last 30 days of news in every language and "
+    "groups results into stories; the Agent researches events or companies "
+    "in the background and returns a table, once or on a schedule. "
+    "Enterprise docs cover the v3 News API, CatchAll (Web Search API) and "
+    "the Local News API."
 )
 
 # ---------------------------------------------------------------------------

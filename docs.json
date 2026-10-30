@@ -70,14 +70,14 @@
                   "agent/monitors",
                   "agent/runs",
                   "agent/results-and-exports",
-                  "agent/best-practices",
-                  "agent/examples"
+                  "agent/best-practices"
                 ]
               },
               {
                 "group": "Resources",
                 "pages": [
                   "resources/migrate-from-v3",
+                  "resources/docs-for-agents",
                   "resources/glossary",
                   "resources/faq"
                 ]
@@ -183,19 +183,6 @@
             ]
           },
           {
-            "tab": "Integrations",
-            "groups": [
-              {
-                "group": "For AI agents",
-                "pages": [
-                  "integrations/mcp",
-                  "integrations/agent-skills",
-                  "integrations/docs-for-agents"
-                ]
-              }
-            ]
-          },
-          {
             "tab": "Changelog",
             "pages": [
               "changelog"
@@ -204,7 +191,7 @@
         ]
       },
       {
-        "version": "Classic",
+        "version": "Enterprise",
         "tabs": [
           {
             "tab": "Home",
@@ -574,8 +561,8 @@
   "navbar": {
     "primary": {
       "type": "button",
-      "label": "Search API Platform",
-      "href": "https://platform.newscatcherapi.com/catchall"
+      "label": "Get API key",
+      "href": "https://platform.newscatcherapi.com"
     }
   },
   "footer": {
