@@ -130,8 +130,8 @@ and `api-reference/agent/`, the specs behind the Latest API Reference tab.
   spec carries in its descriptions, and turns RST double backticks into
   Markdown code
 - Adds a `servers` URL when a spec has none, so the API playground works
-- Removes full article text from the public reference: the `content` option
-  of `include`, the text fields, and the sentences that mention them
+- Removes fields that are not part of the public reference, with the
+  sentences that mention them
 - Corrects wrong endpoint names listed in `CORRECTIONS`
 - Keeps everything else as served
 

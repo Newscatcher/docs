@@ -3,10 +3,9 @@
 The Agent spec comes from FastAPI with Python docstrings in its operation
 descriptions, so the Args/Returns/Raises sections are cut and RST double
 backticks become Markdown code. A spec without `servers` gets the host it was
-fetched from, so the API playground has a base URL. The public docs never
-mention full article text, so the `content` include option and text fields are
-removed, with the sentences that mention them. Everything else is kept as
-served.
+fetched from, so the API playground has a base URL. Fields that are not part
+of the public reference are removed, with the sentences that mention them.
+Everything else is kept as served.
 
 Usage: python scripts/sync_latest_oas.py [--base https://api.newscatcherapi.com]
 """
@@ -26,8 +25,9 @@ DOCSTRING_SECTION = re.compile(r"\n\s*(Args|Returns|Raises|Yields):\s*\n.*", re.
 CORRECTIONS = {
     "follow it with `/events`": "follow it with `GET /runs/{run_id}/progress`",
 }
-# Sentences that mention full article text, and what replaces them.
-FULL_TEXT_WORDING = {
+# Sentences that mention a field kept out of the public reference, and what
+# replaces them.
+PRIVATE_FIELD_WORDING = {
     "`description`, `content`, `entities`": "`description`, `entities`",
     "description, content, entities": "description, entities",
     "; the article text is not checked": "",
@@ -57,8 +57,8 @@ def allows_string(schema):
     )
 
 
-def hide_full_text(node):
-    """Drop the `content` include option and text fields from every part of a spec."""
+def hide_private_fields(node):
+    """Drop the `content` include option and string fields from every part of a spec."""
     if isinstance(node, dict):
         properties = node.get("properties", {})
         if "content" in properties and allows_string(properties["content"]):
@@ -69,19 +69,19 @@ def hide_full_text(node):
             node["enum"].remove("content")
         for key, value in node.items():
             if isinstance(value, str):
-                for wrong, right in FULL_TEXT_WORDING.items():
+                for wrong, right in PRIVATE_FIELD_WORDING.items():
                     value = value.replace(wrong, right)
                 node[key] = value
             else:
-                hide_full_text(value)
+                hide_private_fields(value)
     elif isinstance(node, list):
         for item in node:
-            hide_full_text(item)
+            hide_private_fields(item)
 
 
 def clean(spec, server_url):
     spec.setdefault("servers", [{"url": server_url}])
-    hide_full_text(spec)
+    hide_private_fields(spec)
     for operations in spec.get("paths", {}).values():
         for operation in operations.values():
             if isinstance(operation, dict) and "description" in operation:
