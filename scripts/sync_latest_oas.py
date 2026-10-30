@@ -3,7 +3,9 @@
 The Agent spec comes from FastAPI with Python docstrings in its operation
 descriptions, so the Args/Returns/Raises sections are cut and RST double
 backticks become Markdown code. A spec without `servers` gets the host it was
-fetched from, so the API playground has a base URL. Everything else is kept as
+fetched from, so the API playground has a base URL. The public docs never
+mention full article text, so the `content` include option and text fields are
+removed, with the sentences that mention them. Everything else is kept as
 served.
 
 Usage: python scripts/sync_latest_oas.py [--base https://api.newscatcherapi.com]
@@ -24,6 +26,15 @@ DOCSTRING_SECTION = re.compile(r"\n\s*(Args|Returns|Raises|Yields):\s*\n.*", re.
 CORRECTIONS = {
     "follow it with `/events`": "follow it with `GET /runs/{run_id}/progress`",
 }
+# Sentences that mention full article text, and what replaces them.
+FULL_TEXT_WORDING = {
+    "`description`, `content`, `entities`": "`description`, `entities`",
+    "description, content, entities": "description, entities",
+    "; the article text is not checked": "",
+    "(then the original text is searched)": "(then the original language is searched)",
+    "enterprise_field: content is not included": "enterprise_field: embedding is not included",
+    "Sentiment of the article text.": "Sentiment of the article.",
+}
 
 
 def fetch(url):
@@ -40,8 +51,37 @@ def clean_description(text):
     return text
 
 
+def allows_string(schema):
+    return schema.get("type") == "string" or any(
+        option.get("type") == "string" for option in schema.get("anyOf", [])
+    )
+
+
+def hide_full_text(node):
+    """Drop the `content` include option and text fields from every part of a spec."""
+    if isinstance(node, dict):
+        properties = node.get("properties", {})
+        if "content" in properties and allows_string(properties["content"]):
+            del properties["content"]
+            if "content" in node.get("required", []):
+                node["required"].remove("content")
+        if "content" in node.get("enum", []) and "embedding" in node["enum"]:
+            node["enum"].remove("content")
+        for key, value in node.items():
+            if isinstance(value, str):
+                for wrong, right in FULL_TEXT_WORDING.items():
+                    value = value.replace(wrong, right)
+                node[key] = value
+            else:
+                hide_full_text(value)
+    elif isinstance(node, list):
+        for item in node:
+            hide_full_text(item)
+
+
 def clean(spec, server_url):
     spec.setdefault("servers", [{"url": server_url}])
+    hide_full_text(spec)
     for operations in spec.get("paths", {}).values():
         for operation in operations.values():
             if isinstance(operation, dict) and "description" in operation:

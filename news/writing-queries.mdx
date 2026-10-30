@@ -25,8 +25,7 @@ Apple NOT iPhone
 Put an upper-case `NOT` before a term or a quoted phrase to drop the articles
 that mention it: `Tesla recall NOT Cybertruck`, `NOT "model y"`.
 
-- `NOT` checks the headline, the description and the summary. It does not
-  check the article text.
+- `NOT` checks the headline, the description and the summary.
 - The response lists the excluded terms in `excluded`.
 - `NOT` must be upper-case.
 
@@ -38,8 +37,8 @@ To leave out whole languages, countries or publishers, use `not_languages`,
 Articles in every language are searched through their English translation, so
 an English query finds German, Japanese or Arabic articles too.
 
-If every language you ask for in `languages` is not English, the original text
-is searched instead. Use this to search in the language itself. Languages are
+If every language you ask for in `languages` is not English, the search runs in
+the original language instead. Use this to search in the language itself. Languages are
 [ISO 639-1 codes](https://en.wikipedia.org/wiki/ISO_639-1):
 
 ```bash

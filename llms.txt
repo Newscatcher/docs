@@ -13,6 +13,7 @@
 - [Choose an API](https://www.newscatcherapi.com/docs/get-started/choose-an-api): When to use a News API search, an agent run or a monitor.
 - [Authentication](https://www.newscatcherapi.com/docs/get-started/authentication): Send your API key in the x-api-key header.
 - [Credits and pricing](https://www.newscatcherapi.com/docs/get-started/credits-and-pricing): What each search, story and agent run costs, and when you are not charged.
+- [Enterprise plans](https://www.newscatcherapi.com/docs/get-started/enterprise-plans): Everything Enterprise plans add to the News API and the agent.
 - [Rate limits and plan limits](https://www.newscatcherapi.com/docs/get-started/rate-limits): Requests per second, daily limits, result limits and history on your plan.
 - [Errors](https://www.newscatcherapi.com/docs/get-started/errors): Error responses, what they mean and when to retry.
 

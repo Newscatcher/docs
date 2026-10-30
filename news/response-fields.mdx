@@ -73,13 +73,14 @@ description: Every field of a search response and of an article.
 
 Enterprise plans can add heavy fields to every result with `include`. Other
 plans get `403` with `enterprise_field`. Your plan's fields are in
-`extra_fields` of `GET /subscription`.
+`extra_fields` of `GET /subscription`. For everything else Enterprise plans
+add, see [Enterprise plans](/get-started/enterprise-plans).
 
 | `include` | Field | What it holds |
 |---|---|---|
-| `description` | `description` | The publisher's full description. |
+| `description` | `description` | The description the publisher wrote for the article. |
 | `entities` | `entities` | People (`ner_PER`), organizations (`ner_ORG`), locations (`ner_LOC`) and other names (`ner_MISC`), plus the same found in the English translation. |
-| `sentiment` | `sentiment` | Sentiment of the headline and of the text, from -1 (very negative) to 1 (very positive). |
+| `sentiment` | `sentiment` | Sentiment of the headline and of the article, from -1 (very negative) to 1 (very positive). |
 | `themes` | `themes` | Themes of the article. |
-| `translation` | `translation` | English translation of a non-English article. |
+| `translation` | `translation` | English headline and summary of a non-English article. |
 | `embedding` | `embedding` | A 1,024-value vector of the article, rounded to 4 decimal places. |

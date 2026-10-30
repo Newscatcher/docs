@@ -43,13 +43,17 @@ If the connection drops, reconnect with the `Last-Event-ID` header (or
 |---|---|---|
 | Cancel | `POST /runs/{run_id}/cancel` | A queued run stops at once; a running one before its next step. |
 | Rename | `PATCH /runs/{run_id}` | Send `title`, 1 to 200 characters. |
-| Delete | `DELETE /runs/{run_id}` | Finished runs only. The run leaves your history and its content is erased. |
+| Delete | `DELETE /runs/{run_id}` | Finished runs only. The run leaves your history and its results are erased. |
 
 ## Batches
 
-A company list too big for one run is split into runs of up to 50 companies:
-a batch. `POST /runs` then returns a `batch_id` and the `run_ids` of every
-part.
+A run of more than 50 companies is split into runs of up to 50 companies: a
+batch. `POST /runs` then returns a `batch_id` and the `run_ids` of every part.
+
+<Note>
+  Batches are part of [Enterprise plans](/get-started/enterprise-plans). Free
+  and pay-as-you-go runs take up to 50 companies, so they never make a batch.
+</Note>
 
 Work with the batch as one run:
 

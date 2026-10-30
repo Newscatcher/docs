@@ -52,5 +52,6 @@ it is cut to your history, and the response says `"clamped": true` in
   `too_many_rows`.
 - Monitors can run hourly only when your plan allows it. A shorter interval
   than your plan allows is refused with `invalid_schedule`.
-- A company list too big for one run is split into runs of up to 50
-  companies, grouped in a [batch](/agent/runs#batches).
+- A company run takes up to 50 companies on Free and pay-as-you-go plans. On
+  [Enterprise plans](/get-started/enterprise-plans), more are split into runs
+  of up to 50, grouped in a [batch](/agent/runs#batches).

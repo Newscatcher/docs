@@ -3,7 +3,7 @@
   "info": {
     "title": "NCA-V4-API",
     "summary": "Ranked, story-aware news search.",
-    "description": "Search the news NewsCatcher has crawled in the last **30 days**, in every language: ranked by relevance, source authority and freshness, and\ngrouped into **stories** (the articles that report the same event), with a one-line summary of each article.\n\n## Authentication\n\nSend your API key in the `x-api-key` header of every request. Keys are created in the NewsCatcher platform. A missing or invalid key is answered with `401`.\n\n## Endpoints\n\n| Endpoint | What it does | Charged |\n|---|---|---|\n| `GET` or `POST /search` | Ranked articles for a request in plain words or with keywords. | Yes, by effort |\n| `GET /stories/{story_id}` | Every article of one story. | Yes, 1 NCC per successful request |\n| `GET /subscription` | Your plan, limits and credit balance. | No |\n\n## Effort and credits\n\n`effort` sets how much work goes into the ranking. A search is charged in **NCC** credits, by the effort you ask for, and only when it succeeds (`200`).\n\n| Effort | What it does | Credits |\n|---|---|---|\n| `low` | Ranks by relevance, authority, coverage and freshness. Fastest. | 1 |\n| `medium` (default) | Adds a cross-encoder rerank of the top stories. | 5 |\n| `high` | Adds an LLM judgement of the top stories and merges the stories that report the same event. Slowest, best quality. | 10 |\n\nA search that finds nothing is still charged. A request that is refused or fails (`401`, `402`, `403`, `422`, `429`, `500`, `503`) is never charged.\n\n## Query\n\n`q` is a request in plain words or keywords, in any language, up to 500 characters. Put an upper-case `NOT` before a term to drop the articles that mention it in\ntheir headline, description or summary (`Apple NOT iPhone`). `languages`, `countries` and `sources` narrow the search; the time window is the last 24 hours unless you set\n`window_hours`.\n\n## Limits\n\nYour plan sets the requests per second (per effort level and in all), an optional daily limit, the most results per request (`limit`) and how far back you can search.\n`GET /subscription` returns all of them. Over a limit you get `429` with a `Retry-After` header. A `window_hours` longer than your plan's history is cut to it and the response\nsays `window.clamped`.\n\n## Errors\n\nEvery error has the same body: `message` (what went wrong), `status_code` and `status` (a short label). Use the HTTP status to decide what to do:\n\n| Status | Meaning | Retry the same request? |\n|---|---|---|\n| `401` | The API key is missing or invalid. | No |\n| `402` | Your credit balance does not cover the search. | After topping up |\n| `403` | The plan does not include what you asked for (a larger `limit`, an Enterprise field) or the key may not use this API. | No |\n| `404` | Unknown story. | No |\n| `422` | A parameter is missing, invalid or unknown, or the body is not valid JSON. | No, fix it first |\n| `429` | A rate limit of your plan. | Yes, after `Retry-After` seconds |\n| `500` | Something failed on our side. | Yes, and tell us the `Correlation-ID` |\n| `503` | A part of the service is temporarily unavailable. | Yes, after a short wait |\n\nEvery response carries a `Correlation-ID` header (quote it to support) and an `X-Process-Time` header.\n\n## Enterprise fields\n\n`include` adds heavy fields to every result (`description`, `content`, `entities`, `sentiment`, `themes`, `translation`, `embedding`). They are part of the Enterprise plans;\nother plans get `403` with `enterprise_field`.",
+    "description": "Search the news NewsCatcher has crawled in the last **30 days**, in every language: ranked by relevance, source authority and freshness, and\ngrouped into **stories** (the articles that report the same event), with a one-line summary of each article.\n\n## Authentication\n\nSend your API key in the `x-api-key` header of every request. Keys are created in the NewsCatcher platform. A missing or invalid key is answered with `401`.\n\n## Endpoints\n\n| Endpoint | What it does | Charged |\n|---|---|---|\n| `GET` or `POST /search` | Ranked articles for a request in plain words or with keywords. | Yes, by effort |\n| `GET /stories/{story_id}` | Every article of one story. | Yes, 1 NCC per successful request |\n| `GET /subscription` | Your plan, limits and credit balance. | No |\n\n## Effort and credits\n\n`effort` sets how much work goes into the ranking. A search is charged in **NCC** credits, by the effort you ask for, and only when it succeeds (`200`).\n\n| Effort | What it does | Credits |\n|---|---|---|\n| `low` | Ranks by relevance, authority, coverage and freshness. Fastest. | 1 |\n| `medium` (default) | Adds a cross-encoder rerank of the top stories. | 5 |\n| `high` | Adds an LLM judgement of the top stories and merges the stories that report the same event. Slowest, best quality. | 10 |\n\nA search that finds nothing is still charged. A request that is refused or fails (`401`, `402`, `403`, `422`, `429`, `500`, `503`) is never charged.\n\n## Query\n\n`q` is a request in plain words or keywords, in any language, up to 500 characters. Put an upper-case `NOT` before a term to drop the articles that mention it in\ntheir headline, description or summary (`Apple NOT iPhone`). `languages`, `countries` and `sources` narrow the search; the time window is the last 24 hours unless you set\n`window_hours`.\n\n## Limits\n\nYour plan sets the requests per second (per effort level and in all), an optional daily limit, the most results per request (`limit`) and how far back you can search.\n`GET /subscription` returns all of them. Over a limit you get `429` with a `Retry-After` header. A `window_hours` longer than your plan's history is cut to it and the response\nsays `window.clamped`.\n\n## Errors\n\nEvery error has the same body: `message` (what went wrong), `status_code` and `status` (a short label). Use the HTTP status to decide what to do:\n\n| Status | Meaning | Retry the same request? |\n|---|---|---|\n| `401` | The API key is missing or invalid. | No |\n| `402` | Your credit balance does not cover the search. | After topping up |\n| `403` | The plan does not include what you asked for (a larger `limit`, an Enterprise field) or the key may not use this API. | No |\n| `404` | Unknown story. | No |\n| `422` | A parameter is missing, invalid or unknown, or the body is not valid JSON. | No, fix it first |\n| `429` | A rate limit of your plan. | Yes, after `Retry-After` seconds |\n| `500` | Something failed on our side. | Yes, and tell us the `Correlation-ID` |\n| `503` | A part of the service is temporarily unavailable. | Yes, after a short wait |\n\nEvery response carries a `Correlation-ID` header (quote it to support) and an `X-Process-Time` header.\n\n## Enterprise fields\n\n`include` adds heavy fields to every result (`description`, `entities`, `sentiment`, `themes`, `translation`, `embedding`). They are part of the Enterprise plans;\nother plans get `403` with `enterprise_field`.",
     "termsOfService": "https://newscatcherapi.com/terms-of-service",
     "contact": {
       "name": "NewsCatcher Support",
@@ -19,7 +19,7 @@
           "Search"
         ],
         "summary": "Search news",
-        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\n**How it ranks.** Every article is scored on relevance to the request, the authority of its publisher, how many newsrooms cover its story and how fresh it is.\n`effort` decides how much further work goes into the order: `low` stops there, `medium` adds a cross-encoder rerank of the top stories, `high` adds an LLM judgement of\nthem and merges stories that report the same event. Articles in every language are searched through their English translation, unless every language you ask for is not English\n(then the original text is searched).\n\n**Filters.** `languages`, `countries`, `sources` and `min_newsrooms` narrow the search, `not_languages`, `not_countries` and `not_sources` leave articles out; `window_hours` sets the look-back window on the publication date (on the crawl date with `sort_by=crawled_at`) (24 hours by default, up to your plan's\nhistory). `collapse` decides what happens to several articles of one story. `sort_by` is `relevancy` (default), `published_at` or `crawled_at` (newest first; it covers the best matches of `q`, not every article of the window). An upper-case `NOT` in `q` drops the articles that mention the term in their headline, description or summary.\n\n**Credits.** A successful search (`200`) costs 1, 5 or 10 NCC for `low`, `medium` or `high` effort, also when it finds nothing. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /search` with the parameters in the query string, or `POST /search` with the same parameters as a JSON body. In both, `sources`, `languages`, `countries`, their `not_` versions\nand `include` take a comma-separated string; in the JSON body they can also be arrays.",
+        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\n**How it ranks.** Every article is scored on relevance to the request, the authority of its publisher, how many newsrooms cover its story and how fresh it is.\n`effort` decides how much further work goes into the order: `low` stops there, `medium` adds a cross-encoder rerank of the top stories, `high` adds an LLM judgement of\nthem and merges stories that report the same event. Articles in every language are searched through their English translation, unless every language you ask for is not English\n(then the original language is searched).\n\n**Filters.** `languages`, `countries`, `sources` and `min_newsrooms` narrow the search, `not_languages`, `not_countries` and `not_sources` leave articles out; `window_hours` sets the look-back window on the publication date (on the crawl date with `sort_by=crawled_at`) (24 hours by default, up to your plan's\nhistory). `collapse` decides what happens to several articles of one story. `sort_by` is `relevancy` (default), `published_at` or `crawled_at` (newest first; it covers the best matches of `q`, not every article of the window). An upper-case `NOT` in `q` drops the articles that mention the term in their headline, description or summary.\n\n**Credits.** A successful search (`200`) costs 1, 5 or 10 NCC for `low`, `medium` or `high` effort, also when it finds nothing. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /search` with the parameters in the query string, or `POST /search` with the same parameters as a JSON body. In both, `sources`, `languages`, `countries`, their `not_` versions\nand `include` take a comma-separated string; in the JSON body they can also be arrays.",
         "operationId": "newsSearchGet",
         "security": [
           {
@@ -39,7 +39,7 @@
                 "Tesla recall NOT Cybertruck"
               ]
             },
-            "description": "What to look for: keywords with AND/OR/NOT or a plain-language question, in any language. An upper-case `NOT` (`Apple NOT iPhone`, `NOT \"model y\"`) drops the articles whose headline, description or summary mention the term; the article text is not checked.",
+            "description": "What to look for: keywords with AND/OR/NOT or a plain-language question, in any language. An upper-case `NOT` (`Apple NOT iPhone`, `NOT \"model y\"`) drops the articles whose headline, description or summary mention the term.",
             "example": "Tesla recall NOT Cybertruck"
           },
           {
@@ -379,7 +379,6 @@
                     "type": "string",
                     "enum": [
                       "description",
-                      "content",
                       "entities",
                       "sentiment",
                       "themes",
@@ -397,7 +396,7 @@
                 }
               ]
             },
-            "description": "Heavy fields to add to every result, comma-separated or as an array: description, content, entities, sentiment, themes, translation, embedding. Enterprise accounts only (403 `enterprise_field` otherwise).",
+            "description": "Heavy fields to add to every result, comma-separated or as an array: description, entities, sentiment, themes, translation, embedding. Enterprise accounts only (403 `enterprise_field` otherwise).",
             "example": "entities,sentiment"
           }
         ],
@@ -613,7 +612,7 @@
                   "enterprise_field": {
                     "summary": "Enterprise field",
                     "value": {
-                      "message": "enterprise_field: content is not included in your plan. Please upgrade to Enterprise.",
+                      "message": "enterprise_field: embedding is not included in your plan. Please upgrade to Enterprise.",
                       "status_code": 403,
                       "status": "Forbidden"
                     }
@@ -826,7 +825,7 @@
           "Search"
         ],
         "summary": "Search news (JSON body)",
-        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\n**How it ranks.** Every article is scored on relevance to the request, the authority of its publisher, how many newsrooms cover its story and how fresh it is.\n`effort` decides how much further work goes into the order: `low` stops there, `medium` adds a cross-encoder rerank of the top stories, `high` adds an LLM judgement of\nthem and merges stories that report the same event. Articles in every language are searched through their English translation, unless every language you ask for is not English\n(then the original text is searched).\n\n**Filters.** `languages`, `countries`, `sources` and `min_newsrooms` narrow the search, `not_languages`, `not_countries` and `not_sources` leave articles out; `window_hours` sets the look-back window on the publication date (on the crawl date with `sort_by=crawled_at`) (24 hours by default, up to your plan's\nhistory). `collapse` decides what happens to several articles of one story. `sort_by` is `relevancy` (default), `published_at` or `crawled_at` (newest first; it covers the best matches of `q`, not every article of the window). An upper-case `NOT` in `q` drops the articles that mention the term in their headline, description or summary.\n\n**Credits.** A successful search (`200`) costs 1, 5 or 10 NCC for `low`, `medium` or `high` effort, also when it finds nothing. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /search` with the parameters in the query string, or `POST /search` with the same parameters as a JSON body. In both, `sources`, `languages`, `countries`, their `not_` versions\nand `include` take a comma-separated string; in the JSON body they can also be arrays.",
+        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\n**How it ranks.** Every article is scored on relevance to the request, the authority of its publisher, how many newsrooms cover its story and how fresh it is.\n`effort` decides how much further work goes into the order: `low` stops there, `medium` adds a cross-encoder rerank of the top stories, `high` adds an LLM judgement of\nthem and merges stories that report the same event. Articles in every language are searched through their English translation, unless every language you ask for is not English\n(then the original language is searched).\n\n**Filters.** `languages`, `countries`, `sources` and `min_newsrooms` narrow the search, `not_languages`, `not_countries` and `not_sources` leave articles out; `window_hours` sets the look-back window on the publication date (on the crawl date with `sort_by=crawled_at`) (24 hours by default, up to your plan's\nhistory). `collapse` decides what happens to several articles of one story. `sort_by` is `relevancy` (default), `published_at` or `crawled_at` (newest first; it covers the best matches of `q`, not every article of the window). An upper-case `NOT` in `q` drops the articles that mention the term in their headline, description or summary.\n\n**Credits.** A successful search (`200`) costs 1, 5 or 10 NCC for `low`, `medium` or `high` effort, also when it finds nothing. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /search` with the parameters in the query string, or `POST /search` with the same parameters as a JSON body. In both, `sources`, `languages`, `countries`, their `not_` versions\nand `include` take a comma-separated string; in the JSON body they can also be arrays.",
         "operationId": "newsSearchPost",
         "security": [
           {
@@ -1105,7 +1104,7 @@
                   "enterprise_field": {
                     "summary": "Enterprise field",
                     "value": {
-                      "message": "enterprise_field: content is not included in your plan. Please upgrade to Enterprise.",
+                      "message": "enterprise_field: embedding is not included in your plan. Please upgrade to Enterprise.",
                       "status_code": 403,
                       "status": "Forbidden"
                     }
@@ -1481,7 +1480,7 @@
                   "enterprise_field": {
                     "summary": "Enterprise field",
                     "value": {
-                      "message": "enterprise_field: content is not included in your plan. Please upgrade to Enterprise.",
+                      "message": "enterprise_field: embedding is not included in your plan. Please upgrade to Enterprise.",
                       "status_code": 403,
                       "status": "Forbidden"
                     }
@@ -2378,20 +2377,6 @@
               "President Donald J. Trump approved a Major Disaster Declaration for Florida on Tuesday."
             ]
           },
-          "content": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Full article text (`include=content`; Enterprise).",
-            "examples": [
-              "TALLAHASSEE, Fla. — President Donald J. Trump approved a Major Disaster Declaration for Florida on Tuesday…"
-            ]
-          },
           "entities": {
             "anyOf": [
               {
@@ -2485,7 +2470,7 @@
             "type": "string",
             "maxLength": 500,
             "minLength": 1,
-            "description": "What to look for: keywords with AND/OR/NOT or a plain-language question, in any language. An upper-case `NOT` (`Apple NOT iPhone`, `NOT \"model y\"`) drops the articles whose headline, description or summary mention the term; the article text is not checked.",
+            "description": "What to look for: keywords with AND/OR/NOT or a plain-language question, in any language. An upper-case `NOT` (`Apple NOT iPhone`, `NOT \"model y\"`) drops the articles whose headline, description or summary mention the term.",
             "examples": [
               "Tesla recall NOT Cybertruck"
             ]
@@ -2744,7 +2729,6 @@
                   "type": "string",
                   "enum": [
                     "description",
-                    "content",
                     "entities",
                     "sentiment",
                     "themes",
@@ -2762,7 +2746,7 @@
                 ]
               }
             ],
-            "description": "Heavy fields to add to every result, comma-separated or as an array: description, content, entities, sentiment, themes, translation, embedding. Enterprise accounts only (403 `enterprise_field` otherwise)."
+            "description": "Heavy fields to add to every result, comma-separated or as an array: description, entities, sentiment, themes, translation, embedding. Enterprise accounts only (403 `enterprise_field` otherwise)."
           }
         },
         "type": "object",
@@ -2926,7 +2910,7 @@
                 "type": "null"
               }
             ],
-            "description": "Sentiment of the article text.",
+            "description": "Sentiment of the article.",
             "examples": [
               0.1
             ]
@@ -3179,20 +3163,6 @@
               "He searched for the right word and found it."
             ]
           },
-          "content": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "English article text.",
-            "examples": [
-              "Add us to your preferred sources so that our news always appears at the top of your Google results…"
-            ]
-          },
           "summary": {
             "anyOf": [
               {
@@ -3328,7 +3298,6 @@
               "type": "string",
               "enum": [
                 "description",
-                "content",
                 "entities",
                 "sentiment",
                 "themes",
