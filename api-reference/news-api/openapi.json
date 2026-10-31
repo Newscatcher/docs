@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "NCA-V4-API",
+    "title": "NewsCatcher News API",
     "summary": "Ranked, story-aware news search.",
-    "description": "Search the news NewsCatcher has crawled in the last **30 days**, in every language: ranked by relevance, source authority and freshness, and\ngrouped into **stories** (the articles that report the same event), with a one-line summary of each article.\n\n## Authentication\n\nSend your API key in the `x-api-key` header of every request. Keys are created in the NewsCatcher platform. A missing or invalid key is answered with `401`.\n\n## Endpoints\n\n| Endpoint | What it does | Charged |\n|---|---|---|\n| `GET` or `POST /search` | Ranked articles for a request in plain words or with keywords. | Yes, by effort |\n| `GET /stories/{story_id}` | Every article of one story. | Yes, 1 NCC per successful request |\n| `GET /subscription` | Your plan, limits and credit balance. | No |\n\n## Effort and credits\n\n`effort` sets how much work goes into the ranking. A search is charged in **NCC** credits, by the effort you ask for, and only when it succeeds (`200`).\n\n| Effort | What it does | Credits |\n|---|---|---|\n| `low` | Ranks by relevance, authority, coverage and freshness. Fastest. | 1 |\n| `medium` (default) | Adds a cross-encoder rerank of the top stories. | 5 |\n| `high` | Adds an LLM judgement of the top stories and merges the stories that report the same event. Slowest, best quality. | 10 |\n\nA search that finds nothing is still charged. A request that is refused or fails (`401`, `402`, `403`, `422`, `429`, `500`, `503`) is never charged.\n\n## Query\n\n`q` is a request in plain words or keywords, in any language, up to 500 characters. Put an upper-case `NOT` before a term to drop the articles that mention it in\ntheir headline, description or summary (`Apple NOT iPhone`). `languages`, `countries` and `sources` narrow the search; the time window is the last 24 hours unless you set\n`window_hours`.\n\n## Limits\n\nYour plan sets the requests per second (per effort level and in all), an optional daily limit, the most results per request (`limit`) and how far back you can search.\n`GET /subscription` returns all of them. Over a limit you get `429` with a `Retry-After` header. A `window_hours` longer than your plan's history is cut to it and the response\nsays `window.clamped`.\n\n## Errors\n\nEvery error has the same body: `message` (what went wrong), `status_code` and `status` (a short label). Use the HTTP status to decide what to do:\n\n| Status | Meaning | Retry the same request? |\n|---|---|---|\n| `401` | The API key is missing or invalid. | No |\n| `402` | Your credit balance does not cover the search. | After topping up |\n| `403` | The plan does not include what you asked for (a larger `limit`, an Enterprise field) or the key may not use this API. | No |\n| `404` | Unknown story. | No |\n| `422` | A parameter is missing, invalid or unknown, or the body is not valid JSON. | No, fix it first |\n| `429` | A rate limit of your plan. | Yes, after `Retry-After` seconds |\n| `500` | Something failed on our side. | Yes, and tell us the `Correlation-ID` |\n| `503` | A part of the service is temporarily unavailable. | Yes, after a short wait |\n\nEvery response carries a `Correlation-ID` header (quote it to support) and an `X-Process-Time` header.\n\n## Enterprise fields\n\n`include` adds heavy fields to every result (`description`, `entities`, `sentiment`, `themes`, `translation`, `embedding`). They are part of the Enterprise plans;\nother plans get `403` with `enterprise_field`.",
+    "description": "Search the news NewsCatcher has crawled in the last **30 days**, in every language: ranked by relevance, source authority and freshness, and\ngrouped into **stories** (the articles that report the same event), with a one-line summary of each article.\n\n## Authentication\n\nSend your API key in the `x-api-key` header of every request. Keys are created in the NewsCatcher platform. A missing or invalid key is answered with `401`.\n\n## Endpoints\n\n| Endpoint | What it does | Charged |\n|---|---|---|\n| `GET` or `POST /search` | Ranked articles for a request in plain words or with keywords. | Yes, by effort |\n| `GET /stories/{story_id}` | Every article of one story. | Yes, 1 NCC per successful request |\n| `GET /subscription` | Your plan, limits and credit balance. | No |\n\n## Effort and credits\n\n`effort` sets how much work goes into the ranking. A search is charged in **NCC** credits, by the effort you ask for, and only when it succeeds (`200`).\n\n| Effort | What it does | Credits |\n|---|---|---|\n| `low` | Ranks by relevance, authority, coverage and freshness. Fastest. | 1 |\n| `medium` (default) | Adds a cross-encoder rerank of the top stories. | 5 |\n| `high` | Adds an LLM judgement of the top stories and merges the stories that report the same event. Slowest, best quality. | 10 |\n\nA search that finds nothing is still charged. A request that is refused or fails (`401`, `402`, `403`, `422`, `429`, `500`, `503`) is never charged.\n\n## Query\n\n`q` is a request in plain words or keywords, in any language, up to 500 characters. Put an upper-case `NOT` before a term to drop the articles that mention it in\ntheir headline, description or summary (`Apple NOT iPhone`). `languages`, `countries` and `sources` narrow the search; the time window is the last 7 days unless you set\n`search_window` (for example `15m`, `2h`, `1d`).\n\n## Limits\n\nYour plan sets the requests per second (per effort level and in all), an optional daily limit, the most results per request (`limit`) and how far back you can search.\n`GET /subscription` returns all of them. Over a limit you get `429` with a `Retry-After` header. A `search_window` longer than your plan's history is cut to it and the response\nsays `window.clamped`.\n\n## Errors\n\nEvery error has the same body: `message` (what went wrong), `status_code` and `status` (a short label). Use the HTTP status to decide what to do:\n\n| Status | Meaning | Retry the same request? |\n|---|---|---|\n| `401` | The API key is missing or invalid. | No |\n| `402` | Your credit balance does not cover the search. | After topping up |\n| `403` | The plan does not include what you asked for (a larger `limit`, an Enterprise field) or the key may not use this API. | No |\n| `404` | Unknown story. | No |\n| `422` | A parameter is missing, invalid or unknown, or the body is not valid JSON. | No, fix it first |\n| `429` | A rate limit of your plan. | Yes, after `Retry-After` seconds |\n| `500` | Something failed on our side. | Yes, and tell us the `Correlation-ID` |\n| `503` | A part of the service is temporarily unavailable. | Yes, after a short wait |\n\nEvery response carries a `Correlation-ID` header (quote it to support) and an `X-Process-Time` header.\n\n## Enterprise fields\n\n`include` adds heavy fields to every result (`description`, `entities`, `sentiment`, `themes`, `translation`, `embedding`). They are part of the Enterprise plans;\nother plans get `403` with `enterprise_field`.",
     "termsOfService": "https://newscatcherapi.com/terms-of-service",
     "contact": {
       "name": "NewsCatcher Support",
@@ -12,6 +12,11 @@
     },
     "version": "1.0.0"
   },
+  "servers": [
+    {
+      "url": "https://api.newscatcherapi.com/news-api"
+    }
+  ],
   "paths": {
     "/search": {
       "get": {
@@ -19,7 +24,7 @@
           "Search"
         ],
         "summary": "Search news",
-        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\n**How it ranks.** Every article is scored on relevance to the request, the authority of its publisher, how many newsrooms cover its story and how fresh it is.\n`effort` decides how much further work goes into the order: `low` stops there, `medium` adds a cross-encoder rerank of the top stories, `high` adds an LLM judgement of\nthem and merges stories that report the same event. Articles in every language are searched through their English translation, unless every language you ask for is not English\n(then the original language is searched).\n\n**Filters.** `languages`, `countries`, `sources` and `min_newsrooms` narrow the search, `not_languages`, `not_countries` and `not_sources` leave articles out; `window_hours` sets the look-back window on the publication date (on the crawl date with `sort_by=crawled_at`) (24 hours by default, up to your plan's\nhistory). `collapse` decides what happens to several articles of one story. `sort_by` is `relevancy` (default), `published_at` or `crawled_at` (newest first; it covers the best matches of `q`, not every article of the window). An upper-case `NOT` in `q` drops the articles that mention the term in their headline, description or summary.\n\n**Credits.** A successful search (`200`) costs 1, 5 or 10 NCC for `low`, `medium` or `high` effort, also when it finds nothing. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /search` with the parameters in the query string, or `POST /search` with the same parameters as a JSON body. In both, `sources`, `languages`, `countries`, their `not_` versions\nand `include` take a comma-separated string; in the JSON body they can also be arrays.",
+        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\n**How it ranks.** Every article is scored on relevance to the request, the authority of its publisher, how many newsrooms cover its story and how fresh it is.\n`effort` decides how much further work goes into the order: `low` stops there, `medium` adds a cross-encoder rerank of the top stories, `high` adds an LLM judgement of\nthem and merges stories that report the same event. Articles in every language are searched through their English translation, unless every language you ask for is not English\n(then the original language is searched).\n\n**Filters.** `languages`, `countries`, `sources` and `min_newsrooms` narrow the search, `not_languages`, `not_countries` and `not_sources` leave articles out; `search_window` sets how far back to search, on the publication date (on the crawl date with `sort_by=crawled_at`): a number and a unit such as `15m`, `2h`, `1d`, `15 minutes`, `2 hours` or `1 day` (7 days by default, up to your plan's\nhistory). `collapse` decides what happens to several articles of one story. `sort_by` is `relevancy` (default), `published_at` or `crawled_at` (newest first; it covers the best matches of `q`, not every article of the window). An upper-case `NOT` in `q` drops the articles that mention the term in their headline, description or summary.\n\n**Credits.** A successful search (`200`) costs 1, 5 or 10 NCC for `low`, `medium` or `high` effort, also when it finds nothing. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /search` with the parameters in the query string, or `POST /search` with the same parameters as a JSON body. In both, `sources`, `languages`, `countries`, their `not_` versions\nand `include` take a comma-separated string; in the JSON body they can also be arrays.",
         "operationId": "newsSearchGet",
         "security": [
           {
@@ -116,19 +121,24 @@
             "example": "relevancy"
           },
           {
-            "name": "window_hours",
+            "name": "search_window",
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 720,
+              "type": "string",
+              "pattern": "^\\s*\\d+(\\.\\d+)?\\s*[a-zA-Z]+\\s*$",
               "examples": [
-                48
-              ]
+                "7d",
+                "2h",
+                "15m",
+                "1 day",
+                "2 hours",
+                "15 minutes"
+              ],
+              "description": "A number and a unit: minutes (`m`, `min`, `minute`, `minutes`), hours (`h`, `hr`, `hour`, `hours`), days (`d`, `day`, `days`) or weeks (`w`, `week`, `weeks`)."
             },
-            "description": "Look-back window in hours, from 1 up to your plan's history (30 days = 720 hours on the free plan; a longer request is cut to it and the response says `window.clamped`). Default: 24.",
-            "example": 48
+            "description": "How far back to search, counted from now and measured on the publication date: a number and a unit, for example `15m`, `2h`, `1d`, `15 minutes`, `2 hours`, `1 day` or `1w`. From 1 minute up to your plan's history (30 days on the free plan; a longer request is cut to it and the response says `window.clamped`). Default: `7d`.",
+            "example": "7d"
           },
           {
             "name": "sources",
@@ -416,7 +426,9 @@
                       "effort": "medium",
                       "took_ms": 3664,
                       "window": {
-                        "hours": 24,
+                        "search_window": "7d",
+                        "hours": 168,
+                        "from": "2026-10-21T14:12:35.408254+00:00",
                         "to": "2026-10-28T14:12:35.408254+00:00"
                       },
                       "count": 1,
@@ -452,7 +464,9 @@
                       "effort": "low",
                       "took_ms": 884,
                       "window": {
-                        "hours": 24,
+                        "search_window": "7d",
+                        "hours": 168,
+                        "from": "2026-10-21T14:12:35.408254+00:00",
                         "to": "2026-10-28T14:12:35.408254+00:00"
                       },
                       "count": 0,
@@ -466,7 +480,9 @@
                       "effort": "high",
                       "took_ms": 9786,
                       "window": {
-                        "hours": 24,
+                        "search_window": "7d",
+                        "hours": 168,
+                        "from": "2026-10-21T14:12:35.408254+00:00",
                         "to": "2026-10-28T14:12:35.408254+00:00",
                         "clamped": true
                       },
@@ -672,7 +688,7 @@
                   "unknown_parameter": {
                     "summary": "Unknown parameter",
                     "value": {
-                      "message": "Invalid Parameter: 'mode'. Allowed parameters: q, effort, limit, collapse, sort_by, window_hours, sources, languages, countries, not_sources, not_languages, not_countries, min_newsrooms, content_type, include.",
+                      "message": "Invalid Parameter: 'mode'. Allowed parameters: q, effort, limit, collapse, sort_by, search_window, sources, languages, countries, not_sources, not_languages, not_countries, min_newsrooms, content_type, include.",
                       "status_code": 422,
                       "status": "Validation error"
                     }
@@ -825,7 +841,7 @@
           "Search"
         ],
         "summary": "Search news (JSON body)",
-        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\n**How it ranks.** Every article is scored on relevance to the request, the authority of its publisher, how many newsrooms cover its story and how fresh it is.\n`effort` decides how much further work goes into the order: `low` stops there, `medium` adds a cross-encoder rerank of the top stories, `high` adds an LLM judgement of\nthem and merges stories that report the same event. Articles in every language are searched through their English translation, unless every language you ask for is not English\n(then the original language is searched).\n\n**Filters.** `languages`, `countries`, `sources` and `min_newsrooms` narrow the search, `not_languages`, `not_countries` and `not_sources` leave articles out; `window_hours` sets the look-back window on the publication date (on the crawl date with `sort_by=crawled_at`) (24 hours by default, up to your plan's\nhistory). `collapse` decides what happens to several articles of one story. `sort_by` is `relevancy` (default), `published_at` or `crawled_at` (newest first; it covers the best matches of `q`, not every article of the window). An upper-case `NOT` in `q` drops the articles that mention the term in their headline, description or summary.\n\n**Credits.** A successful search (`200`) costs 1, 5 or 10 NCC for `low`, `medium` or `high` effort, also when it finds nothing. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /search` with the parameters in the query string, or `POST /search` with the same parameters as a JSON body. In both, `sources`, `languages`, `countries`, their `not_` versions\nand `include` take a comma-separated string; in the JSON body they can also be arrays.",
+        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\n**How it ranks.** Every article is scored on relevance to the request, the authority of its publisher, how many newsrooms cover its story and how fresh it is.\n`effort` decides how much further work goes into the order: `low` stops there, `medium` adds a cross-encoder rerank of the top stories, `high` adds an LLM judgement of\nthem and merges stories that report the same event. Articles in every language are searched through their English translation, unless every language you ask for is not English\n(then the original language is searched).\n\n**Filters.** `languages`, `countries`, `sources` and `min_newsrooms` narrow the search, `not_languages`, `not_countries` and `not_sources` leave articles out; `search_window` sets how far back to search, on the publication date (on the crawl date with `sort_by=crawled_at`): a number and a unit such as `15m`, `2h`, `1d`, `15 minutes`, `2 hours` or `1 day` (7 days by default, up to your plan's\nhistory). `collapse` decides what happens to several articles of one story. `sort_by` is `relevancy` (default), `published_at` or `crawled_at` (newest first; it covers the best matches of `q`, not every article of the window). An upper-case `NOT` in `q` drops the articles that mention the term in their headline, description or summary.\n\n**Credits.** A successful search (`200`) costs 1, 5 or 10 NCC for `low`, `medium` or `high` effort, also when it finds nothing. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /search` with the parameters in the query string, or `POST /search` with the same parameters as a JSON body. In both, `sources`, `languages`, `countries`, their `not_` versions\nand `include` take a comma-separated string; in the JSON body they can also be arrays.",
         "operationId": "newsSearchPost",
         "security": [
           {
@@ -860,7 +876,7 @@
                     "countries": [
                       "US"
                     ],
-                    "window_hours": 72
+                    "search_window": "3d"
                   }
                 },
                 "high_effort": {
@@ -908,7 +924,9 @@
                       "effort": "medium",
                       "took_ms": 3664,
                       "window": {
-                        "hours": 24,
+                        "search_window": "7d",
+                        "hours": 168,
+                        "from": "2026-10-21T14:12:35.408254+00:00",
                         "to": "2026-10-28T14:12:35.408254+00:00"
                       },
                       "count": 1,
@@ -944,7 +962,9 @@
                       "effort": "low",
                       "took_ms": 884,
                       "window": {
-                        "hours": 24,
+                        "search_window": "7d",
+                        "hours": 168,
+                        "from": "2026-10-21T14:12:35.408254+00:00",
                         "to": "2026-10-28T14:12:35.408254+00:00"
                       },
                       "count": 0,
@@ -958,7 +978,9 @@
                       "effort": "high",
                       "took_ms": 9786,
                       "window": {
-                        "hours": 24,
+                        "search_window": "7d",
+                        "hours": 168,
+                        "from": "2026-10-21T14:12:35.408254+00:00",
                         "to": "2026-10-28T14:12:35.408254+00:00",
                         "clamped": true
                       },
@@ -1164,7 +1186,7 @@
                   "unknown_parameter": {
                     "summary": "Unknown parameter",
                     "value": {
-                      "message": "Invalid Parameter: 'mode'. Allowed parameters: q, effort, limit, collapse, sort_by, window_hours, sources, languages, countries, not_sources, not_languages, not_countries, min_newsrooms, content_type, include.",
+                      "message": "Invalid Parameter: 'mode'. Allowed parameters: q, effort, limit, collapse, sort_by, search_window, sources, languages, countries, not_sources, not_languages, not_countries, min_newsrooms, content_type, include.",
                       "status_code": 422,
                       "status": "Validation error"
                     }
@@ -1568,7 +1590,7 @@
                   "unknown_parameter": {
                     "summary": "Unknown parameter",
                     "value": {
-                      "message": "Invalid Parameter: 'mode'. Allowed parameters: q, effort, limit, collapse, sort_by, window_hours, sources, languages, countries, not_sources, not_languages, not_countries, min_newsrooms, content_type, include.",
+                      "message": "Invalid Parameter: 'mode'. Allowed parameters: q, effort, limit, collapse, sort_by, search_window, sources, languages, countries, not_sources, not_languages, not_countries, min_newsrooms, content_type, include.",
                       "status_code": 422,
                       "status": "Validation error"
                     }
@@ -2524,13 +2546,17 @@
               "relevancy"
             ]
           },
-          "window_hours": {
-            "type": "integer",
-            "maximum": 720.0,
-            "minimum": 1.0,
-            "description": "Look-back window in hours, from 1 up to your plan's history (30 days = 720 hours on the free plan; a longer request is cut to it and the response says `window.clamped`). Default: 24.",
+          "search_window": {
+            "type": "string",
+            "pattern": "^\\s*\\d+(\\.\\d+)?\\s*[a-zA-Z]+\\s*$",
+            "description": "How far back to search, counted from now and measured on the publication date: a number and a unit, for example `15m`, `2h`, `1d`, `15 minutes`, `2 hours`, `1 day` or `1w`. From 1 minute up to your plan's history (30 days on the free plan; a longer request is cut to it and the response says `window.clamped`). Default: `7d`.",
             "examples": [
-              48
+              "7d",
+              "2h",
+              "15m",
+              "1 day",
+              "2 hours",
+              "15 minutes"
             ]
           },
           "sources": {
@@ -2801,7 +2827,7 @@
           },
           "window": {
             "$ref": "#/components/schemas/NewsWindow",
-            "description": "The time window that was searched: `hours` back from `to`, which is when the search ran."
+            "description": "The time window that was searched: `search_window` back from `to`, which is when the search ran."
           },
           "count": {
             "type": "integer",
@@ -2879,7 +2905,9 @@
             ],
             "took_ms": 3664,
             "window": {
-              "hours": 24,
+              "from": "2026-10-21T14:12:35.408254+00:00",
+              "hours": 168,
+              "search_window": "7d",
               "to": "2026-10-28T14:12:35.408254+00:00"
             }
           }
@@ -3184,12 +3212,27 @@
       },
       "NewsWindow": {
         "properties": {
-          "hours": {
-            "type": "integer",
-            "minimum": 1.0,
-            "description": "Length of the window in hours, counted back from `to`.",
+          "search_window": {
+            "type": "string",
+            "description": "The length of the window as the `search_window` that asks for it (`7d`, `2h`, `15m`): the one you sent, or your plan's limit when it cut it, or `7d` by default.",
             "examples": [
-              24
+              "7d"
+            ]
+          },
+          "hours": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "description": "The same length in hours (a fraction for minutes), counted back from `to`.",
+            "examples": [
+              168
+            ]
+          },
+          "from": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Start of the window (UTC, ISO 8601): `to` minus the length of the window.",
+            "examples": [
+              "2026-10-21T14:12:35.408254+00:00"
             ]
           },
           "to": {
@@ -3217,7 +3260,9 @@
         },
         "type": "object",
         "required": [
+          "search_window",
           "hours",
+          "from",
           "to"
         ],
         "title": "NewsWindow",
@@ -3241,7 +3286,7 @@
           },
           "historical_days": {
             "type": "integer",
-            "description": "How many days back your plan allows searching; a longer `window_hours` is cut to it.",
+            "description": "How many days back your plan allows searching; a longer `search_window` is cut to it.",
             "examples": [
               30
             ]
@@ -3463,10 +3508,5 @@
   "externalDocs": {
     "description": "NewsCatcher documentation",
     "url": "https://docs.newscatcherapi.com"
-  },
-  "servers": [
-    {
-      "url": "https://api.newscatcherapi.com/news-api"
-    }
-  ]
+  }
 }

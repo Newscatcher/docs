@@ -20,7 +20,7 @@ query, deep pagination or the full archive.
 | `countries`, `not_countries` | `countries`, `not_countries` |
 | `sources`, `not_sources` | `sources`, `not_sources` |
 | `sort_by`: `relevancy`, `date` | `sort_by`: `relevancy`, `published_at`, `crawled_at` |
-| `from_`, `to_` | `window_hours`, up to the last 30 days |
+| `from_`, `to_` | `search_window` (`2h`, `7d`), up to the last 30 days |
 | `page_size` | `limit`, 1 to 100 |
 | `page` | No pagination: results are the best `limit` articles |
 | `clustering_enabled` | Always on: every result has a `story` |

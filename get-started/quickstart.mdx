@@ -66,7 +66,12 @@ and copy your API key. The same key works for the News API and the agent.
       "effort": "medium",
       "sort_by": "relevancy",
       "took_ms": 3664,
-      "window": { "hours": 24, "to": "2026-10-28T14:12:35.408254+00:00" },
+      "window": {
+        "search_window": "7d",
+        "hours": 168,
+        "from": "2026-10-21T14:12:35.408254+00:00",
+        "to": "2026-10-28T14:12:35.408254+00:00"
+      },
       "count": 1,
       "results": [
         {
@@ -89,7 +94,7 @@ and copy your API key. The same key works for the News API and the agent.
     ```
 
     The search ran at the default `medium` [effort](/news/effort-levels) over
-    the last 24 hours. Set `effort` and `window_hours` to change both.
+    the last 7 days. Set `effort` and `search_window` to change both.
   </Step>
 </Steps>
 

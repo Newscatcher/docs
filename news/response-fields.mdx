@@ -21,7 +21,9 @@ description: Every field of a search response and of an article.
 <ResponseField name="window" type="object">
   The time window that was searched.
   <Expandable title="properties">
-    <ResponseField name="hours" type="integer">Length of the window in hours, counted back from `to`.</ResponseField>
+    <ResponseField name="search_window" type="string">Length of the window as a `search_window` value (`7d`, `2h`, `15m`): the one you sent, your plan's limit when it was cut, or `7d` by default.</ResponseField>
+    <ResponseField name="hours" type="number">The same length in hours, a fraction for windows in minutes.</ResponseField>
+    <ResponseField name="from" type="string">Start of the window: `to` minus its length (UTC, ISO 8601).</ResponseField>
     <ResponseField name="to" type="string">End of the window: when the search ran (UTC, ISO 8601).</ResponseField>
     <ResponseField name="clamped" type="boolean">True when the window you asked for was longer than your plan allows and was cut. Absent otherwise.</ResponseField>
   </Expandable>

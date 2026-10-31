@@ -28,7 +28,7 @@ curl "https://api.newscatcherapi.com/news-api/subscription" \
 |---|---|
 | `plan` | Your plan's code. |
 | `max_articles_per_page` | The largest `limit` you can send. A larger one gets `403`. |
-| `historical_days` | How many days back you can search. A longer `window_hours` is cut to it. |
+| `historical_days` | How many days back you can search. A longer `search_window` is cut to it. |
 | `requests_per_second` | Requests per second for each effort level, for your whole organization. |
 | `shared_requests_per_second` | Requests per second across all effort levels, if limited. |
 | `daily_request_limit` / `daily_requests_used` | Requests allowed and used today (UTC). |
@@ -42,9 +42,8 @@ curl "https://api.newscatcherapi.com/news-api/subscription" \
 Over a rate limit you get `429` with a `Retry-After` header. Wait that many
 seconds, then retry the same request.
 
-A `window_hours` longer than your plan's history, up to 720, is not refused:
-it is cut to your history, and the response says `"clamped": true` in
-`window`. Above 720 the request gets `422`.
+A `search_window` longer than your plan's history is not refused: it is cut to
+your history, and the response says `"clamped": true` in `window`.
 
 ## Agent limits
 
