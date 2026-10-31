@@ -28,7 +28,7 @@ curl -X POST "https://api.newscatcherapi.com/news-api/search" \
   -d '{
     "q": "Tesla recall NOT Cybertruck",
     "effort": "medium",
-    "window_hours": 48,
+    "search_window": "2d",
     "languages": ["en", "de"]
   }'
 ```
@@ -39,7 +39,7 @@ parameters as comma-separated strings.
 This search:
 
 - ranks with a cross-encoder rerank (`effort=medium`, 5 NCC);
-- looks back 48 hours instead of the default 24;
+- looks back 2 days instead of the default 7;
 - keeps English and German articles only;
 - drops articles whose headline, description or summary mention "Cybertruck".
 

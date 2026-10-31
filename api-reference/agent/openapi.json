@@ -3,7 +3,7 @@
   "info": {
     "title": "NewsCatcher Agent API",
     "description": "Agent runs (events from a query, or news about companies), company lists and monitors. Authenticate with your API key in the x-api-key header.",
-    "version": "0.26.0"
+    "version": "1.0.0"
   },
   "servers": [
     {

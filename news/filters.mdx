@@ -10,12 +10,15 @@ list filters are arrays or comma-separated strings; in the query string of
 
 ## Time window
 
-<ParamField body="window_hours" type="integer" default="24">
-  How many hours back to search, from 1 up to your plan's history (720 hours =
-  30 days on the free plan). The window applies to the publication date, or to
-  the crawl date with `sort_by=crawled_at`. A window longer than your history
-  is cut to it, and the response says `"clamped": true` in `window`. Above
-  720 the request gets `422`.
+<ParamField body="search_window" type="string" default="7d">
+  How far back to search, counted from now: a number and a unit, for example
+  `15m`, `2h`, `1d`, `1w`, `15 minutes`, `2 hours` or `1 day`. Units are
+  minutes (`m`, `min`, `minute`, `minutes`), hours (`h`, `hr`, `hour`,
+  `hours`), days (`d`, `day`, `days`) and weeks (`w`, `week`, `weeks`). From
+  1 minute up to your plan's history (30 days on the free plan). The window
+  applies to the publication date, or to the crawl date with
+  `sort_by=crawled_at`. A window longer than your history is cut to it, and
+  the response says `"clamped": true` in `window`.
 </ParamField>
 
 ## Languages, countries and publishers
@@ -104,7 +107,7 @@ curl -X POST "https://api.newscatcherapi.com/news-api/search" \
   -H "Content-Type: application/json" \
   -d '{
     "q": "port strike",
-    "window_hours": 72,
+    "search_window": "3d",
     "countries": ["US", "CA"],
     "not_sources": ["example-aggregator.com"],
     "min_newsrooms": 3,
