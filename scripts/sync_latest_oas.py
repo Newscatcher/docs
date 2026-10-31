@@ -104,7 +104,7 @@ def main():
         spec = clean(fetch(f"{args.base}/{name}/openapi.json"), f"{args.base}/{name}")
         path = root / stored_path
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(spec, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        path.write_text(json.dumps(spec, indent=2, ensure_ascii=False) + "\n")
         print(f"{name}: {len(spec['paths'])} paths, v{spec['info']['version']} -> {stored_path}")
 
 
