@@ -24,7 +24,7 @@
           "Search"
         ],
         "summary": "Search news",
-        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\n**How it ranks.** Every article is scored on relevance to the request, the authority of its publisher, how many newsrooms cover its story and how fresh it is.\n`effort` decides how much further work goes into the order: `low` stops there, `medium` adds a cross-encoder rerank of the top stories, `high` adds an LLM judgement of\nthem and merges stories that report the same event. Articles in every language are searched through their English translation, unless every language you ask for is not English\n(then the original language is searched).\n\n**Filters.** `languages`, `countries`, `sources` and `min_newsrooms` narrow the search, `not_languages`, `not_countries` and `not_sources` leave articles out; `search_window` sets how far back to search, on the publication date (on the crawl date with `sort_by=crawled_at`): a number and a unit such as `15m`, `2h`, `1d`, `15 minutes`, `2 hours` or `1 day` (7 days by default, up to your plan's\nhistory). `collapse` decides what happens to several articles of one story. `sort_by` is `relevancy` (default), `published_at` or `crawled_at` (newest first; it covers the best matches of `q`, not every article of the window). An upper-case `NOT` in `q` drops the articles that mention the term in their headline, description or summary.\n\n**Credits.** A successful search (`200`) costs 1, 5 or 10 NCC for `low`, `medium` or `high` effort, also when it finds nothing. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /search` with the parameters in the query string, or `POST /search` with the same parameters as a JSON body. In both, `sources`, `languages`, `countries`, their `not_` versions\nand `include` take a comma-separated string; in the JSON body they can also be arrays.",
+        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\nSee [Effort levels](/news/effort-levels), [Filters and sorting](/news/filters), [Writing queries](/news/writing-queries) and [Credits and pricing](/get-started/credits-and-pricing).",
         "operationId": "newsSearchGet",
         "security": [
           {
@@ -841,7 +841,7 @@
           "Search"
         ],
         "summary": "Search news (JSON body)",
-        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\n**How it ranks.** Every article is scored on relevance to the request, the authority of its publisher, how many newsrooms cover its story and how fresh it is.\n`effort` decides how much further work goes into the order: `low` stops there, `medium` adds a cross-encoder rerank of the top stories, `high` adds an LLM judgement of\nthem and merges stories that report the same event. Articles in every language are searched through their English translation, unless every language you ask for is not English\n(then the original language is searched).\n\n**Filters.** `languages`, `countries`, `sources` and `min_newsrooms` narrow the search, `not_languages`, `not_countries` and `not_sources` leave articles out; `search_window` sets how far back to search, on the publication date (on the crawl date with `sort_by=crawled_at`): a number and a unit such as `15m`, `2h`, `1d`, `15 minutes`, `2 hours` or `1 day` (7 days by default, up to your plan's\nhistory). `collapse` decides what happens to several articles of one story. `sort_by` is `relevancy` (default), `published_at` or `crawled_at` (newest first; it covers the best matches of `q`, not every article of the window). An upper-case `NOT` in `q` drops the articles that mention the term in their headline, description or summary.\n\n**Credits.** A successful search (`200`) costs 1, 5 or 10 NCC for `low`, `medium` or `high` effort, also when it finds nothing. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /search` with the parameters in the query string, or `POST /search` with the same parameters as a JSON body. In both, `sources`, `languages`, `countries`, their `not_` versions\nand `include` take a comma-separated string; in the JSON body they can also be arrays.",
+        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\nSee [Effort levels](/news/effort-levels), [Filters and sorting](/news/filters), [Writing queries](/news/writing-queries) and [Credits and pricing](/get-started/credits-and-pricing).",
         "operationId": "newsSearchPost",
         "security": [
           {
@@ -1341,7 +1341,7 @@
           "Search"
         ],
         "summary": "Get a story and its articles",
-        "description": "Every distinct article of one story (the articles that report the same event), best sources first, with the number of newsrooms and when the first and the latest article appeared.\nTake the story id from the `story.id` of a search result. A successful request (HTTP 200) costs 1 NCC, regardless of the number of articles returned. The rate limits of your plan apply.",
+        "description": "Every distinct article of one story (the articles that report the same event), best sources first, with the number of newsrooms and when the first and the latest article appeared.\nTake the story id from the `story.id` of a search result. A successful request (HTTP 200) costs 1 NCC, regardless of the number of articles returned. The rate limits of your plan apply.\n\nSee [Stories](/news/stories).",
         "operationId": "newsStoryGet",
         "security": [
           {
@@ -1745,7 +1745,7 @@
           "Subscription"
         ],
         "summary": "Get subscription info",
-        "description": "Your plan, its limits and your credit balance: what one search costs per effort level, the requests per second and per day your organization may send (and how many it has used today),\nthe largest `limit`, how many days back you can search, the heavy fields you can `include`, and the NCC credits you have left. Free: it is not charged. The balance is cached for up to\n2 minutes and usage reaches it 1 to 3 minutes late.",
+        "description": "Your plan, its limits and your credit balance: what one search costs per effort level, the requests per second and per day your organization may send (and how many it has used today),\nthe largest `limit`, how many days back you can search, the heavy fields you can `include`, and the NCC credits you have left. Free: it is not charged. The balance is cached for up to\n2 minutes and usage reaches it 1 to 3 minutes late.\n\nSee [Rate limits and plan limits](/get-started/rate-limits#check-your-plan).",
         "operationId": "subscriptionGet",
         "responses": {
           "200": {
