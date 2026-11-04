@@ -5,6 +5,8 @@ description: Ask in plain words or keywords, in any language, and exclude terms 
 
 `q` is what you are looking for: a question in plain words, or keywords with
 `AND`, `OR` and `NOT`. It can be in any language and up to 500 characters long.
+For the boolean query of `/articles`, see
+[Boolean queries for `/articles`](#boolean-queries-for-articles).
 
 <CodeGroup>
 ```text Plain words
@@ -49,6 +51,23 @@ curl -X POST "https://api.newscatcherapi.com/news-api/search" \
 ```
 
 `zh` is searched as `cn` (simplified Chinese). Traditional Chinese is `tw`.
+
+## Boolean queries for `/articles`
+
+[`/articles`](/news/articles) takes a boolean query only, up to 1,000
+characters, searched in the fields of
+[`search_in`](/news/filters#only-for-articles):
+
+| Syntax | Example | Matches |
+|---|---|---|
+| `AND`, `OR`, `NOT` | `Tesla AND recall NOT Cybertruck` | Articles with both words, without the third |
+| Parentheses | `"interest rate" AND (cut OR hike)` | Groups of terms |
+| `"exact phrase"` | `"Silicon Valley Bank"` | The words in this order |
+| `+must`, `-mustnot` | `+Tesla -Musk` | Articles that must have, or must not have, a word |
+| Wildcards | `regulat*` | `regulator`, `regulation`, `regulatory` |
+| `NEAR` | `NEAR("rate", "decision", 5)` | The words within 5 words of each other |
+
+A query that is only a wildcard, such as `*`, is refused with `422`.
 
 ## Tips
 

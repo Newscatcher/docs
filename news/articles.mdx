@@ -35,44 +35,12 @@ curl -X POST "https://api.newscatcherapi.com/news-api/articles" \
 `GET /articles` takes the same parameters in the query string. List parameters
 are comma-separated strings in both; in the JSON body they can also be arrays.
 
-## Writing the query
-
-`q` is required and up to 1,000 characters long. It takes:
-
-| Syntax | Example | Matches |
-|---|---|---|
-| `AND`, `OR`, `NOT` | `Tesla AND recall NOT Cybertruck` | Articles with both words, without the third |
-| Parentheses | `"interest rate" AND (cut OR hike)` | Groups of terms |
-| `"exact phrase"` | `"Silicon Valley Bank"` | The words in this order |
-| `+must`, `-mustnot` | `+Tesla -Musk` | Articles that must have, or must not have, a word |
-| Wildcards | `regulat*` | `regulator`, `regulation`, `regulatory` |
-| `NEAR` | `NEAR("rate", "decision", 5)` | The words within 5 words of each other |
-
-A query that is only a wildcard, such as `*`, is refused with `422`.
-
-`search_in` sets where `q` is searched, with at most 2 values:
-
-| `search_in` | Searches |
-|---|---|
-| `title_body` (default) | The headline and the body |
-| `title` | The headline |
-| `body` | The body |
-| `summary` | The summary |
-| `title_translated`, `body_translated`, `title_body_translated`, `summary_translated` | The same fields in their English translation |
-
-When `search_in` searches a translated field, each result also has `title_en`,
-the English headline.
-
-## Time window
-
-`from_date` and `to_date` set the window. Both take ISO 8601 (`2026-10-03`,
-`2026-10-03T14:00:00`, with or without an offset; UTC otherwise) or a phrase
-such as `7 days ago`.
-
-- `from_date` defaults to midnight 7 days ago. It can go up to 365 days back,
-  or up to your plan's history for `/articles`. An earlier `from_date` is cut
-  to it, and the response says `"clamped": true` in `window`.
-- `to_date` defaults to the moment of the request.
+- `q` takes `AND`, `OR`, `NOT`, phrases, wildcards and `NEAR`. See
+  [Writing queries](/news/writing-queries#boolean-queries-for-articles).
+- `from_date`, `to_date`, `search_in` and the other filters are in
+  [Filters](/news/filters#only-for-articles).
+- The fields of the response are in
+  [Response fields](/news/response-fields#articles-response).
 
 ## Paging through the results
 
@@ -98,80 +66,16 @@ curl -X POST "https://api.newscatcherapi.com/news-api/articles" \
   }'
 ```
 
-## Filters and sorting
-
-| Parameter | What it does |
-|---|---|
-| `languages`, `not_languages` | Keep or leave out languages: ISO 639-1 codes. `zh` means both `cn` and `tw`. |
-| `countries`, `not_countries` | Keep or leave out publishers' countries: ISO 3166-1 alpha-2 codes. Ignored when `sources` is set. |
-| `sources`, `not_sources` | Keep or leave out publishers by domain, for example `reuters.com`. |
-| `predefined_sources` | The best-ranked publishers of a country or of the world: `top 100 US`, `top 50 global`. |
-| `ranked_only`, `from_rank`, `to_rank` | Only publishers that have a traffic rank, or a range of ranks (1 is the best). |
-| `word_count_min`, `word_count_max` | Only articles with this many words. |
-| `exclude_duplicates` | Leave out copies of an article that another publisher published first. Off by default. Needs a window that starts after 2024-05-13 with `languages=en`, and after 2025-03-17 otherwise. |
-| `sort_by` | `published_at` (default) newest first, `-published_at` oldest first, `relevancy` best match first, `rank` best-ranked publisher first. |
-
-List parameters take at most 100 values. A blank value, the same value in a
-filter and its `not_` filter, or `from_rank` greater than `to_rank` is refused
-with `422`.
-
-## What comes back
-
-```json
-{
-  "query": "\"interest rate\" AND cut",
-  "search_in": ["title_body"],
-  "sort_by": "published_at",
-  "took_ms": 412,
-  "window": {
-    "from": "2026-10-03T00:00:00+00:00",
-    "to": "2026-11-02T16:00:00+00:00"
-  },
-  "page": 1,
-  "page_size": 100,
-  "total_hits": 4812,
-  "total_pages": 10,
-  "count": 1,
-  "results": [
-    {
-      "id": "219ba6eb51d067e58b0941c8f07cfc1d",
-      "title": "Fed officials signal patience on further rate cuts",
-      "url": "https://www.reuters.com/markets/us/fed-officials-signal-patience-further-rate-cuts-2026-11-02/",
-      "source": { "domain": "reuters.com", "name": "Reuters" },
-      "published_at": "2026-11-02T14:05:00+00:00",
-      "author": "Howard Schneider",
-      "language": "en",
-      "country": "US",
-      "rank": 104,
-      "image_url": "https://www.reuters.com/resizer/photo.jpg",
-      "snippet": "Federal Reserve officials on Monday said they were in no hurry to lower interest rates again, pointing to a labor market that remains firm and inflation that has…",
-      "word_count": 812,
-      "score": 12.4
-    }
-  ]
-}
-```
-
-| Field | What it tells you |
-|---|---|
-| `total_hits` | The exact number of articles that match in the window. |
-| `total_pages` | The pages you can read: the first 1,000 matches divided by `page_size`, rounded up. |
-| `count` | The number of articles on this page. `0` when nothing matched. |
-| `window` | The window that was searched. `clamped` is `true` when `from_date` was cut to your plan's history. |
-| `snippet` | The start of the publisher's description, cut at a word boundary (200 characters by default). |
-| `rank` | The publisher's traffic rank. `999999` means the publisher has no rank. |
-| `score` | Relevance to `q`. Only the order is meaningful, not the value. |
+`total_hits` is the exact number of matches in the window. `total_pages`
+counts only the pages you can read.
 
 ## Credits and limits
 
-- A successful call (`200`) costs 5 NCC, whatever the page size or the number
-  of results, also when nothing matches. A refused or failed request is not
-  charged.
+- A successful call costs 5 NCC, also when nothing matches. See
+  [Credits and pricing](/get-started/credits-and-pricing).
 - Your plan sets the page size, the number of pages, the history and the
-  requests per second for `/articles`. Check the `articles` field of
-  [`GET /subscription`](/get-started/rate-limits#check-your-plan). A larger
-  page than your plan allows is refused with `403`.
-- The parameters of the Enterprise v3 search, such as `theme` or
-  `iptc_tags`, are refused with `403`. Any other unknown parameter gets `422`.
-- A search that runs out of time gets `408`. Narrow the window, use a smaller
-  `page_size` or simplify the query.
+  requests per second. See the `articles` field in
+  [Rate limits](/get-started/rate-limits#check-your-plan).
+- The Enterprise parameters of the v3 API, such as `theme` or `iptc_tags`, get
+  `403`. A search that runs out of time gets `408`: narrow the window, use a
+  smaller `page_size` or simplify the query. See [Errors](/get-started/errors).
