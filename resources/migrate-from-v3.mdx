@@ -6,8 +6,9 @@ description: Map v3 search requests to the new News API.
 
 The v3 News API keeps working, and its docs stay under **Enterprise** in the
 version menu. Move to the new `/search` when you want ranked, story-grouped
-results for recent news. Stay on v3 when you need every match of a boolean
-query, deep pagination or the full archive.
+results for recent news. Move to [`/articles`](/news/articles) when you need
+every match of a boolean query over the last 12 months, up to 1,000 articles
+per query. Stay on v3 when you need deeper pagination or the full archive.
 
 ## Requests
 
@@ -35,3 +36,25 @@ query, deep pagination or the full archive.
 | `cluster_id`, per response page | `story.id` on every result, and `/stories/{story_id}` for its articles |
 | `nlp.summary` | `summary` when the article has one, and `summary_en` for non-English articles |
 | `domain_url` | `source.domain` |
+
+## Boolean search with `/articles`
+
+`/articles` takes the v3 query language and most v3 search parameters. These
+are the differences:
+
+| v3 | `/articles` |
+|---|---|
+| `lang`, `not_lang` | `languages`, `not_languages`. `zh` means both `cn` and `tw`. |
+| `from_`, `to_` | `from_date`, `to_date`, up to 365 days back. An earlier `from_date` is cut to your plan's history and flagged in `window.clamped`. |
+| `sort_by`: `relevancy` (default), `date` | `sort_by`: `published_at` (default, newest first), `-published_at`, `relevancy`, `rank` |
+| `search_in`: `content` | `search_in`: `body` |
+| `page_size` up to 1,000 | `page_size` up to 100, and `page` × `page_size` at most 1,000 |
+| `q=*` returns every article | A query that is only a wildcard gets `422` |
+| `articles` | `results` |
+| `link`, `domain_url`, `published_date`, `media` | `url`, `source.domain`, `published_at`, `image_url` |
+| `description` | `snippet`: the start of the description, 200 characters by default |
+| `total_hits` capped at 10,000 | `total_hits` is exact; `total_pages` counts the first 1,000 matches |
+| A failed search returns `200` with no results | A failed search gets `408` or `503` and is not charged |
+
+The Enterprise parameters of v3, such as `theme`, `iptc_tags` or
+`include_nlp_data`, get `403`. Article text and NLP fields are not returned.

@@ -12,6 +12,7 @@ Use the HTTP status to decide what to do:
 | `402` | Your credit balance does not cover the request (News API). | After topping up |
 | `403` | Your plan does not include what you asked for, or the key may not use this API. | No |
 | `404` | Unknown story, run, list or monitor. | No |
+| `408` | The search ran out of time (`/articles`). | After narrowing the window or the query, or using a smaller `page_size` |
 | `409` | The request conflicts with the current state of the run, list or monitor (agent). | After the state changes |
 | `413` | The request body or the uploaded file is too large (agent). | No |
 | `422` | A parameter is missing, invalid or unknown, or the body is not valid JSON. | No, fix it first |

@@ -37,6 +37,9 @@
         <loc>https://www.newscatcherapi.com/docs/news/stories</loc>
     </url>
     <url>
+        <loc>https://www.newscatcherapi.com/docs/news/articles</loc>
+    </url>
+    <url>
         <loc>https://www.newscatcherapi.com/docs/news/filters</loc>
     </url>
     <url>
