@@ -1,14 +1,15 @@
 # Updates the Latest docs (News API and Agent) after a merge into main of
 # agent-service (gitlab.com/newscatcher/ai-agent) or v4-api
-# (gitlab.com/newscatcher/newscatcher-prod-news-api-v4).
+# (gitlab.com/newscatcher/newscatcher-news-api-v4).
 #
 # Flow:
 #   1. GitLab MR merged into main → GitLab webhook → repository_dispatch
 #      (event_type: gitlab-mr-merge-main). Setup notes at the bottom of this file.
 #   2. This workflow reads the MR, the version and the service's CHANGELOG.md,
 #      README.md, CLAUDE.md/AGENTS.md at the merge commit (GitLab API).
-#   3. Waits until production serves the new version, then syncs both OpenAPI
-#      specs with scripts/sync_latest_oas.py.
+#   3. Waits until production serves the new version, then syncs the product's
+#      OpenAPI spec with scripts/sync_latest_oas.py (the other spec is left to
+#      its own product's run).
 #   4. Runs the docs agent (AGENT.md + LESSONS.md from ai-configs/agents/
 #      platform-products-docs-update), which edits the pages and changelog.mdx.
 #   5. Regenerates llms.txt and sitemap.xml, commits, opens a docs PR for review.
@@ -108,7 +109,8 @@ jobs:
               PRODUCT="agent"; PRODUCT_NAME="Agent"
               SERVICE_PATH="Kubernetes_Deployments/agent-service"
               GITLAB_SOURCE_PAT="$GITLAB_AGENT_PAT"; TOKEN_NAME="GITLAB_AGENT_PAT" ;;
-            newscatcher/newscatcher-prod-news-api-v4)
+            # Renamed from newscatcher-prod-news-api-v4; old clones and URLs still use that name.
+            newscatcher/newscatcher-news-api-v4|newscatcher/newscatcher-prod-news-api-v4)
               PRODUCT="news-api"; PRODUCT_NAME="News API"
               SERVICE_PATH="Kubernetes_Deployments/v4-api"
               GITLAB_SOURCE_PAT="$GITLAB_NEWS_API_PAT"; TOKEN_NAME="GITLAB_NEWS_API_PAT" ;;
@@ -238,7 +240,10 @@ jobs:
             sleep 60
           done
 
-      - name: Create the docs branch and sync both OpenAPI specs
+      # The sync script always fetches both specs. Only this product's spec is
+      # kept, so an Agent PR never carries an undocumented News API change (or
+      # the reverse); that product's own run documents its spec.
+      - name: Create the docs branch and sync this product's OpenAPI spec
         if: steps.resolve.outputs.skip != 'true'
         run: |
           set -euo pipefail
@@ -246,6 +251,12 @@ jobs:
           git config user.email "bot@newscatcherapi.com"
           git checkout -B "$BRANCH" origin/main
           python scripts/sync_latest_oas.py --base "$API_HOST"
+          for spec in api-reference/*/openapi.json; do
+            if [ "$spec" != "$SPEC_PATH" ] && ! git diff --quiet -- "$spec"; then
+              echo "::notice::${spec} changed in production too; left for that product's run."
+              git checkout -- "$spec"
+            fi
+          done
           git status --short
 
       # GITLAB_PAT must read ai-configs (see update-docs.yml for the scopes).
@@ -399,7 +410,7 @@ jobs:
 #   GITLAB_AGENT_PAT     — NEW. Project access token on newscatcher/ai-agent
 #                          (Settings → Access Tokens): role Reporter, scope read_api.
 #   GITLAB_NEWS_API_PAT  — NEW. Project access token on
-#                          newscatcher/newscatcher-prod-news-api-v4: role Reporter,
+#                          newscatcher/newscatcher-news-api-v4: role Reporter,
 #                          scope read_api.
 #
 # GitLab webhook, once in EACH source project
