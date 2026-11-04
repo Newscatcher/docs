@@ -68,14 +68,3 @@ curl -X POST "https://api.newscatcherapi.com/news-api/articles" \
 
 `total_hits` is the exact number of matches in the window. `total_pages`
 counts only the pages you can read.
-
-## Credits and limits
-
-- A successful call costs 5 NCC, also when nothing matches. See
-  [Credits and pricing](/get-started/credits-and-pricing).
-- Your plan sets the page size, the number of pages, the history and the
-  requests per second. See the `articles` field in
-  [Rate limits](/get-started/rate-limits#check-your-plan).
-- The Enterprise parameters of the v3 API, such as `theme` or `iptc_tags`, get
-  `403`. A search that runs out of time gets `408`: narrow the window, use a
-  smaller `page_size` or simplify the query. See [Errors](/get-started/errors).
