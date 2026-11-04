@@ -12,6 +12,7 @@ Your plan sets:
 - the largest `limit` (results per search);
 - how far back you can search;
 - whether you can open story pages, and how often;
+- the page size, depth, history and requests per second of `/articles`;
 - which Enterprise fields you can add with `include`.
 
 ## Check your plan
@@ -34,6 +35,7 @@ curl "https://api.newscatcherapi.com/news-api/subscription" \
 | `daily_request_limit` / `daily_requests_used` | Requests allowed and used today (UTC). |
 | `credits_per_search` | Credits one successful search costs, per effort level. |
 | `story` | Whether story pages are on, their requests per second and their price. |
+| `articles` | The limits and price of [`/articles`](/news/articles): `max_articles_per_page`, `max_articles_per_query`, `max_pages`, `historical_days`, `requests_per_second` and `credits_per_request`. |
 | `extra_fields` | The Enterprise fields you can `include`. |
 | `credits_balance` | Credits left. Cached for up to 2 minutes; usage reaches it 1 to 3 minutes late. |
 
@@ -43,7 +45,8 @@ Over a rate limit you get `429` with a `Retry-After` header. Wait that many
 seconds, then retry the same request.
 
 A `search_window` longer than your plan's history is not refused: it is cut to
-your history, and the response says `"clamped": true` in `window`.
+your history, and the response says `"clamped": true` in `window`. The same
+goes for a `from_date` of `/articles` earlier than its history.
 
 ## Agent limits
 

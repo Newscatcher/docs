@@ -1,6 +1,6 @@
 ---
 title: Response fields
-description: Every field of a search response and of an article.
+description: Every field of a search response, an articles response and an article.
 ---
 
 ## Search response
@@ -36,6 +36,51 @@ description: Every field of a search response and of an article.
 </ResponseField>
 <ResponseField name="excluded" type="string[]">
   The terms of the `NOT` clauses of `q`. Absent when `q` has no `NOT`.
+</ResponseField>
+
+## Articles response
+
+The response of [`/articles`](/news/articles).
+
+<ResponseField name="query" type="string">
+  The query as received, with control characters replaced and the ends trimmed.
+</ResponseField>
+<ResponseField name="search_in" type="string[]">Where `q` was searched.</ResponseField>
+<ResponseField name="sort_by" type="string">The order of the results.</ResponseField>
+<ResponseField name="took_ms" type="integer">
+  How long the search took on our side, in milliseconds.
+</ResponseField>
+<ResponseField name="window" type="object">
+  The time window that was searched.
+  <Expandable title="properties">
+    <ResponseField name="from" type="string">Start of the window (UTC, ISO 8601): your `from_date`, or your plan's history limit when it cut it.</ResponseField>
+    <ResponseField name="to" type="string">End of the window (UTC, ISO 8601): your `to_date`, or the moment of the request. Send it back as `to_date` when paging.</ResponseField>
+    <ResponseField name="clamped" type="boolean">True when `from_date` was earlier than your plan allows and was cut. Absent otherwise.</ResponseField>
+  </Expandable>
+</ResponseField>
+<ResponseField name="page" type="integer">The page of this response.</ResponseField>
+<ResponseField name="page_size" type="integer">The page size of this response.</ResponseField>
+<ResponseField name="total_hits" type="integer">
+  The exact number of articles that match in the window.
+</ResponseField>
+<ResponseField name="total_pages" type="integer">
+  The pages you can read: the first 1,000 matches divided by `page_size`,
+  rounded up.
+</ResponseField>
+<ResponseField name="count" type="integer">
+  The number of articles on this page. `0` when nothing matched.
+</ResponseField>
+<ResponseField name="results" type="object[]">
+  The articles, in the order of `sort_by`. Each has `id`, `title`, `url`,
+  `source`, `published_at`, `language`, `country`, `snippet` and `score`, as
+  in [Article](#article), plus:
+  <Expandable title="properties">
+    <ResponseField name="title_en" type="string">English translation of the headline. Only when `search_in` searches a translated field.</ResponseField>
+    <ResponseField name="author" type="string">The author, as published.</ResponseField>
+    <ResponseField name="rank" type="integer">The publisher's traffic rank: 1 is the best. `999999` means the publisher has no rank.</ResponseField>
+    <ResponseField name="image_url" type="string">Link to the main image of the article.</ResponseField>
+    <ResponseField name="word_count" type="integer">Number of words of the article.</ResponseField>
+  </Expandable>
 </ResponseField>
 
 ## Article

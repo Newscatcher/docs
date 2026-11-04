@@ -8,6 +8,13 @@ Filters narrow the articles a search ranks. In the JSON body of `POST /search`
 list filters are arrays or comma-separated strings; in the query string of
 `GET /search` they are comma-separated strings.
 
+<Note>
+  [`/articles`](/news/articles) takes the language, country and publisher
+  filters of this page, plus its own parameters in
+  [Only for `/articles`](#only-for-articles). The other parameters are for
+  `/search` only.
+</Note>
+
 ## Time window
 
 <ParamField body="search_window" type="string" default="7d">
@@ -116,3 +123,72 @@ curl -X POST "https://api.newscatcherapi.com/news-api/search" \
     "limit": 50
   }'
 ```
+
+## Only for `/articles`
+
+These parameters work on [`/articles`](/news/articles) only. On `/articles`,
+`zh` in `languages` and `not_languages` means both `cn` and `tw`, and
+`countries` and `not_countries` are ignored when `sources` is set.
+
+<ParamField body="search_in" type="string | string[]" default="title_body">
+  Where `q` is searched, at most 2 values: `title_body`, `title`, `body`,
+  `summary`, or the same fields in their English translation:
+  `title_translated`, `body_translated`, `title_body_translated`,
+  `summary_translated`. With a translated field, each result also has
+  `title_en`.
+</ParamField>
+
+<ParamField body="from_date" type="string">
+  Start of the window: ISO 8601 (`2026-10-03`, `2026-10-03T14:00:00`, with or
+  without an offset; UTC otherwise) or a phrase such as `7 days ago`. Defaults
+  to midnight 7 days ago. Up to 365 days back, or your plan's history for
+  `/articles`. An earlier `from_date` is cut to it, and the response says
+  `"clamped": true` in `window`.
+</ParamField>
+
+<ParamField body="to_date" type="string">
+  End of the window, in the same formats. Defaults to the moment of the
+  request. Send `window.to` back as `to_date` when you
+  [page through the results](/news/articles#paging-through-the-results).
+</ParamField>
+
+<ParamField body="predefined_sources" type="string | string[]">
+  The best-ranked publishers of a country or of the world: `top <n> <country
+  code>` or `top <n> global`, for example `top 100 US`. Combined with
+  `sources`.
+</ParamField>
+
+<ParamField body="ranked_only" type="boolean">
+  Only publishers that have a traffic rank.
+</ParamField>
+
+<ParamField body="from_rank, to_rank" type="integer">
+  Only publishers in this range of traffic ranks, 1 to 999999 (1 is the
+  best).
+</ParamField>
+
+<ParamField body="word_count_min, word_count_max" type="integer">
+  Only articles with this many words.
+</ParamField>
+
+<ParamField body="exclude_duplicates" type="boolean" default="false">
+  Leave out copies of an article that another publisher published first.
+  Needs a window that starts after 2024-05-13 with `languages=en`, and after
+  2025-03-17 otherwise.
+</ParamField>
+
+<ParamField body="sort_by" type="string" default="published_at">
+  - `published_at`: newest first.
+  - `-published_at`: oldest first.
+  - `relevancy`: best match first.
+  - `rank`: best-ranked publisher first.
+</ParamField>
+
+<ParamField body="page, page_size" type="integer" default="1, 100">
+  The page to return, and up to 100 articles per page. `page` × `page_size`
+  can be at most 1,000. Your plan may allow a smaller page; a larger one gets
+  `403`.
+</ParamField>
+
+A blank value, the same value in a filter and its `not_` filter, or
+`from_rank` greater than `to_rank` is refused with `422`.
