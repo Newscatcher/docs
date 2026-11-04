@@ -3,6 +3,24 @@ title: Changelog
 description: New features and changes to the News API and the agent.
 ---
 
+<Update label="November 4, 2026" description="Enterprise News API v3.25.0">
+  ## Source groups in the Enterprise News API
+
+  - **New endpoint**: [`GET /api/source-groups`](/news-api/api-reference/source-groups/list-source-groups-get)
+    lists curated groups of publisher domains. It does not count toward your
+    quota.
+  - **New parameter**: `source_groups` on
+    [`/api/search`](/news-api/api-reference/search/search-articles-get)
+    restricts a search to the domains of up to 20 groups.
+  - **Fixed**: `source_name` on `/api/search` now filters results by publisher
+    name. It was ignored before.
+  - **Fixed**: `COUNT("Apple", 2, "gt")` in the `*_entity_name` parameters now
+    returns the matching articles. A malformed `COUNT` call returns `422`.
+  - **Changed**: with `by_parse_date`, `/api/aggregation_count` now counts
+    articles per interval by parse date, the same date it filters on.
+  - **Changed**: `lang=zh` and `not_lang=zh` are accepted and searched as `cn`.
+</Update>
+
 <Update label="October 30, 2026" description="Launch">
   ## New News API and Agent
 

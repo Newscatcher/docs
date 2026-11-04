@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: NewsCatcher News API
   description: |
-    NewsCatcher News API provides programmatic access to a continuously updated global news index. It includes endpoints for article search, latest headlines, breaking news, author search, aggregation counts, and source discovery.
+    NewsCatcher News API provides programmatic access to a continuously updated global news index. It includes endpoints for article search, latest headlines, breaking news, author search, aggregation counts, source discovery, and source groups.
 
     ## Key features
 
@@ -10,14 +10,14 @@ info:
     - **NLP enrichment**: Articles include theme classification, sentiment scores, and named entity recognition (people, organizations, locations).
     - **Article clustering**: Group similar articles into clusters to reduce noise and surface unique stories.
     - **Deduplication**: Exclude duplicate articles from results to keep datasets clean and relevant.
-    - **Source intelligence**: Discover and filter news sources by domain, type, rank, and geographic origin.
+    - **Source intelligence**: Discover and filter news sources by domain, type, rank, and geographic origin, or search a curated source group.
 
     For documentation, integration guides, and SDKs, visit the [developer portal](https://wwwnewscatcherapi.com/docs).
   termsOfService: https://newscatcherapi.com/terms-of-service
   contact:
     name: Maksym Sugonyaka
     email: maksym@newscatcherapi.com
-  version: 3.24.0
+  version: 3.25.0
 externalDocs:
   description: Find out more about NewsCatcher News API
   url: https://www.newscatcherapi.com/docs
@@ -65,6 +65,13 @@ tags:
         Retrieve the list of available sources, filtered by language and
         country.
       url: https://www.newscatcherapi.com/docs/news-api/api-reference/sources/retrieve-sources-get
+  - name: SourceGroups
+    description: Operations to list source groups.
+    externalDocs:
+      description:
+        List the curated source groups you can pass to the `source_groups`
+        parameter of the Search endpoint.
+      url: https://www.newscatcherapi.com/docs/news-api/api-reference/source-groups/list-source-groups-get
   - name: AggregationCount
     description: Operations to aggregate news counts.
     externalDocs:
@@ -97,6 +104,7 @@ paths:
         - $ref: "#/components/parameters/PredefinedSources"
         - $ref: "#/components/parameters/SourceName"
         - $ref: "#/components/parameters/Sources"
+        - $ref: "#/components/parameters/SourceGroups"
         - $ref: "#/components/parameters/NotSources"
         - $ref: "#/components/parameters/Lang"
         - $ref: "#/components/parameters/NotLang"
@@ -165,6 +173,8 @@ paths:
           $ref: "#/components/responses/RateLimitError"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailableError"
 
     post:
       x-fern-sdk-group-name: search
@@ -195,6 +205,8 @@ paths:
           $ref: "#/components/responses/RateLimitError"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailableError"
 
   /api/latest_headlines:
     get:
@@ -625,6 +637,33 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /api/source-groups:
+    get:
+      x-fern-sdk-group-name: source_groups
+      x-fern-sdk-method-name: get
+      tags:
+        - SourceGroups
+      summary: List source groups
+      description: |
+        Returns a paginated list of source groups: named, curated collections of publisher domains. Pass a group's `slug` to the `source_groups` parameter of the Search endpoint to restrict a search to the group's domains. Only groups published for general use are listed. This endpoint requires an API key but does not count toward your plan's quota.
+      operationId: sourceGroupsGet
+      parameters:
+        - $ref: "#/components/parameters/SourceGroupsPage"
+        - $ref: "#/components/parameters/SourceGroupsPageSize"
+      responses:
+        "200":
+          $ref: "#/components/responses/SourceGroupsResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "429":
+          $ref: "#/components/responses/RateLimitError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailableError"
+
   /api/aggregation_count:
     get:
       x-fern-sdk-group-name: aggregation_count
@@ -861,6 +900,43 @@ components:
       schema:
         type: string
         example: "nytimes.com,finance.yahoo.com"
+
+    SourceGroups:
+      description: |
+        One or more source group slugs to restrict the search to the publisher domains of those groups. To specify multiple groups, use a comma-separated string. You can pass up to 20 groups.
+
+        To get the available slugs, call [List source groups](https://www.newscatcherapi.com/docs/news-api/api-reference/source-groups/list-source-groups-get).
+
+        **Note**: The domains of all groups are merged with `sources` and `predefined_sources`. As with `sources`, the `countries` and `not_countries` filters are ignored when `source_groups` is set.
+      name: source_groups
+      in: query
+      required: false
+      schema:
+        type: string
+        example: "top_100_us_finance"
+
+    SourceGroupsPage:
+      description: The page number to return, starting from 1.
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+        example: 1
+
+    SourceGroupsPageSize:
+      description: The number of source groups per page.
+      name: page_size
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 100
+        example: 100
 
     NotSources:
       description: |
@@ -1758,6 +1834,8 @@ components:
                 $ref: "#/components/schemas/SourceName"
               sources:
                 $ref: "#/components/schemas/Sources"
+              source_groups:
+                $ref: "#/components/schemas/SourceGroups"
               not_sources:
                 $ref: "#/components/schemas/NotSources"
               lang:
@@ -1991,6 +2069,13 @@ components:
           schema:
             $ref: "#/components/schemas/SourcesResponseDto"
 
+    SourceGroupsResponse:
+      description: A successful response containing one page of source groups.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ListSourceGroupsResponseDto"
+
     SubscriptionResponse:
       description:
         A successful response containing information about the current
@@ -2076,6 +2161,20 @@ components:
           schema:
             type: string
           example: "Internal Server Error"
+
+    ServiceUnavailableError:
+      description: |
+        Service unavailable. A part of the service is temporarily unavailable, for example the source group catalog. Requests answered with `503` are not charged. Retry after a short wait.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            message:
+              "Source groups are temporarily unavailable, so this search was
+              not run. Please retry - this request has not been charged."
+            status_code: 503
+            status: "Service unavailable"
 
   schemas:
     BaseSearchResponseDto:
@@ -2908,6 +3007,64 @@ components:
           description: The user input parameters for the request.
           type: object
 
+    ListSourceGroupsResponseDto:
+      title: List Source Groups Response
+      description: One page of the source group catalog.
+      required:
+        - source_groups
+        - total
+        - page
+        - page_size
+      type: object
+      properties:
+        source_groups:
+          title: Source Groups
+          description: The source groups on this page.
+          type: array
+          items:
+            $ref: "#/components/schemas/SourceGroup"
+        total:
+          title: Total
+          description: The total number of source groups across all pages.
+          type: integer
+          example: 12
+        page:
+          title: Page
+          description: The current page number.
+          type: integer
+          example: 1
+        page_size:
+          title: Page Size
+          description: The number of source groups per page.
+          type: integer
+          example: 100
+
+    SourceGroup:
+      title: Source Group
+      description: A named, curated collection of publisher domains.
+      required:
+        - slug
+        - name
+      type: object
+      properties:
+        slug:
+          title: Slug
+          description: The identifier to pass to the `source_groups` parameter of the Search endpoint.
+          type: string
+          example: "top_100_us_finance"
+        name:
+          title: Name
+          description: The display name of the group.
+          type: string
+          example: "Top 100 US Finance"
+        description:
+          title: Description
+          description: What the group covers.
+          type:
+            - string
+            - "null"
+          example: "Leading US finance and business publishers."
+
     SourceInfo:
       title: Source Info
       description: The data model for information about a news source.
@@ -3166,6 +3323,21 @@ components:
 
         Multiple countries with the number of top sources can be specified as a comma-separated string or an array of strings.
 
+    SourceGroups:
+      oneOf:
+        - type: string
+          example: "top_100_us_finance"
+        - type: array
+          items:
+            type: string
+          example: ["top_100_us_finance"]
+      description: |
+        One or more source group slugs to restrict the search to the publisher domains of those groups. To specify multiple groups, use a comma-separated string or an array of strings. You can pass up to 20 groups.
+
+        To get the available slugs, call [List source groups](https://www.newscatcherapi.com/docs/news-api/api-reference/source-groups/list-source-groups-get).
+
+        **Note**: The domains of all groups are merged with `sources` and `predefined_sources`. As with `sources`, the `countries` and `not_countries` filters are ignored when `source_groups` is set. An unknown slug, or groups that contain no sources, return a `422` error.
+
     SourceName:
       oneOf:
         - type: string
@@ -3307,6 +3479,8 @@ components:
       default: false
       description: |
         If true, the `from_` and `to_` parameters use article parse dates instead of published dates. Additionally, the `parse_date` variable is added to the output for each article object.
+
+        In the Aggregation count endpoint, the articles are also counted per interval by their parse date.
       example: true
 
     IsHeadline:
