@@ -56,6 +56,7 @@
                   "news/stories",
                   "news/filters",
                   "news/response-fields",
+                  "news/articles",
                   "news/best-practices",
                   "news/evaluate-search"
                 ]
@@ -98,6 +99,14 @@
                       "GET /search",
                       "POST /search",
                       "GET /stories/{story_id}"
+                    ]
+                  },
+                  {
+                    "group": "Articles",
+                    "openapi": "api-reference/news-api/openapi.json",
+                    "pages": [
+                      "GET /articles",
+                      "POST /articles"
                     ]
                   },
                   {

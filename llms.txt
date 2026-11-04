@@ -25,6 +25,7 @@
 - [Stories](https://www.newscatcherapi.com/docs/news/stories): How articles are grouped into stories, and how to get every article of one story.
 - [Filters and sorting](https://www.newscatcherapi.com/docs/news/filters): Narrow a search by time window, language, country, publisher, coverage and content type, and choose the order of the results.
 - [Response fields](https://www.newscatcherapi.com/docs/news/response-fields): Every field of a search response and of an article.
+- [Every matching article](https://www.newscatcherapi.com/docs/news/articles): Page through every article that matches a boolean query over the last 12 months with /articles.
 - [Best practices](https://www.newscatcherapi.com/docs/news/best-practices): Get better results and spend fewer credits with the News API.
 - [How to evaluate the News API](https://www.newscatcherapi.com/docs/news/evaluate-search): Measure search quality on your own queries before you integrate.
 

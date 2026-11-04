@@ -1,0 +1,251 @@
+---
+title: Every matching article
+sidebarTitle: Every matching article
+description: Page through every article that matches a boolean query over the last 12 months with /articles.
+---
+
+`/search` returns the best articles for a question. `/articles` returns every
+article that matches a boolean query, newest first, for you to page through.
+It covers the last 12 months and reaches up to the first 1,000 articles of a
+query.
+
+## Your first request
+
+Send the parameters as a JSON body to `POST /articles`:
+
+```bash
+curl -X POST "https://api.newscatcherapi.com/news-api/articles" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "q": "\"interest rate\" AND (cut OR hike) NOT crypto",
+    "from_date": "2026-10-03",
+    "page_size": 100
+  }'
+```
+
+`GET /articles` takes the same parameters in the query string. In both, list
+parameters take a comma-separated string; in the JSON body they can also be
+arrays.
+
+A successful call costs 5 NCC, whatever the page size or the number of
+results, also when nothing matches. A refused or failed request is not
+charged.
+
+## Query
+
+<ParamField body="q" type="string" required>
+  The boolean query, 1 to 1,000 characters. It takes `AND`, `OR`, `NOT`,
+  parentheses, `"exact phrases"`, `+must`, `-mustnot`, `wild*cards` and
+  `NEAR("a", "b", 5)` (the words within 5 of each other). For example
+  `"interest rate" AND (cut OR hike) NOT crypto`.
+</ParamField>
+
+<ParamField body="search_in" type="string | string[]" default="title_body">
+  Where `q` is searched, at most 2 values: `title`, `body`, `title_body` or
+  `summary`, or the same on the English translation: `title_translated`,
+  `body_translated`, `title_body_translated` or `summary_translated`. A match
+  in any of them counts.
+</ParamField>
+
+A query with an unclosed quote or another syntax error gets `422`, with a
+message that names the problem.
+
+## Time window
+
+<ParamField body="from_date" type="string">
+  Start of the window: ISO 8601 (`2026-10-03`, `2026-10-03T14:00:00`, with or
+  without an offset; UTC otherwise) or a phrase such as `7 days ago`.
+  Default: midnight 7 days ago. Up to 365 days back, or your plan's history if
+  it is shorter. An earlier start is cut to it, and the response says
+  `"clamped": true` in `window`.
+</ParamField>
+
+<ParamField body="to_date" type="string">
+  End of the window, in the same formats. Default: the moment of the request.
+  The response returns it in `window.to`.
+</ParamField>
+
+## Filters
+
+<ParamField body="languages" type="string | string[]">
+  Only articles in these languages: ISO 639-1 codes, at most 100. `zh` means
+  `cn` (simplified) and `tw` (traditional).
+</ParamField>
+
+<ParamField body="not_languages" type="string | string[]">
+  Leave out articles in these languages: ISO 639-1 codes, at most 100.
+</ParamField>
+
+<ParamField body="countries" type="string | string[]">
+  Only articles from publishers in these countries: ISO 3166-1 alpha-2 codes,
+  at most 100. Ignored when `sources` is set.
+</ParamField>
+
+<ParamField body="not_countries" type="string | string[]">
+  Leave out articles from publishers in these countries: ISO 3166-1 alpha-2
+  codes, at most 100. Ignored when `sources` is set.
+</ParamField>
+
+<ParamField body="sources" type="string | string[]">
+  Only these publishers: domains, at most 100, for example
+  `["reuters.com", "bbc.co.uk"]`. A domain with a subdomain
+  (`news.bbc.co.uk`) matches that subdomain only.
+</ParamField>
+
+<ParamField body="not_sources" type="string | string[]">
+  Leave out these publishers: domains, at most 100. Only bare domains
+  (`cnn.com`) leave articles out; a list of subdomains only
+  (`edition.cnn.com`) excludes nothing.
+</ParamField>
+
+<ParamField body="predefined_sources" type="string | string[]">
+  Only the best-ranked publishers of a country or of the world:
+  `top <n> <country code>` or `top <n> global`, for example `top 100 US`.
+  Combined with `sources`.
+</ParamField>
+
+<ParamField body="ranked_only" type="boolean" default="false">
+  Only articles from publishers that have a rank.
+</ParamField>
+
+<ParamField body="from_rank" type="integer">
+  Only publishers ranked at this position or lower (a larger number), 1 to
+  999999. The rank is the publisher's traffic rank, 1 being the best. Combined
+  with `sources`, an article that matches either one passes.
+</ParamField>
+
+<ParamField body="to_rank" type="integer">
+  Only publishers ranked at this position or better (a smaller number), 1 to
+  999999. Must not be lower than `from_rank`.
+</ParamField>
+
+<ParamField body="word_count_min" type="integer">
+  Only articles of at least this many words, 0 to 1,000,000. `0` is a filter
+  too: articles without a word count are left out. Must be lower than
+  `word_count_max`.
+</ParamField>
+
+<ParamField body="word_count_max" type="integer">
+  Only articles of at most this many words, 0 to 1,000,000.
+</ParamField>
+
+<ParamField body="exclude_duplicates" type="boolean" default="false">
+  Leave out copies of an article that another publisher published first. Off
+  by default: every match is returned. The window must start after
+  2024-05-13 for English only (`languages=en`) and after 2025-03-17 otherwise.
+</ParamField>
+
+A filter can't both include and exclude the same value, for example
+`languages=en` with `not_languages=en`: the request gets `422`. So does a blank
+value in a list. An empty array is no filter.
+
+## Sorting and paging
+
+<ParamField body="sort_by" type="string" default="published_at">
+  `published_at` newest first, `-published_at` oldest first, `relevancy` best
+  match first, or `rank` best-ranked publisher first.
+</ParamField>
+
+<ParamField body="page" type="integer" default="1">
+  Page number, from 1.
+</ParamField>
+
+<ParamField body="page_size" type="integer" default="100">
+  Articles per page, 1 to 100. Your plan may allow fewer: a larger page gets
+  `403`.
+</ParamField>
+
+A query reaches its first 1,000 articles: `page` x `page_size` is at most
+1,000, and a deeper page gets `422`. To read more, narrow the query or split
+the window.
+
+<Note>
+  `to_date` defaults to the moment of each request, so new articles can shift
+  the pages while you read them. Send the `window.to` of the first page back
+  as `to_date` on every next page, so all pages cover the same articles.
+</Note>
+
+## What comes back
+
+```json
+{
+  "query": "\"interest rate\" AND cut",
+  "search_in": ["title_body"],
+  "sort_by": "published_at",
+  "took_ms": 412,
+  "window": {
+    "from": "2026-10-03T00:00:00+00:00",
+    "to": "2026-11-02T16:00:00+00:00"
+  },
+  "page": 1,
+  "page_size": 100,
+  "total_hits": 4812,
+  "total_pages": 10,
+  "count": 1,
+  "results": [
+    {
+      "id": "219ba6eb51d067e58b0941c8f07cfc1d",
+      "title": "Fed officials signal patience on further rate cuts",
+      "url": "https://www.reuters.com/markets/us/fed-officials-signal-patience-further-rate-cuts-2026-11-02/",
+      "source": { "domain": "reuters.com", "name": "Reuters" },
+      "published_at": "2026-11-02T14:05:00+00:00",
+      "author": "Howard Schneider",
+      "language": "en",
+      "country": "US",
+      "rank": 104,
+      "image_url": "https://www.reuters.com/resizer/photo.jpg",
+      "snippet": "Federal Reserve officials on Monday said they were in no hurry to lower interest rates again, pointing to a labor market that remains firm and inflation that has…",
+      "word_count": 812,
+      "score": 12.4
+    }
+  ]
+}
+```
+
+| Field | What it holds |
+|---|---|
+| `query`, `search_in`, `sort_by` | The query as received, where it was searched and the order of the results. |
+| `window` | `from` and `to` of the window that was searched (UTC, ISO 8601), and `clamped: true` when `from_date` was cut to your plan's history. |
+| `page`, `page_size` | The page of this response and its size. |
+| `total_hits` | The exact number of articles that match in the window. A query still returns only its first 1,000. |
+| `total_pages` | The pages you can read: `min(total_hits, 1000)` divided by `page_size`, rounded up. |
+| `count` | The number of articles on this page. `0`, with empty `results`, when nothing matched. |
+| `took_ms` | How long the search took on our side, in milliseconds. |
+
+Each result has:
+
+| Field | What it holds |
+|---|---|
+| `id` | Article ID. |
+| `title` | Headline as published. |
+| `title_en` | English translation of the headline, only when `search_in` has a translated field. |
+| `url` | Link to the article. |
+| `source` | The publisher: `domain` and `name`. |
+| `published_at` | When the article was published (UTC, ISO 8601). |
+| `author` | The author, as published. |
+| `language` | ISO 639-1 code. Chinese is `cn` (simplified) or `tw` (traditional). |
+| `country` | Country of the publisher, ISO 3166-1 alpha-2. |
+| `rank` | Traffic rank of the publisher: 1 is the best, 999999 means no rank. |
+| `image_url` | Link to the main image of the article. |
+| `snippet` | Start of the publisher's description, cut at a word boundary to your plan's snippet length (200 characters by default). |
+| `word_count` | Number of words of the article. |
+| `score` | Relevance to `q`. Only the order means something, not the value. |
+
+A field without a value is left out of the result.
+
+## Limits and errors
+
+Your plan sets the largest `page_size`, how many pages you can read, how far
+back you can search and the requests per second for `/articles`. See them,
+with the price of a call, in the `articles` field of
+[`GET /subscription`](/get-started/rate-limits#check-your-plan).
+
+| Status | When |
+|---|---|
+| `403` | A larger page or a deeper page than your plan allows, a window that ends before your plan's history, or a filter of the Enterprise plans (`enterprise_field`). |
+| `408` | The search ran out of time and was stopped. Retry with a narrower window, a smaller `page_size` or a simpler query. |
+| `422` | A parameter is missing, invalid or not a parameter of `/articles`, the query is not valid, or `page` x `page_size` is over 1,000. For an unknown parameter, the message lists the allowed ones. |
+
+None of these is charged. See [Errors](/get-started/errors) for the other
+statuses.

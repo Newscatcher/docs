@@ -3,6 +3,21 @@ title: Changelog
 description: New features and changes to the News API and the agent.
 ---
 
+<Update label="November 4, 2026" description="News API 1.1.0">
+  ## Every matching article with /articles
+
+  - **`/articles`**: `GET` and `POST /articles` return every article that
+    matches a boolean query over the last 12 months, newest first, to page
+    through: up to 100 per page and the first 1,000 per query, with an exact
+    `total_hits`. A successful call costs 5 NCC. See
+    [Every matching article](/news/articles).
+  - **`/subscription`**: the new `articles` field shows the limits and the
+    price of `/articles` on your plan. See
+    [Rate limits](/get-started/rate-limits#check-your-plan).
+  - **Errors**: `408` means an `/articles` search ran out of time. It is not
+    charged. See [Errors](/get-started/errors).
+</Update>
+
 <Update label="October 30, 2026" description="Launch">
   ## New News API and Agent
 

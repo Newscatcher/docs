@@ -15,15 +15,17 @@ A search is charged by the [effort](/news/effort-levels) you ask for:
 | `/search` with `effort=low` | 1 NCC |
 | `/search` with `effort=medium` (default) | 5 NCC |
 | `/search` with `effort=high` | 10 NCC |
+| `/articles` | 5 NCC, whatever the page size or the number of results |
 | `/stories/{story_id}` | 1 NCC, whatever the number of articles |
 | `/subscription` | Free |
 
 - A search is charged only when it succeeds (`200`). A search that finds
   nothing is still charged.
-- A request that is refused or fails (`401`, `402`, `403`, `422`, `429`, `500`,
-  `503`) is never charged.
+- A request that is refused or fails (`401`, `402`, `403`, `408`, `422`, `429`,
+  `500`, `503`) is never charged.
 
-Your plan's prices are in the `credits_per_search` and `story` fields of
+Your plan's prices are in the `credits_per_search`, `story` and `articles`
+fields of
 [`GET /subscription`](/get-started/rate-limits#check-your-plan).
 
 ## Agent

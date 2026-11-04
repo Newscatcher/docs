@@ -14,6 +14,7 @@ report the same event. Each article comes with a one-line summary.
 | Endpoint | What it does | Charged |
 |---|---|---|
 | `GET` or `POST /search` | Ranked articles for a request in plain words or keywords. | Yes, by [effort](/news/effort-levels) |
+| `GET` or `POST /articles` | [Every article](/news/articles) that matches a boolean query, newest first, to page through. | 5 NCC |
 | `GET /stories/{story_id}` | Every article of one story. | 1 NCC |
 | `GET /subscription` | Your plan, limits and credit balance. | No |
 
@@ -57,5 +58,8 @@ was searched and the `results`, best first. See
   </Card>
   <Card title="Filters" icon="filter" href="/news/filters">
     Time window, languages, countries, sources and coverage.
+  </Card>
+  <Card title="Every matching article" icon="list" href="/news/articles">
+    Page through every match of a boolean query over the last 12 months.
   </Card>
 </CardGroup>

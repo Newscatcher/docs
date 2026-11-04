@@ -6,8 +6,9 @@ description: Map v3 search requests to the new News API.
 
 The v3 News API keeps working, and its docs stay under **Enterprise** in the
 version menu. Move to the new `/search` when you want ranked, story-grouped
-results for recent news. Stay on v3 when you need every match of a boolean
-query, deep pagination or the full archive.
+results for recent news. Move to [`/articles`](/news/articles) when you need
+every match of a boolean query over the last 12 months, up to 1,000 articles
+per query. Stay on v3 when you need deeper pagination or the full archive.
 
 ## Requests
 
@@ -35,3 +36,24 @@ query, deep pagination or the full archive.
 | `cluster_id`, per response page | `story.id` on every result, and `/stories/{story_id}` for its articles |
 | `nlp.summary` | `summary` when the article has one, and `summary_en` for non-English articles |
 | `domain_url` | `source.domain` |
+
+## Boolean searches with /articles
+
+[`/articles`](/news/articles) takes the v3 query language in `q` (`AND`, `OR`,
+`NOT`, parentheses, phrases, `+`, `-`, wildcards and `NEAR`) and pages
+through the matches.
+
+| v3 | `/articles` |
+|---|---|
+| `lang`, `not_lang` | `languages`, `not_languages`. `zh` means `cn` and `tw` |
+| `from_`, `to_` | `from_date`, `to_date`, up to 365 days back. The default window is the last 7 days |
+| `sort_by`: `date` | `sort_by`: `published_at` (default, newest first) or `-published_at` (oldest first) |
+| `page_size` | `page_size`, 1 to 100 |
+| `page` | `page`, with `page` x `page_size` at most 1,000. A deeper page gets `422` |
+| `articles` | `results` |
+| `total_hits`, `total_pages` | `total_hits` (exact), `total_pages` (counts the first 1,000 articles) |
+| A window older than your plan allows gets `403` | `from_date` is cut to your plan's history, and `window.clamped` is `true` |
+| No results when the search fails | `408` or `503`, not charged |
+
+The Enterprise filters of v3, such as `theme` and `iptc_tags`, get `403` with
+`enterprise_field`. Any other parameter `/articles` doesn't know gets `422`.

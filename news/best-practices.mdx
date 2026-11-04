@@ -17,7 +17,7 @@ description: Get better results and spend fewer credits with the News API.
   `q` means.
 - **Use a date order for feeds.** `sort_by=published_at` lists the best
   matches of `q` newest first. It sorts the best matches, not every article of
-  the window.
+  the window. For every article, use [`/articles`](/news/articles).
 
 ## Cost
 
@@ -35,5 +35,7 @@ description: Get better results and spend fewer credits with the News API.
 - Retry `429` after the `Retry-After` header, and `500` and `503` after a short
   wait. Do not retry other `4xx` errors unchanged.
 - Log the `Correlation-ID` header of failed requests and send it to support.
+- When you page through `/articles`, send the `window.to` of the first page
+  as `to_date` on every next page, so the pages don't shift.
 - Treat `window.clamped: true` as a sign your plan's history is shorter than
   what you asked for.
