@@ -1,0 +1,70 @@
+---
+title: "Articles"
+sidebarTitle: "Articles"
+description: "List articles over the last 12 months, and page through the results."
+---
+
+`/search` returns the best articles for a question. `/articles` returns every
+article that matches a boolean query, newest first, so you can page through
+them. It searches the last 12 months.
+
+| | `/search` | `/articles` |
+|---|---|---|
+| Query | Plain words or keywords | Only keywords |
+| Results | The best `limit` articles, grouped into stories | Every match, up to the first 1,000 per query |
+| Time window | Up to the last 30 days | Up to the last 365 days |
+| Order | Relevance by default | Newest first by default |
+| Each result | Headline, summary, story and more | Headline, publisher, date, language, country and a snippet |
+| Credits | By [effort](/news/effort-levels) | 5 NCC per page |
+
+## Your first request
+
+Send the parameters as a JSON body to `POST /articles`:
+
+```bash
+curl -X POST "https://api.newscatcherapi.com/news-api/articles" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "q": "\"interest rate\" AND (cut OR hike) NOT crypto",
+    "from_date": "2026-10-03",
+    "page_size": 100
+  }'
+```
+
+`GET /articles` takes the same parameters in the query string. List parameters
+are comma-separated strings in both; in the JSON body they can also be arrays.
+
+- `q` takes `AND`, `OR`, `NOT`, phrases, wildcards and `NEAR`. See
+  [Writing queries](/news/writing-queries#boolean-queries-for-articles).
+- `from_date`, `to_date`, `search_in` and the other filters are in
+  [Filters](/news/filters#only-for-articles).
+- The fields of the response are in
+  [Response fields](/news/response-fields#articles-response).
+
+## Paging through the results
+
+A page holds up to 100 articles (`page_size`, default 100). A query reaches
+its first 1,000 articles: `page` × `page_size` can be at most 1,000. A deeper
+page is refused with `422`. To reach more articles, narrow the query or split
+the window.
+
+The response returns the end of the window in `window.to`. Send it back as
+`to_date` when you ask for the next page, so that every page covers the same
+articles:
+
+```bash
+curl -X POST "https://api.newscatcherapi.com/news-api/articles" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "q": "\"interest rate\" AND (cut OR hike) NOT crypto",
+    "from_date": "2026-10-03",
+    "to_date": "2026-11-02T16:00:00+00:00",
+    "page": 2,
+    "page_size": 100
+  }'
+```
+
+`total_hits` is the exact number of matches in the window. `total_pages`
+counts only the pages you can read.

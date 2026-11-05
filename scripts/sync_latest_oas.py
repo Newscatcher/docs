@@ -5,7 +5,9 @@ descriptions, so the Args/Returns/Raises sections are cut and RST double
 backticks become Markdown code. A spec without `servers` gets the host it was
 fetched from, so the API playground has a base URL. Fields that are not part
 of the public reference are removed, with the sentences that mention them.
-Everything else is kept as served.
+Endpoints listed in GUIDES keep only the first paragraph of their description,
+followed by links to the guides that explain the rest. Everything else is kept
+as served.
 
 Usage: python scripts/sync_latest_oas.py [--base https://api.newscatcherapi.com]
 """
@@ -34,6 +36,18 @@ PRIVATE_FIELD_WORDING = {
     "(then the original text is searched)": "(then the original language is searched)",
     "enterprise_field: content is not included": "enterprise_field: embedding is not included",
     "Sentiment of the article text.": "Sentiment of the article.",
+}
+# Endpoints whose long descriptions repeat the guides: (spec, path) -> the
+# links that replace everything after the first paragraph.
+GUIDES = {
+    ("news-api", "/search"): (
+        "See [Effort levels](/news/effort-levels), [Filters and sorting](/news/filters), "
+        "[Writing queries](/news/writing-queries) and [Credits and pricing](/get-started/credits-and-pricing)."
+    ),
+    ("news-api", "/stories/{story_id}"): "See [Stories](/news/stories).",
+    ("news-api", "/subscription"): (
+        "See [Rate limits and plan limits](/get-started/rate-limits#check-your-plan)."
+    ),
 }
 
 
@@ -79,13 +93,20 @@ def hide_private_fields(node):
             hide_private_fields(item)
 
 
-def clean(spec, server_url):
+def shorten(text, guides):
+    """Keep the first paragraph of a description and point to the guides."""
+    return re.split(r"\n\s*\n", text, maxsplit=1)[0].strip() + "\n\n" + guides
+
+
+def clean(spec, name, server_url):
     spec.setdefault("servers", [{"url": server_url}])
     hide_private_fields(spec)
-    for operations in spec.get("paths", {}).values():
+    for path, operations in spec.get("paths", {}).items():
         for operation in operations.values():
             if isinstance(operation, dict) and "description" in operation:
                 operation["description"] = clean_description(operation["description"])
+                if (name, path) in GUIDES:
+                    operation["description"] = shorten(operation["description"], GUIDES[(name, path)])
     for schema in spec.get("components", {}).get("schemas", {}).values():
         if "description" in schema:
             schema["description"] = clean_description(schema["description"])
@@ -101,7 +122,7 @@ def main():
     args = parser.parse_args()
     root = Path(__file__).resolve().parent.parent
     for name, stored_path in SPECS.items():
-        spec = clean(fetch(f"{args.base}/{name}/openapi.json"), f"{args.base}/{name}")
+        spec = clean(fetch(f"{args.base}/{name}/openapi.json"), name, f"{args.base}/{name}")
         path = root / stored_path
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(spec, indent=2, ensure_ascii=False) + "\n")

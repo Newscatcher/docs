@@ -1,0 +1,440 @@
+# Updates the Latest docs (News API and Agent) after a merge into main of
+# agent-service (gitlab.com/newscatcher/ai-agent) or v4-api
+# (gitlab.com/newscatcher/newscatcher-news-api-v4).
+#
+# Flow:
+#   1. GitLab MR merged into main → GitLab webhook → repository_dispatch
+#      (event_type: gitlab-mr-merge-main). Setup notes at the bottom of this file.
+#   2. This workflow reads the MR, the version and the service's CHANGELOG.md,
+#      README.md, CLAUDE.md/AGENTS.md at the merge commit (GitLab API).
+#   3. Waits until production serves the new version, then syncs the product's
+#      OpenAPI spec with scripts/sync_latest_oas.py (the other spec is left to
+#      its own product's run).
+#   4. Runs the docs agent (AGENT.md + LESSONS.md from ai-configs/agents/
+#      platform-products-docs-update), which edits the pages and changelog.mdx.
+#   5. Regenerates llms.txt and sitemap.xml, commits, opens a docs PR for review.
+#   6. Opens a GitLab MR on ai-configs when the agent added to LESSONS.md.
+
+name: Update Latest Docs
+
+on:
+  repository_dispatch:
+    types: [gitlab-mr-merge-main]
+  workflow_dispatch:
+    inputs:
+      mr_url:
+        description: "GitLab MR URL of the Agent or News API repo (e.g. https://gitlab.com/newscatcher/ai-agent/-/merge_requests/57)"
+        required: true
+        type: string
+      any_mr:
+        description: "Also accept an MR that is not merged into main (tests, small changes). Files are read at the MR's latest commit."
+        required: false
+        default: false
+        type: boolean
+      wait_minutes:
+        description: "How long to wait for production to serve the new version (0 = don't wait)"
+        required: false
+        default: "45"
+        type: string
+
+concurrency:
+  # One run per product at a time, whether started by the webhook or by hand.
+  group: latest-docs-${{ (contains(inputs.mr_url, '/ai-agent/') || github.event.client_payload.project == 'newscatcher/ai-agent') && 'agent' || 'news-api' }}
+  cancel-in-progress: false
+
+jobs:
+  update-docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: write
+      pull-requests: write
+
+    env:
+      GITLAB_BASE: "https://gitlab.com/api/v4/projects"
+      GITLAB_BRANCH: "main"
+      GITLAB_PROJECT: ${{ secrets.GITLAB_PROJECT }}
+      API_HOST: "https://api.newscatcherapi.com"
+      AGENT_DIR: "/tmp/agents/platform-products-docs-update"
+      RELEASE_DIR: "/tmp/release"
+      CLAUDE_MODEL: "claude-opus-5-5"
+
+    steps:
+      - name: Checkout docs repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # The agent runs with shell access; it gets no push credentials.
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: pip install pyyaml
+
+      # Resolve the product, read the MR and fetch the release material.
+      # Payload values are passed through env, never interpolated into the script.
+      - name: Read the merged MR from GitLab
+        id: resolve
+        env:
+          # One project access token per source repo, so each is easy to tell apart and rotate.
+          GITLAB_AGENT_PAT: ${{ secrets.GITLAB_AGENT_PAT }}
+          GITLAB_NEWS_API_PAT: ${{ secrets.GITLAB_NEWS_API_PAT }}
+          EVENT_NAME: ${{ github.event_name }}
+          PAYLOAD_PROJECT: ${{ github.event.client_payload.project }}
+          PAYLOAD_MR_IID: ${{ github.event.client_payload.mr_iid }}
+          INPUT_MR_URL: ${{ inputs.mr_url }}
+          ANY_MR: ${{ inputs.any_mr || false }}
+        run: |
+          set -euo pipefail
+
+          if [ "$EVENT_NAME" = "repository_dispatch" ]; then
+            PROJECT="$PAYLOAD_PROJECT"
+            MR_IID="$PAYLOAD_MR_IID"
+          else
+            # https://gitlab.com/<namespace>/<project>/-/merge_requests/<iid>[/anything]
+            if [[ "$INPUT_MR_URL" =~ ^https://gitlab\.com/([A-Za-z0-9_./-]+)/-/merge_requests/([0-9]+)([/?#].*)?$ ]]; then
+              PROJECT="${BASH_REMATCH[1]}"
+              MR_IID="${BASH_REMATCH[2]}"
+            else
+              echo "::error::Not a GitLab MR URL: '${INPUT_MR_URL}'"; exit 1
+            fi
+          fi
+
+          case "$PROJECT" in
+            newscatcher/ai-agent)
+              PRODUCT="agent"; PRODUCT_NAME="Agent"
+              SERVICE_PATH="Kubernetes_Deployments/agent-service"
+              GITLAB_SOURCE_PAT="$GITLAB_AGENT_PAT"; TOKEN_NAME="GITLAB_AGENT_PAT" ;;
+            # Renamed from newscatcher-prod-news-api-v4; old clones and URLs still use that name.
+            newscatcher/newscatcher-news-api-v4|newscatcher/newscatcher-prod-news-api-v4)
+              PRODUCT="news-api"; PRODUCT_NAME="News API"
+              SERVICE_PATH="Kubernetes_Deployments/v4-api"
+              GITLAB_SOURCE_PAT="$GITLAB_NEWS_API_PAT"; TOKEN_NAME="GITLAB_NEWS_API_PAT" ;;
+            *)
+              echo "::error::Unknown GitLab project '${PROJECT}'"; exit 1 ;;
+          esac
+          if [ -z "$GITLAB_SOURCE_PAT" ]; then
+            echo "::error::Secret ${TOKEN_NAME} is not set (project access token on ${PROJECT}, read_api)"; exit 1
+          fi
+
+          if ! [[ "$MR_IID" =~ ^[0-9]+$ ]]; then
+            echo "::error::MR number must be numeric, got '${MR_IID}'"; exit 1
+          fi
+
+          API="${GITLAB_BASE}/$(jq -rn --arg p "$PROJECT" '$p|@uri')"
+          gl() { curl -sSf --retry 3 -H "PRIVATE-TOKEN: $GITLAB_SOURCE_PAT" "$@"; }
+          mkdir -p "$RELEASE_DIR"
+          cd "$RELEASE_DIR"
+
+          gl "${API}/merge_requests/${MR_IID}" > mr.json
+          STATE=$(jq -r '.state' mr.json)
+          TARGET=$(jq -r '.target_branch' mr.json)
+          if [ "$STATE" != "merged" ] || [ "$TARGET" != "main" ]; then
+            if [ "$ANY_MR" != "true" ]; then
+              echo "::notice::MR !${MR_IID} is '${STATE}' into '${TARGET}', not merged into main. Skipping (set any_mr to run anyway)."
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "::warning::MR !${MR_IID} is '${STATE}' into '${TARGET}'; running anyway (any_mr)."
+          fi
+          # Merged: the merge commit. Not merged (any_mr): the MR's latest commit.
+          SHA=$(jq -r '.merge_commit_sha // .squash_commit_sha // .sha' mr.json)
+          MERGED_AT=$(jq -r '.merged_at // empty' mr.json)
+          MERGED_AT="${MERGED_AT:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
+          MR_URL=$(jq -r '.web_url' mr.json)
+
+          # Page through a GitLab list endpoint and print one JSON array.
+          gl_all() {
+            local url="$1" page=1 chunk
+            echo '[]' > /tmp/gl_all.json
+            while :; do
+              chunk=$(gl "${url}?per_page=100&page=${page}")
+              [ "$(jq 'length' <<< "$chunk")" -eq 0 ] && break
+              jq -s '.[0] + .[1]' /tmp/gl_all.json <(echo "$chunk") > /tmp/gl_all.next
+              mv /tmp/gl_all.next /tmp/gl_all.json
+              page=$((page + 1))
+            done
+            cat /tmp/gl_all.json
+          }
+
+          gl_all "${API}/merge_requests/${MR_IID}/commits" | jq '[.[] | {title, message}]' > commits.json
+
+          # Only the service folder matters: the repos also hold research and other code.
+          gl_all "${API}/merge_requests/${MR_IID}/diffs" \
+            | jq --arg p "${SERVICE_PATH}/" '[.[] | select((.new_path | startswith($p)) or (.old_path | startswith($p)))]' \
+            > diffs.json
+          CHANGED_FILES=$(jq 'length' diffs.json)
+          if [ "$CHANGED_FILES" -eq 0 ]; then
+            echo "::notice::MR !${MR_IID} changed nothing under ${SERVICE_PATH}. Skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          MAX_DIFF_BYTES=400000
+          jq -r '.[] | "diff --git a/\(.old_path) b/\(.new_path)\n\(if .too_large or .collapsed then "(diff too large, not shown by GitLab)\n" else .diff end)"' diffs.json > changes.full.diff
+          if [ "$(wc -c < changes.full.diff)" -gt "$MAX_DIFF_BYTES" ]; then
+            head -c "$MAX_DIFF_BYTES" changes.full.diff > changes.diff
+            printf '\n\n[TRUNCATED: diff is %s bytes, first %s shown. Files changed: %s]\n' \
+              "$(wc -c < changes.full.diff)" "$MAX_DIFF_BYTES" "$CHANGED_FILES" >> changes.diff
+          else
+            mv changes.full.diff changes.diff
+          fi
+          rm -f changes.full.diff diffs.json
+
+          # Service files at the merge commit. Only __version__.py is required.
+          for f in __version__.py CHANGELOG.md README.md CLAUDE.md AGENTS.md; do
+            enc=$(jq -rn --arg p "${SERVICE_PATH}/${f}" '$p|@uri')
+            code=$(curl -sS -o "$f" -w '%{http_code}' -H "PRIVATE-TOKEN: $GITLAB_SOURCE_PAT" \
+              "${API}/repository/files/${enc}/raw?ref=${SHA}")
+            if [ "$code" = "200" ]; then echo "Fetched ${f}"; else rm -f "$f"; echo "No ${f} (HTTP ${code})"; fi
+          done
+
+          RELEASE_VERSION=$(grep -oP '__version__\s*=\s*"\K[^"]+' __version__.py | head -1 || true)
+          if [ -z "$RELEASE_VERSION" ]; then
+            echo "::error::Could not read __version__ from ${SERVICE_PATH}/__version__.py at ${SHA}"; exit 1
+          fi
+          rm -f __version__.py
+
+          SPEC_PATH="api-reference/${PRODUCT}/openapi.json"
+          cp "${GITHUB_WORKSPACE}/${SPEC_PATH}" spec-before.json
+          PREVIOUS_VERSION=$(jq -r '.info.version' spec-before.json)
+
+          {
+            echo "PRODUCT=${PRODUCT}"
+            echo "PRODUCT_NAME=${PRODUCT_NAME}"
+            echo "MR_IID=${MR_IID}"
+            echo "MR_URL=${MR_URL}"
+            echo "RELEASE_VERSION=${RELEASE_VERSION}"
+            echo "PREVIOUS_VERSION=${PREVIOUS_VERSION}"
+            echo "RELEASE_DATE=${MERGED_AT:0:10}"
+            echo "SPEC_PATH=${SPEC_PATH}"
+            echo "BRANCH=docs/${PRODUCT}-v${RELEASE_VERSION}-mr${MR_IID}"
+          } >> "$GITHUB_ENV"
+
+          echo "${PRODUCT_NAME} ${PREVIOUS_VERSION} -> ${RELEASE_VERSION} (MR !${MR_IID}, ${CHANGED_FILES} files in ${SERVICE_PATH})"
+          ls -la "$RELEASE_DIR"
+
+      - name: Wait for production to serve the new version
+        if: steps.resolve.outputs.skip != 'true'
+        env:
+          WAIT_MINUTES: ${{ inputs.wait_minutes || '45' }}
+        run: |
+          set -uo pipefail
+          deadline=$(( $(date +%s) + WAIT_MINUTES * 60 ))
+          while :; do
+            live=$(curl -sSf -m 30 "${API_HOST}/${PRODUCT}/openapi.json" | jq -r '.info.version' 2>/dev/null || echo "unreachable")
+            if [ "$live" = "$RELEASE_VERSION" ]; then
+              echo "Production serves ${PRODUCT} ${live}"
+              echo "SPEC_LIVE=true" >> "$GITHUB_ENV"
+              break
+            fi
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              echo "::warning::Production still serves ${PRODUCT} ${live}, expected ${RELEASE_VERSION}. Continuing; the PR will say so."
+              echo "SPEC_LIVE=false" >> "$GITHUB_ENV"
+              break
+            fi
+            echo "Production serves ${live}, waiting for ${RELEASE_VERSION}..."
+            sleep 60
+          done
+
+      # The sync script always fetches both specs. Only this product's spec is
+      # kept, so an Agent PR never carries an undocumented News API change (or
+      # the reverse); that product's own run documents its spec.
+      - name: Create the docs branch and sync this product's OpenAPI spec
+        if: steps.resolve.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+          git config user.name "docs-update-bot"
+          git config user.email "bot@newscatcherapi.com"
+          git checkout -B "$BRANCH" origin/main
+          python scripts/sync_latest_oas.py --base "$API_HOST"
+          for spec in api-reference/*/openapi.json; do
+            if [ "$spec" != "$SPEC_PATH" ] && ! git diff --quiet -- "$spec"; then
+              echo "::notice::${spec} changed in production too; left for that product's run."
+              git checkout -- "$spec"
+            fi
+          done
+          git status --short
+
+      # GITLAB_PAT must read ai-configs (see update-docs.yml for the scopes).
+      - name: Fetch AGENT.md and LESSONS.md from ai-configs
+        if: steps.resolve.outputs.skip != 'true'
+        env:
+          GITLAB_PAT: ${{ secrets.GITLAB_PAT }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$AGENT_DIR"
+          for f in AGENT.md LESSONS.md; do
+            curl -sSf -H "PRIVATE-TOKEN: $GITLAB_PAT" \
+              "${GITLAB_BASE}/${GITLAB_PROJECT}/repository/files/agents%2Fplatform-products-docs-update%2F${f}/raw?ref=${GITLAB_BRANCH}" \
+              -o "${AGENT_DIR}/${f}"
+          done
+          head -5 "${AGENT_DIR}/AGENT.md"
+
+      - name: Install Claude Code CLI
+        if: steps.resolve.outputs.skip != 'true'
+        run: npm install -g @anthropic-ai/claude-code
+
+      # Only the Anthropic key is passed in: no GitHub or GitLab credentials.
+      - name: Run docs update agent
+        if: steps.resolve.outputs.skip != 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DOCS_REPO_PATH: ${{ github.workspace }}
+          LESSONS_PATH: ${{ env.AGENT_DIR }}/LESSONS.md
+          PR_BODY_PATH: ${{ env.RELEASE_DIR }}/pr-body.md
+        run: |
+          PROMPT="Read and execute the agent instructions at ${AGENT_DIR}/AGENT.md. All required environment variables are already set. Working directory is the docs repo root: ${DOCS_REPO_PATH}"
+          echo "$PROMPT" | claude \
+            --print \
+            --model "$CLAUDE_MODEL" \
+            --dangerously-skip-permissions \
+            --allowedTools "Bash,Read,Write,Edit,Glob,Grep"
+
+      - name: Regenerate llms.txt and sitemap.xml
+        if: steps.resolve.outputs.skip != 'true'
+        run: |
+          python scripts/generate_llms_txt.py
+          python scripts/generate_sitemap.py
+
+      - name: Commit and open the docs PR
+        if: steps.resolve.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No docs changes for ${PRODUCT_NAME} ${RELEASE_VERSION}."
+            echo "### No docs changes for ${PRODUCT_NAME} ${RELEASE_VERSION} (MR ${MR_URL})" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          git commit -m "Docs | Update Latest docs for ${PRODUCT_NAME} ${RELEASE_VERSION}" \
+                     -m "Source MR: ${MR_URL}"
+          git push --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/${BRANCH}"
+
+          BODY_FILE="${RELEASE_DIR}/pr-body.md"
+          if [ ! -s "$BODY_FILE" ]; then
+            printf '## %s %s: docs update\n\nSource MR: %s\n\nThe agent wrote no PR body. Review the diff by hand.\n' \
+              "$PRODUCT_NAME" "$RELEASE_VERSION" "$MR_URL" > "$BODY_FILE"
+          fi
+          printf '\n---\nWorkflow run: %s/%s/actions/runs/%s\n\n🤖 Generated by the platform-products-docs-update agent\n' \
+            "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" >> "$BODY_FILE"
+
+          TITLE="Docs | ${PRODUCT_NAME} ${RELEASE_VERSION}"
+          EXISTING=$(gh pr list --head "$BRANCH" --state open --json number -q '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            gh pr edit "$EXISTING" --title "$TITLE" --body-file "$BODY_FILE"
+            PR_URL=$(gh pr view "$EXISTING" --json url -q .url)
+          else
+            PR_URL=$(gh pr create --base main --head "$BRANCH" --title "$TITLE" --body-file "$BODY_FILE")
+          fi
+          echo "### Docs PR: ${PR_URL}" >> "$GITHUB_STEP_SUMMARY"
+
+      # Same as update-docs.yml: never commit to ai-configs main (protected);
+      # open an MR with the new lessons for a human to review.
+      - name: Open GitLab MR with updated LESSONS.md
+        if: always() && steps.resolve.outputs.skip != 'true'
+        env:
+          GITLAB_PAT: ${{ secrets.GITLAB_PAT }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -uo pipefail
+
+          LESSONS="${AGENT_DIR}/LESSONS.md"
+          ORIGINAL="${LESSONS}.original"
+          FILE_PATH="agents%2Fplatform-products-docs-update%2FLESSONS.md"
+          PROJECT_API="${GITLAB_BASE}/${GITLAB_PROJECT}"
+          LABEL="${PRODUCT:-unknown}-v${RELEASE_VERSION:-unknown}"
+
+          if [ ! -f "$LESSONS" ]; then
+            echo "LESSONS.md not present locally — the agent step never got that far. Nothing to push."
+            exit 0
+          fi
+
+          api() {
+            local method="$1" url="$2" body="${3:-}" raw http
+            if [ -n "$body" ]; then
+              raw=$(curl -sS -X "$method" -w $'\n%{http_code}' \
+                -H "PRIVATE-TOKEN: $GITLAB_PAT" -H "Content-Type: application/json" \
+                --data "$body" "$url")
+            else
+              raw=$(curl -sS -X "$method" -w $'\n%{http_code}' -H "PRIVATE-TOKEN: $GITLAB_PAT" "$url")
+            fi
+            http=$(printf '%s' "$raw" | tail -n1)
+            RESPONSE_BODY=$(printf '%s' "$raw" | sed '$d')
+            echo "HTTP ${http}: ${RESPONSE_BODY}"
+            [ "$http" -lt 400 ]
+          }
+
+          curl -sS -H "PRIVATE-TOKEN: $GITLAB_PAT" \
+            "${PROJECT_API}/repository/files/${FILE_PATH}/raw?ref=${GITLAB_BRANCH}" -o "$ORIGINAL"
+
+          if diff -q "$ORIGINAL" "$LESSONS" > /dev/null 2>&1; then
+            echo "LESSONS.md unchanged — nothing to push"
+            exit 0
+          fi
+
+          BRANCH_NAME="docs-agent/platform-lessons-${LABEL}-${GITHUB_RUN_ID}"
+
+          api POST "${PROJECT_API}/repository/branches" \
+            "$(jq -n --arg branch "$BRANCH_NAME" --arg ref "$GITLAB_BRANCH" '{branch: $branch, ref: $ref}')" \
+            || { echo "::error::Could not create GitLab branch ${BRANCH_NAME}"; exit 1; }
+
+          api PUT "${PROJECT_API}/repository/files/${FILE_PATH}" \
+            "$(jq -n --arg branch "$BRANCH_NAME" --arg content "$(base64 -w 0 "$LESSONS")" \
+                 --arg msg "docs-agent: update platform LESSONS.md after ${LABEL} run" \
+                 '{branch: $branch, encoding: "base64", content: $content, commit_message: $msg}')" \
+            || { echo "::error::Could not commit LESSONS.md to ${BRANCH_NAME}"; exit 1; }
+
+          api POST "${PROJECT_API}/merge_requests" \
+            "$(jq -n --arg source "$BRANCH_NAME" --arg target "$GITLAB_BRANCH" \
+                 --arg title "docs-agent: platform LESSONS.md update after ${LABEL} run" \
+                 --arg desc "Automated LESSONS.md update from the Latest docs agent (${LABEL}). Run: ${RUN_URL}. Please review the added lessons before merging." \
+                 '{source_branch: $source, target_branch: $target, title: $title, description: $desc, remove_source_branch: true}')" \
+            || { echo "::error::Could not open the merge request"; exit 1; }
+
+          MR_WEB_URL=$(printf '%s' "$RESPONSE_BODY" | jq -r '.web_url // empty')
+          echo "### LESSONS.md merge request: ${MR_WEB_URL}" >> "$GITHUB_STEP_SUMMARY"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Secrets (docs repo → Settings → Secrets and variables → Actions):
+#
+#   ANTHROPIC_API_KEY  — already used by update-docs.yml
+#   GITLAB_PAT         — already used by update-docs.yml (ai-configs, api scope)
+#   GITLAB_PROJECT     — already used by update-docs.yml (e.g. newscatcher%2Fai-configs)
+#   GITLAB_AGENT_PAT     — NEW. Project access token on newscatcher/ai-agent
+#                          (Settings → Access Tokens): role Reporter, scope read_api.
+#   GITLAB_NEWS_API_PAT  — NEW. Project access token on
+#                          newscatcher/newscatcher-news-api-v4: role Reporter,
+#                          scope read_api.
+#
+# GitLab webhook, once in EACH source project
+# (Settings → Webhooks → Add new webhook):
+#
+#   URL:      https://api.github.com/repos/Newscatcher/docs/dispatches
+#   Trigger:  Merge request events
+#   Custom headers:
+#     Authorization: Bearer <GitHub fine-grained PAT, repo Newscatcher/docs,
+#                    permission "Contents: Read and write">
+#     Accept:        application/vnd.github+json
+#   Custom webhook template:
+#     {"event_type":"gitlab-mr-{{object_attributes.action}}-{{object_attributes.target_branch}}",
+#      "client_payload":{"project":"{{project.path_with_namespace}}","mr_iid":"{{object_attributes.iid}}"}}
+#
+# Every MR event reaches GitHub, but only "merge into main" has the event type
+# this workflow listens for, so other events start no run. Use "Test → Merge
+# request events" in GitLab and look for HTTP 204.
+#
+# Manual run (tests, small changes, rerun after a slow deploy): Actions →
+# Update Latest Docs → Run workflow, with the MR URL of either repo. Tick
+# any_mr for an MR that is not merged into main, and set wait_minutes to 0
+# when production will not serve that version.
+#
+# PRs opened with GITHUB_TOKEN do not trigger other workflows, so the
+# llms.txt/sitemap checks will not run on them; this workflow regenerates both.
+# ─────────────────────────────────────────────────────────────────────────────

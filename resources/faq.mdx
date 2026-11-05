@@ -5,9 +5,10 @@ description: Common questions about the News API and the agent.
 
 <AccordionGroup>
   <Accordion title="How far back can I search?">
-    The News API searches the last 30 days, up to your plan's history
-    (`historical_days` in `GET /subscription`). Agent runs read their time
-    window from your query; company runs look back up to 365 days with
+    `/search` searches the last 30 days, up to your plan's history
+    (`historical_days` in `GET /subscription`). [`/articles`](/news/articles)
+    searches the last 365 days, up to `articles.historical_days`. Agent runs
+    read their time window from your query; company runs look back up to 365 days with
     `lookback_days`.
   </Accordion>
   <Accordion title="Which languages are covered?">
@@ -17,7 +18,8 @@ description: Common questions about the News API and the agent.
   </Accordion>
   <Accordion title="Am I charged for a search that finds nothing?">
     Yes. A successful search is charged by its effort even when it returns no
-    results. Refused and failed requests are never charged.
+    results, and a successful `/articles` call costs 5 NCC even when nothing
+    matches. Refused and failed requests are never charged.
   </Accordion>
   <Accordion title="Is the v3 News API going away?">
     The v3 News API keeps working on its own host. Its docs are under

@@ -3,22 +3,27 @@ title: Changelog
 description: New features and changes to the News API and the agent.
 ---
 
-<Update label="November 4, 2026" description="Enterprise News API v3.25.0">
-  ## Source groups in the Enterprise News API
+<Update label="November 4, 2026" description="Agent 1.5.0">
+  ## Company monitor price
 
-  - **New endpoint**: [`GET /api/source-groups`](/news-api/api-reference/source-groups/list-source-groups-get)
-    lists curated groups of publisher domains. It does not count toward your
-    quota.
-  - **New parameter**: `source_groups` on
-    [`/api/search`](/news-api/api-reference/search/search-articles-get)
-    restricts a search to the domains of up to 20 groups.
-  - **Fixed**: `source_name` on `/api/search` now filters results by publisher
-    name. It was ignored before.
-  - **Fixed**: `COUNT("Apple", 2, "gt")` in the `*_entity_name` parameters now
-    returns the matching articles. A malformed `COUNT` call returns `422`.
-  - **Changed**: with `by_parse_date`, `/api/aggregation_count` now counts
-    articles per interval by parse date, the same date it filters on.
-  - **Changed**: `lang=zh` and `not_lang=zh` are accepted and searched as `cn`.
+  - **Company monitors**: following a company now costs about $3 per company per
+    month (was $1.50). Event monitors, event research and company research
+    prices do not change. See
+    [Credits and pricing](/get-started/credits-and-pricing#agent).
+</Update>
+
+<Update label="November 4, 2026" description="News API 1.1.0">
+  ## Articles
+
+  - **`/articles`**: list every article that matches a boolean query over the
+    last 12 months, newest first, and page through up to the first 1,000
+    matches. Each call costs 5 NCC. See
+    [Articles](/news/articles).
+  - **Plan limits**: `GET /subscription` now returns an `articles` field with
+    the page size, depth, history, requests per second and price of
+    `/articles`. See [Rate limits](/get-started/rate-limits#check-your-plan).
+  - **New error status**: `408` when an `/articles` search runs out of time. It
+    is not charged. See [Errors](/get-started/errors).
 </Update>
 
 <Update label="October 30, 2026" description="Launch">
@@ -30,6 +35,6 @@ description: New features and changes to the News API and the agent.
   - **Stories**: `/stories/{story_id}` lists every article of one story.
   - **Agent**: research events or companies in the background and get a
     table, once or on a schedule with [monitors](/agent/monitors).
-  - The v3 News API, the Web Search API and the Local News API docs move under
+  - The News API, the Web Search API and the Local News API docs move under
     **Enterprise** in the version menu.
 </Update>

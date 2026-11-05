@@ -23,8 +23,9 @@
 - [Effort levels](https://www.newscatcherapi.com/docs/news/effort-levels): Choose how much work goes into ranking, and what a search costs.
 - [Writing queries](https://www.newscatcherapi.com/docs/news/writing-queries): Ask in plain words or keywords, in any language, and exclude terms with NOT.
 - [Stories](https://www.newscatcherapi.com/docs/news/stories): How articles are grouped into stories, and how to get every article of one story.
+- [Articles](https://www.newscatcherapi.com/docs/news/articles): List articles over the last 12 months, and page through the results.
 - [Filters and sorting](https://www.newscatcherapi.com/docs/news/filters): Narrow a search by time window, language, country, publisher, coverage and content type, and choose the order of the results.
-- [Response fields](https://www.newscatcherapi.com/docs/news/response-fields): Every field of a search response and of an article.
+- [Response fields](https://www.newscatcherapi.com/docs/news/response-fields): Every field of a search response, an articles response and an article.
 - [Best practices](https://www.newscatcherapi.com/docs/news/best-practices): Get better results and spend fewer credits with the News API.
 - [How to evaluate the News API](https://www.newscatcherapi.com/docs/news/evaluate-search): Measure search quality on your own queries before you integrate.
 

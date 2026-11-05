@@ -3,14 +3,14 @@
   "info": {
     "title": "NewsCatcher News API",
     "summary": "Ranked, story-aware news search.",
-    "description": "Search the news NewsCatcher has crawled in the last **30 days**, in every language: ranked by relevance, source authority and freshness, and\ngrouped into **stories** (the articles that report the same event), with a one-line summary of each article.\n\n## Authentication\n\nSend your API key in the `x-api-key` header of every request. Keys are created in the NewsCatcher platform. A missing or invalid key is answered with `401`.\n\n## Endpoints\n\n| Endpoint | What it does | Charged |\n|---|---|---|\n| `GET` or `POST /search` | Ranked articles for a request in plain words or with keywords. | Yes, by effort |\n| `GET /stories/{story_id}` | Every article of one story. | Yes, 1 NCC per successful request |\n| `GET /subscription` | Your plan, limits and credit balance. | No |\n\n## Effort and credits\n\n`effort` sets how much work goes into the ranking. A search is charged in **NCC** credits, by the effort you ask for, and only when it succeeds (`200`).\n\n| Effort | What it does | Credits |\n|---|---|---|\n| `low` | Ranks by relevance, authority, coverage and freshness. Fastest. | 1 |\n| `medium` (default) | Adds a cross-encoder rerank of the top stories. | 5 |\n| `high` | Adds an LLM judgement of the top stories and merges the stories that report the same event. Slowest, best quality. | 10 |\n\nA search that finds nothing is still charged. A request that is refused or fails (`401`, `402`, `403`, `422`, `429`, `500`, `503`) is never charged.\n\n## Query\n\n`q` is a request in plain words or keywords, in any language, up to 500 characters. Put an upper-case `NOT` before a term to drop the articles that mention it in\ntheir headline, description or summary (`Apple NOT iPhone`). `languages`, `countries` and `sources` narrow the search; the time window is the last 7 days unless you set\n`search_window` (for example `15m`, `2h`, `1d`).\n\n## Limits\n\nYour plan sets the requests per second (per effort level and in all), an optional daily limit, the most results per request (`limit`) and how far back you can search.\n`GET /subscription` returns all of them. Over a limit you get `429` with a `Retry-After` header. A `search_window` longer than your plan's history is cut to it and the response\nsays `window.clamped`.\n\n## Errors\n\nEvery error has the same body: `message` (what went wrong), `status_code` and `status` (a short label). Use the HTTP status to decide what to do:\n\n| Status | Meaning | Retry the same request? |\n|---|---|---|\n| `401` | The API key is missing or invalid. | No |\n| `402` | Your credit balance does not cover the search. | After topping up |\n| `403` | The plan does not include what you asked for (a larger `limit`, an Enterprise field) or the key may not use this API. | No |\n| `404` | Unknown story. | No |\n| `422` | A parameter is missing, invalid or unknown, or the body is not valid JSON. | No, fix it first |\n| `429` | A rate limit of your plan. | Yes, after `Retry-After` seconds |\n| `500` | Something failed on our side. | Yes, and tell us the `Correlation-ID` |\n| `503` | A part of the service is temporarily unavailable. | Yes, after a short wait |\n\nEvery response carries a `Correlation-ID` header (quote it to support) and an `X-Process-Time` header.\n\n## Enterprise fields\n\n`include` adds heavy fields to every result (`description`, `entities`, `sentiment`, `themes`, `translation`, `embedding`). They are part of the Enterprise plans;\nother plans get `403` with `enterprise_field`.",
+    "description": "Search the news NewsCatcher has crawled in the last **30 days**, in every language: ranked by relevance, source authority and freshness, and\ngrouped into **stories** (the articles that report the same event), with a one-line summary of each article. To page through every article that matches a boolean query over the last\n**365 days**, use `/articles`.\n\n## Authentication\n\nSend your API key in the `x-api-key` header of every request. Keys are created in the NewsCatcher platform. A missing or invalid key is answered with `401`.\n\n## Endpoints\n\n| Endpoint | What it does | Charged |\n|---|---|---|\n| `GET` or `POST /search` | Ranked articles for a request in plain words or with keywords. | Yes, by effort |\n| `GET` or `POST /articles` | Every article that matches a boolean query, newest first, to page through. | Yes, 5 NCC per successful request |\n| `GET /stories/{story_id}` | Every article of one story. | Yes, 1 NCC per successful request |\n| `GET /subscription` | Your plan, limits and credit balance. | No |\n\n## Effort and credits\n\n`effort` sets how much work goes into the ranking. A search is charged in **NCC** credits, by the effort you ask for, and only when it succeeds (`200`).\n\n| Effort | What it does | Credits |\n|---|---|---|\n| `low` | Ranks by relevance, authority, coverage and freshness. Fastest. | 1 |\n| `medium` (default) | Adds a cross-encoder rerank of the top stories. | 5 |\n| `high` | Adds an LLM judgement of the top stories and merges the stories that report the same event. Slowest, best quality. | 10 |\n\nA search that finds nothing is still charged. A request that is refused or fails (`401`, `402`, `403`, `408`, `422`, `429`, `500`, `503`) is never charged. A call of `/articles` costs 5 NCC when it\nsucceeds, whatever the page size or the number of results.\n\n## Query\n\n`q` is a request in plain words or keywords, in any language, up to 500 characters. Put an upper-case `NOT` before a term to drop the articles that mention it in\ntheir headline, description or summary (`Apple NOT iPhone`). `languages`, `countries` and `sources` narrow the search; the time window is the last 7 days unless you set\n`search_window` (for example `15m`, `2h`, `1d`).\n\n## Limits\n\nYour plan sets the requests per second (per effort level and in all), an optional daily limit, the most results per request (`limit`) and how far back you can search.\n`GET /subscription` returns all of them. Over a limit you get `429` with a `Retry-After` header. A `search_window` longer than your plan's history is cut to it and the response\nsays `window.clamped`.\n\n## Errors\n\nEvery error has the same body: `message` (what went wrong), `status_code` and `status` (a short label). Use the HTTP status to decide what to do:\n\n| Status | Meaning | Retry the same request? |\n|---|---|---|\n| `401` | The API key is missing or invalid. | No |\n| `402` | Your credit balance does not cover the search. | After topping up |\n| `403` | The plan does not include what you asked for (a larger `limit` or `page_size`, an Enterprise field) or the key may not use this API. | No |\n| `404` | Unknown story. | No |\n| `408` | `/articles` only: the search ran out of time and was stopped. | Yes, with a narrower window, a smaller `page_size` or a simpler query |\n| `422` | A parameter is missing, invalid or unknown, or the body is not valid JSON. | No, fix it first |\n| `429` | A rate limit of your plan. | Yes, after `Retry-After` seconds |\n| `500` | Something failed on our side. | Yes, and tell us the `Correlation-ID` |\n| `503` | A part of the service is temporarily unavailable. | Yes, after a short wait |\n\nEvery response carries a `Correlation-ID` header (quote it to support) and an `X-Process-Time` header.\n\n## Enterprise fields\n\n`include` adds heavy fields to every result (`description`, `entities`, `sentiment`, `themes`, `translation`, `embedding`). They are part of the Enterprise plans;\nother plans get `403` with `enterprise_field`.",
     "termsOfService": "https://newscatcherapi.com/terms-of-service",
     "contact": {
       "name": "NewsCatcher Support",
       "url": "https://newscatcherapi.com/",
       "email": "support@newscatcherapi.com"
     },
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "servers": [
     {
@@ -24,7 +24,7 @@
           "Search"
         ],
         "summary": "Search news",
-        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\n**How it ranks.** Every article is scored on relevance to the request, the authority of its publisher, how many newsrooms cover its story and how fresh it is.\n`effort` decides how much further work goes into the order: `low` stops there, `medium` adds a cross-encoder rerank of the top stories, `high` adds an LLM judgement of\nthem and merges stories that report the same event. Articles in every language are searched through their English translation, unless every language you ask for is not English\n(then the original language is searched).\n\n**Filters.** `languages`, `countries`, `sources` and `min_newsrooms` narrow the search, `not_languages`, `not_countries` and `not_sources` leave articles out; `search_window` sets how far back to search, on the publication date (on the crawl date with `sort_by=crawled_at`): a number and a unit such as `15m`, `2h`, `1d`, `15 minutes`, `2 hours` or `1 day` (7 days by default, up to your plan's\nhistory). `collapse` decides what happens to several articles of one story. `sort_by` is `relevancy` (default), `published_at` or `crawled_at` (newest first; it covers the best matches of `q`, not every article of the window). An upper-case `NOT` in `q` drops the articles that mention the term in their headline, description or summary.\n\n**Credits.** A successful search (`200`) costs 1, 5 or 10 NCC for `low`, `medium` or `high` effort, also when it finds nothing. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /search` with the parameters in the query string, or `POST /search` with the same parameters as a JSON body. In both, `sources`, `languages`, `countries`, their `not_` versions\nand `include` take a comma-separated string; in the JSON body they can also be arrays.",
+        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\nSee [Effort levels](/news/effort-levels), [Filters and sorting](/news/filters), [Writing queries](/news/writing-queries) and [Credits and pricing](/get-started/credits-and-pricing).",
         "operationId": "newsSearchGet",
         "security": [
           {
@@ -841,7 +841,7 @@
           "Search"
         ],
         "summary": "Search news (JSON body)",
-        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\n**How it ranks.** Every article is scored on relevance to the request, the authority of its publisher, how many newsrooms cover its story and how fresh it is.\n`effort` decides how much further work goes into the order: `low` stops there, `medium` adds a cross-encoder rerank of the top stories, `high` adds an LLM judgement of\nthem and merges stories that report the same event. Articles in every language are searched through their English translation, unless every language you ask for is not English\n(then the original language is searched).\n\n**Filters.** `languages`, `countries`, `sources` and `min_newsrooms` narrow the search, `not_languages`, `not_countries` and `not_sources` leave articles out; `search_window` sets how far back to search, on the publication date (on the crawl date with `sort_by=crawled_at`): a number and a unit such as `15m`, `2h`, `1d`, `15 minutes`, `2 hours` or `1 day` (7 days by default, up to your plan's\nhistory). `collapse` decides what happens to several articles of one story. `sort_by` is `relevancy` (default), `published_at` or `crawled_at` (newest first; it covers the best matches of `q`, not every article of the window). An upper-case `NOT` in `q` drops the articles that mention the term in their headline, description or summary.\n\n**Credits.** A successful search (`200`) costs 1, 5 or 10 NCC for `low`, `medium` or `high` effort, also when it finds nothing. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /search` with the parameters in the query string, or `POST /search` with the same parameters as a JSON body. In both, `sources`, `languages`, `countries`, their `not_` versions\nand `include` take a comma-separated string; in the JSON body they can also be arrays.",
+        "description": "Ranked real-news articles for a request in plain words or with keywords, grouped into stories.\n\nSee [Effort levels](/news/effort-levels), [Filters and sorting](/news/filters), [Writing queries](/news/writing-queries) and [Credits and pricing](/get-started/credits-and-pricing).",
         "operationId": "newsSearchPost",
         "security": [
           {
@@ -1341,7 +1341,7 @@
           "Search"
         ],
         "summary": "Get a story and its articles",
-        "description": "Every distinct article of one story (the articles that report the same event), best sources first, with the number of newsrooms and when the first and the latest article appeared.\nTake the story id from the `story.id` of a search result. A successful request (HTTP 200) costs 1 NCC, regardless of the number of articles returned. The rate limits of your plan apply.",
+        "description": "Every distinct article of one story (the articles that report the same event), best sources first, with the number of newsrooms and when the first and the latest article appeared.\nTake the story id from the `story.id` of a search result. A successful request (HTTP 200) costs 1 NCC, regardless of the number of articles returned. The rate limits of your plan apply.\n\nSee [Stories](/news/stories).",
         "operationId": "newsStoryGet",
         "security": [
           {
@@ -1739,13 +1739,1453 @@
         }
       }
     },
+    "/articles": {
+      "get": {
+        "tags": [
+          "Articles"
+        ],
+        "summary": "List the articles that match a query",
+        "description": "Every article that matches a boolean query, newest first, for you to page through: the last 12 months, with the publisher, the date, the language, the country and a short snippet of\neach. Use `/search` to find the best articles for a question; use `/articles` to get all the articles that match your query.\n\n**Query.** `q` takes `AND`, `OR`, `NOT`, parentheses, `\"exact phrases\"`, `+must`, `-mustnot`, `wild*cards` and `NEAR(\"a\", \"b\", 5)`. `search_in` chooses where it is searched: the headline, the\nbody, both (default) or the summary, in the original language or in the English translation.\n\n**Window and paging.** `from_date` and `to_date` set the window (the last 7 days by default, up to 365 days back: an earlier `from_date` is cut to it and the response says `window.clamped`).\n`to_date` defaults to the moment of the request and is returned in `window.to`: send it back as `to_date` when you page, so every page covers the same articles. A page holds up to 100\narticles and a query reaches its first 1,000 (`page` x `page_size` is at most 1,000). `total_hits` is the exact number of articles that match in the window.\n\n**Filters.** `languages`, `countries`, `sources`, `predefined_sources` (`top 100 US`), the rank of the publisher (`ranked_only`, `from_rank`, `to_rank`) and the number of words narrow the\nsearch; `not_languages`, `not_countries` and `not_sources` leave articles out. Copies of an article are returned too, unless you ask for `exclude_duplicates`.\n\n**Credits.** A successful call (`200`) costs 5 NCC, whatever the page size or the number of results, also when nothing matches. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /articles` with the parameters in the query string, or `POST /articles` with the same parameters as a JSON body. In both, the list parameters take a\ncomma-separated string; in the JSON body they can also be arrays.",
+        "operationId": "articlesGet",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000,
+              "examples": [
+                "\"interest rate\" AND (cut OR hike) NOT crypto"
+              ]
+            },
+            "description": "The boolean query: `AND`, `OR`, `NOT`, parentheses, `\"exact phrases\"`, `+must`, `-mustnot`, `wild*cards` and `NEAR(\"a\", \"b\", 5)` (the words within 5 of each other). Terms and phrases are searched in the fields of `search_in`.",
+            "example": "\"interest rate\" AND (cut OR hike) NOT crypto"
+          },
+          {
+            "name": "search_in",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "Comma-separated values.",
+                  "examples": [
+                    "title_body"
+                  ]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "title",
+                      "body",
+                      "title_body",
+                      "summary",
+                      "title_translated",
+                      "body_translated",
+                      "title_body_translated",
+                      "summary_translated"
+                    ]
+                  },
+                  "maxItems": 100,
+                  "examples": [
+                    [
+                      "title",
+                      "summary"
+                    ]
+                  ]
+                }
+              ]
+            },
+            "description": "Where `q` is searched, comma-separated or as an array (at most 2): `title`, `body`, `title_body` (default), `summary`, and the same on the English translation: `title_translated`, `body_translated`, `title_body_translated`, `summary_translated`. A match anywhere in the article counts; the response carries the fields listed in `results`.",
+            "example": "title_body"
+          },
+          {
+            "name": "from_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "examples": [
+                "2026-10-03",
+                "2026-10-03 14:00:00",
+                "7 days ago"
+              ]
+            },
+            "description": "Start of the window: ISO 8601 (`2026-10-03`, `2026-10-03T14:00:00`, with or without an offset; UTC otherwise) or a phrase such as `7 days ago`. Default: midnight 7 days ago. Up to 365 days back (an earlier start is cut to it and the response says `window.clamped`).",
+            "example": "2026-10-03"
+          },
+          {
+            "name": "to_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "examples": [
+                "2026-10-03",
+                "2026-10-03 14:00:00",
+                "7 days ago"
+              ]
+            },
+            "description": "End of the window, in the same formats. Default: the moment of the request. The response returns it in `window.to`: send it back when paging, so every page covers the same articles.",
+            "example": "2026-10-03"
+          },
+          {
+            "name": "sources",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "Comma-separated values.",
+                  "examples": [
+                    "reuters.com,bbc.co.uk"
+                  ]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "Domain of a publisher, e.g. `reuters.com`."
+                  },
+                  "maxItems": 100,
+                  "examples": [
+                    [
+                      "reuters.com",
+                      "bbc.co.uk"
+                    ]
+                  ]
+                }
+              ]
+            },
+            "description": "Only these publishers: domains, comma-separated or as an array (at most 100). A domain with a subdomain (`news.bbc.co.uk`) matches that subdomain only.",
+            "example": "reuters.com,bbc.co.uk"
+          },
+          {
+            "name": "not_sources",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "Comma-separated values.",
+                  "examples": [
+                    "reuters.com,bbc.co.uk"
+                  ]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "Domain of a publisher, e.g. `reuters.com`."
+                  },
+                  "maxItems": 100,
+                  "examples": [
+                    [
+                      "reuters.com",
+                      "bbc.co.uk"
+                    ]
+                  ]
+                }
+              ]
+            },
+            "description": "Leave out these publishers: domains, comma-separated or as an array (at most 100). Only bare domains (`cnn.com`) leave anything out; a list made of subdomains only (`edition.cnn.com`) excludes nothing.",
+            "example": "reuters.com,bbc.co.uk"
+          },
+          {
+            "name": "predefined_sources",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "Comma-separated values.",
+                  "examples": [
+                    "top 100 US"
+                  ]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^top \\d+ ([A-Za-z]{2}|global)",
+                    "description": "`top <n> <country code>` or `top <n> global`."
+                  },
+                  "maxItems": 100,
+                  "examples": [
+                    [
+                      "top 100 US",
+                      "top 50 global"
+                    ]
+                  ]
+                }
+              ]
+            },
+            "description": "Only the best-ranked publishers of a country or of the world: `top <n> <country code>` or `top <n> global`, for example `top 100 US`; combined with `sources`.",
+            "example": "top 100 US"
+          },
+          {
+            "name": "languages",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "Comma-separated values.",
+                  "examples": [
+                    "en,de"
+                  ]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z]{2}$",
+                    "description": "ISO 639-1 language code; Chinese is `cn` (simplified) and `tw` (traditional), `zh` means both."
+                  },
+                  "maxItems": 100,
+                  "examples": [
+                    [
+                      "en",
+                      "de"
+                    ]
+                  ]
+                }
+              ]
+            },
+            "description": "Only articles in these languages: ISO 639-1 codes, comma-separated or as an array (at most 100). `zh` means `cn` and `tw`.",
+            "example": "en,de"
+          },
+          {
+            "name": "not_languages",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "Comma-separated values.",
+                  "examples": [
+                    "en,de"
+                  ]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z]{2}$",
+                    "description": "ISO 639-1 language code; Chinese is `cn` (simplified) and `tw` (traditional), `zh` means both."
+                  },
+                  "maxItems": 100,
+                  "examples": [
+                    [
+                      "en",
+                      "de"
+                    ]
+                  ]
+                }
+              ]
+            },
+            "description": "Leave out articles in these languages: ISO 639-1 codes, comma-separated or as an array (at most 100). `zh` means `cn` and `tw`.",
+            "example": "en,de"
+          },
+          {
+            "name": "countries",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "Comma-separated values.",
+                  "examples": [
+                    "US,GB"
+                  ]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z]{2}$",
+                    "description": "ISO 3166-1 alpha-2 country code."
+                  },
+                  "maxItems": 100,
+                  "examples": [
+                    [
+                      "US",
+                      "GB"
+                    ]
+                  ]
+                }
+              ]
+            },
+            "description": "Only articles from publishers in these countries: ISO 3166-1 alpha-2 codes, comma-separated or as an array (at most 100). Ignored when `sources` is set.",
+            "example": "US,GB"
+          },
+          {
+            "name": "not_countries",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "Comma-separated values.",
+                  "examples": [
+                    "US,GB"
+                  ]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z]{2}$",
+                    "description": "ISO 3166-1 alpha-2 country code."
+                  },
+                  "maxItems": 100,
+                  "examples": [
+                    [
+                      "US",
+                      "GB"
+                    ]
+                  ]
+                }
+              ]
+            },
+            "description": "Leave out articles from publishers in these countries: ISO 3166-1 alpha-2 codes, comma-separated or as an array (at most 100). Ignored when `sources` is set.",
+            "example": "US,GB"
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "published_at",
+                "-published_at",
+                "relevancy",
+                "rank"
+              ],
+              "default": "published_at",
+              "examples": [
+                "published_at"
+              ]
+            },
+            "description": "The order of the results: `published_at` (default) newest first, `-published_at` oldest first, `relevancy` best match first, `rank` best-ranked publisher first.",
+            "example": "published_at"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "examples": [
+                1
+              ],
+              "default": 1
+            },
+            "description": "Page number, from 1. `page` x `page_size` is at most 1,000: a query returns up to its first 1,000 articles.",
+            "example": 1
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "examples": [
+                100
+              ],
+              "default": 100
+            },
+            "description": "Articles per page (1 to 100; a plan may allow fewer: the request is refused with 403 above it).",
+            "example": 100
+          },
+          {
+            "name": "ranked_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "examples": [
+                true
+              ],
+              "default": false
+            },
+            "description": "Only articles from publishers that have a rank.",
+            "example": true
+          },
+          {
+            "name": "from_rank",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 999999,
+              "examples": [
+                1000
+              ]
+            },
+            "description": "Only publishers ranked at this position or lower (a larger number): the rank is the publisher's traffic rank, 1 being the best. 1 to 999999. Combined with `sources`, an article that matches either passes.",
+            "example": 1000
+          },
+          {
+            "name": "to_rank",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 999999,
+              "examples": [
+                1000
+              ]
+            },
+            "description": "Only publishers ranked at this position or better (a smaller number). 1 to 999999.",
+            "example": 1000
+          },
+          {
+            "name": "word_count_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000,
+              "examples": [
+                500
+              ]
+            },
+            "description": "Only articles of at least this many words (`0` is a filter too: articles without a word count are left out); must be lower than `word_count_max`.",
+            "example": 500
+          },
+          {
+            "name": "word_count_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000,
+              "examples": [
+                500
+              ]
+            },
+            "description": "Only articles of at most this many words.",
+            "example": 500
+          },
+          {
+            "name": "exclude_duplicates",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "examples": [
+                true
+              ],
+              "default": false
+            },
+            "description": "Leave out copies of an article that another publisher published first. Off by default: the endpoint returns every match. Needs a window that starts after 2024-05-13 for English only (`languages=en`) and after 2025-03-17 otherwise.",
+            "example": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The articles of the page, in the order of `sort_by`. `count` is 0 and `results` empty when nothing matched.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArticlesResponse"
+                },
+                "examples": {
+                  "page": {
+                    "summary": "A page of results",
+                    "value": {
+                      "query": "\"interest rate\" AND cut",
+                      "search_in": [
+                        "title_body"
+                      ],
+                      "sort_by": "published_at",
+                      "took_ms": 412,
+                      "window": {
+                        "from": "2026-10-03T00:00:00+00:00",
+                        "to": "2026-11-02T16:00:00+00:00"
+                      },
+                      "page": 1,
+                      "page_size": 100,
+                      "total_hits": 4812,
+                      "total_pages": 10,
+                      "count": 1,
+                      "results": [
+                        {
+                          "id": "219ba6eb51d067e58b0941c8f07cfc1d",
+                          "title": "Fed officials signal patience on further rate cuts",
+                          "url": "https://www.reuters.com/markets/us/fed-officials-signal-patience-further-rate-cuts-2026-11-02/",
+                          "source": {
+                            "domain": "reuters.com",
+                            "name": "Reuters"
+                          },
+                          "published_at": "2026-11-02T14:05:00+00:00",
+                          "author": "Howard Schneider",
+                          "language": "en",
+                          "country": "US",
+                          "rank": 104,
+                          "image_url": "https://www.reuters.com/resizer/photo.jpg",
+                          "snippet": "Federal Reserve officials on Monday said they were in no hurry to lower interest rates again, pointing to a labor market that remains firm and inflation that has…",
+                          "word_count": 812,
+                          "score": 12.4
+                        }
+                      ]
+                    }
+                  },
+                  "clamped": {
+                    "summary": "A window cut to the plan's history",
+                    "value": {
+                      "query": "Tesla NOT Cybertruck",
+                      "search_in": [
+                        "title"
+                      ],
+                      "sort_by": "relevancy",
+                      "took_ms": 530,
+                      "window": {
+                        "from": "2026-10-03T00:00:00+00:00",
+                        "to": "2026-11-02T16:00:00+00:00",
+                        "clamped": true
+                      },
+                      "page": 2,
+                      "page_size": 50,
+                      "total_hits": 265985,
+                      "total_pages": 20,
+                      "count": 1,
+                      "results": [
+                        {
+                          "id": "219ba6eb51d067e58b0941c8f07cfc1d",
+                          "title": "Fed officials signal patience on further rate cuts",
+                          "url": "https://www.reuters.com/markets/us/fed-officials-signal-patience-further-rate-cuts-2026-11-02/",
+                          "source": {
+                            "domain": "reuters.com",
+                            "name": "Reuters"
+                          },
+                          "published_at": "2026-11-02T14:05:00+00:00",
+                          "author": "Howard Schneider",
+                          "language": "en",
+                          "country": "US",
+                          "rank": 104,
+                          "image_url": "https://www.reuters.com/resizer/photo.jpg",
+                          "snippet": "Federal Reserve officials on Monday said they were in no hurry to lower interest rates again, pointing to a labor market that remains firm and inflation that has…",
+                          "word_count": 812,
+                          "score": 12.4
+                        }
+                      ]
+                    }
+                  },
+                  "nothing_found": {
+                    "summary": "Nothing matched (still charged)",
+                    "value": {
+                      "query": "qwxz AND plorbt",
+                      "search_in": [
+                        "title_body"
+                      ],
+                      "sort_by": "published_at",
+                      "took_ms": 88,
+                      "window": {
+                        "from": "2026-10-03T00:00:00+00:00",
+                        "to": "2026-11-02T16:00:00+00:00"
+                      },
+                      "page": 1,
+                      "page_size": 100,
+                      "total_hits": 0,
+                      "total_pages": 0,
+                      "count": 0,
+                      "results": []
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "401": {
+            "description": "The `x-api-key` header is missing, or the key is not valid.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "missing_key": {
+                    "summary": "Missing key",
+                    "value": {
+                      "message": "The 'x-api-key' header is missing. Please provide your API key.",
+                      "status_code": 401,
+                      "status": "Unauthorized"
+                    }
+                  },
+                  "invalid_key": {
+                    "summary": "Invalid key",
+                    "value": {
+                      "message": "The 'x-api-key' parameter has an invalid value. Please provide a valid API key.",
+                      "status_code": 401,
+                      "status": "Unauthorized"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "402": {
+            "description": "Your credit balance does not cover the price of the call. Nothing was searched and nothing was charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "insufficient_credits": {
+                    "summary": "Insufficient credits",
+                    "value": {
+                      "message": "Insufficient credits: a /articles request costs 5 NCC but your balance is 2 NCC. Please top up your credits.",
+                      "status_code": 402,
+                      "status": "Payment required"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "403": {
+            "description": "The request asks for more than your plan includes (a larger page, a field or filter of the Enterprise plans), or the key may not use the News API.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "page_above_plan": {
+                    "summary": "Page above plan",
+                    "value": {
+                      "message": "Your plan allows up to 100 articles per page and 10 pages per query, but you requested page_size=100 and page=11.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  },
+                  "enterprise_field": {
+                    "summary": "Enterprise field",
+                    "value": {
+                      "message": "enterprise_field: theme, iptc_tags is not included in your plan. Please upgrade to Enterprise.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  },
+                  "window_above_plan": {
+                    "summary": "Window above plan",
+                    "value": {
+                      "message": "Your plan allows searching up to 365 days back, but the window you asked for ends 400 days ago.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  },
+                  "key_not_allowed": {
+                    "summary": "Key not allowed",
+                    "value": {
+                      "message": "This API key is not allowed to use the News API. Please check your account and organization access.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  },
+                  "other_product_key": {
+                    "summary": "Other product key",
+                    "value": {
+                      "message": "This API key belongs to another NewsCatcher product and cannot be used with the News API. Please use an API key from the NewsCatcher platform.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "408": {
+            "description": "The search ran longer than its time budget and was stopped. Nothing was charged. Narrow the window, use a smaller `page_size` or simplify the query.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "query_too_slow": {
+                    "summary": "Query too slow",
+                    "value": {
+                      "message": "Request timed out. Reduce the date range to shorter periods, use a smaller page_size or simplify the query.",
+                      "status_code": 408,
+                      "status": "Request timeout"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "422": {
+            "description": "A parameter is missing, has the wrong type or an invalid value, is not a parameter of this endpoint, the query is not valid or the body is not valid JSON. The message names the problem. Nothing was searched and nothing was charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "invalid_value": {
+                    "summary": "Invalid value",
+                    "value": {
+                      "message": "The 'page_size' parameter must be between 1 and 100.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "page_too_deep": {
+                    "summary": "Page too deep",
+                    "value": {
+                      "message": "The 'page' x 'page_size' product must be at most 1000: a query returns up to its first 1000 articles. Narrow the query or the window to reach the rest.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "invalid_date": {
+                    "summary": "Invalid date",
+                    "value": {
+                      "message": "The 'from_date' parameter is not a valid date. Use ISO 8601 (for example 2026-10-03 or 2026-10-03T14:00:00) or a phrase such as '7 days ago'.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "invalid_query": {
+                    "summary": "Invalid query",
+                    "value": {
+                      "message": "[q] parameter contains an unclosed quote (\"). Please close the quote before proceeding.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "unknown_parameter": {
+                    "summary": "Unknown parameter",
+                    "value": {
+                      "message": "Invalid Parameter: 'is_headline'. Allowed parameters: q, search_in, from_date, to_date, sources, not_sources, predefined_sources, languages, not_languages, countries, not_countries, sort_by, page, page_size, ranked_only, from_rank, to_rank, word_count_min, word_count_max, exclude_duplicates.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "invalid_json": {
+                    "summary": "Invalid json",
+                    "value": {
+                      "message": "Invalid JSON format in request body. Please check your JSON syntax.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "429": {
+            "description": "You are over a rate limit of your plan: requests per second (per effort level, and in all) or requests per day. Wait for `Retry-After` seconds and send the request again; a refused request is not charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "per_second": {
+                    "summary": "Per second",
+                    "value": {
+                      "message": "Rate limit reached: your plan allows 1 requests per second for your organization. Please slow down and retry.",
+                      "status_code": 429,
+                      "status": "Too many requests"
+                    }
+                  },
+                  "per_day": {
+                    "summary": "Per day",
+                    "value": {
+                      "message": "Daily request limit reached: your plan allows 500 requests per day. The count restarts at 00:00 UTC.",
+                      "status_code": 429,
+                      "status": "Too many requests"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again: until the next second for the per-second limits, until 00:00 UTC for the daily limit.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "examples": [
+                    1
+                  ]
+                }
+              },
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "500": {
+            "description": "Something failed on our side. Quote the `Correlation-ID` response header when you contact support. A failed request is not charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "internal_error": {
+                    "summary": "Internal error",
+                    "value": {
+                      "message": "Internal server error occurred. Please contact support.",
+                      "status_code": 500,
+                      "status": "Internal error occurred"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "503": {
+            "description": "A part of the service is temporarily unavailable. Send the same request again after a short wait; it was not charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "limits_unavailable": {
+                    "summary": "Limits unavailable",
+                    "value": {
+                      "message": "Request limits are temporarily unavailable. Please retry shortly.",
+                      "status_code": 503,
+                      "status": "Service unavailable"
+                    }
+                  },
+                  "search_unavailable": {
+                    "summary": "Search unavailable",
+                    "value": {
+                      "message": "The news search backend is not available.",
+                      "status_code": 503,
+                      "status": "Service unavailable"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Articles"
+        ],
+        "summary": "List the articles that match a query (JSON body)",
+        "description": "Every article that matches a boolean query, newest first, for you to page through: the last 12 months, with the publisher, the date, the language, the country and a short snippet of\neach. Use `/search` to find the best articles for a question; use `/articles` to get all the articles that match your query.\n\n**Query.** `q` takes `AND`, `OR`, `NOT`, parentheses, `\"exact phrases\"`, `+must`, `-mustnot`, `wild*cards` and `NEAR(\"a\", \"b\", 5)`. `search_in` chooses where it is searched: the headline, the\nbody, both (default) or the summary, in the original language or in the English translation.\n\n**Window and paging.** `from_date` and `to_date` set the window (the last 7 days by default, up to 365 days back: an earlier `from_date` is cut to it and the response says `window.clamped`).\n`to_date` defaults to the moment of the request and is returned in `window.to`: send it back as `to_date` when you page, so every page covers the same articles. A page holds up to 100\narticles and a query reaches its first 1,000 (`page` x `page_size` is at most 1,000). `total_hits` is the exact number of articles that match in the window.\n\n**Filters.** `languages`, `countries`, `sources`, `predefined_sources` (`top 100 US`), the rank of the publisher (`ranked_only`, `from_rank`, `to_rank`) and the number of words narrow the\nsearch; `not_languages`, `not_countries` and `not_sources` leave articles out. Copies of an article are returned too, unless you ask for `exclude_duplicates`.\n\n**Credits.** A successful call (`200`) costs 5 NCC, whatever the page size or the number of results, also when nothing matches. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /articles` with the parameters in the query string, or `POST /articles` with the same parameters as a JSON body. In both, the list parameters take a\ncomma-separated string; in the JSON body they can also be arrays.",
+        "operationId": "articlesPost",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArticlesRequest"
+              },
+              "examples": {
+                "phrase": {
+                  "summary": "An exact phrase and an exclusion, the last 30 days",
+                  "value": {
+                    "q": "\"interest rate\" AND (cut OR hike) NOT crypto",
+                    "from_date": "2026-10-03",
+                    "page_size": 100
+                  }
+                },
+                "filters": {
+                  "summary": "Publishers and languages, newest first, page 2",
+                  "value": {
+                    "q": "Tesla AND recall",
+                    "search_in": [
+                      "title"
+                    ],
+                    "sources": [
+                      "reuters.com",
+                      "bloomberg.com"
+                    ],
+                    "languages": [
+                      "en"
+                    ],
+                    "page": 2,
+                    "page_size": 50,
+                    "to_date": "2026-11-02T16:00:00"
+                  }
+                },
+                "top_sources": {
+                  "summary": "The best-ranked US publishers, by relevance",
+                  "value": {
+                    "q": "central bank NEAR(\"rate\", \"decision\", 5)",
+                    "predefined_sources": "top 100 US",
+                    "sort_by": "relevancy"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The articles of the page, in the order of `sort_by`. `count` is 0 and `results` empty when nothing matched.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArticlesResponse"
+                },
+                "examples": {
+                  "page": {
+                    "summary": "A page of results",
+                    "value": {
+                      "query": "\"interest rate\" AND cut",
+                      "search_in": [
+                        "title_body"
+                      ],
+                      "sort_by": "published_at",
+                      "took_ms": 412,
+                      "window": {
+                        "from": "2026-10-03T00:00:00+00:00",
+                        "to": "2026-11-02T16:00:00+00:00"
+                      },
+                      "page": 1,
+                      "page_size": 100,
+                      "total_hits": 4812,
+                      "total_pages": 10,
+                      "count": 1,
+                      "results": [
+                        {
+                          "id": "219ba6eb51d067e58b0941c8f07cfc1d",
+                          "title": "Fed officials signal patience on further rate cuts",
+                          "url": "https://www.reuters.com/markets/us/fed-officials-signal-patience-further-rate-cuts-2026-11-02/",
+                          "source": {
+                            "domain": "reuters.com",
+                            "name": "Reuters"
+                          },
+                          "published_at": "2026-11-02T14:05:00+00:00",
+                          "author": "Howard Schneider",
+                          "language": "en",
+                          "country": "US",
+                          "rank": 104,
+                          "image_url": "https://www.reuters.com/resizer/photo.jpg",
+                          "snippet": "Federal Reserve officials on Monday said they were in no hurry to lower interest rates again, pointing to a labor market that remains firm and inflation that has…",
+                          "word_count": 812,
+                          "score": 12.4
+                        }
+                      ]
+                    }
+                  },
+                  "clamped": {
+                    "summary": "A window cut to the plan's history",
+                    "value": {
+                      "query": "Tesla NOT Cybertruck",
+                      "search_in": [
+                        "title"
+                      ],
+                      "sort_by": "relevancy",
+                      "took_ms": 530,
+                      "window": {
+                        "from": "2026-10-03T00:00:00+00:00",
+                        "to": "2026-11-02T16:00:00+00:00",
+                        "clamped": true
+                      },
+                      "page": 2,
+                      "page_size": 50,
+                      "total_hits": 265985,
+                      "total_pages": 20,
+                      "count": 1,
+                      "results": [
+                        {
+                          "id": "219ba6eb51d067e58b0941c8f07cfc1d",
+                          "title": "Fed officials signal patience on further rate cuts",
+                          "url": "https://www.reuters.com/markets/us/fed-officials-signal-patience-further-rate-cuts-2026-11-02/",
+                          "source": {
+                            "domain": "reuters.com",
+                            "name": "Reuters"
+                          },
+                          "published_at": "2026-11-02T14:05:00+00:00",
+                          "author": "Howard Schneider",
+                          "language": "en",
+                          "country": "US",
+                          "rank": 104,
+                          "image_url": "https://www.reuters.com/resizer/photo.jpg",
+                          "snippet": "Federal Reserve officials on Monday said they were in no hurry to lower interest rates again, pointing to a labor market that remains firm and inflation that has…",
+                          "word_count": 812,
+                          "score": 12.4
+                        }
+                      ]
+                    }
+                  },
+                  "nothing_found": {
+                    "summary": "Nothing matched (still charged)",
+                    "value": {
+                      "query": "qwxz AND plorbt",
+                      "search_in": [
+                        "title_body"
+                      ],
+                      "sort_by": "published_at",
+                      "took_ms": 88,
+                      "window": {
+                        "from": "2026-10-03T00:00:00+00:00",
+                        "to": "2026-11-02T16:00:00+00:00"
+                      },
+                      "page": 1,
+                      "page_size": 100,
+                      "total_hits": 0,
+                      "total_pages": 0,
+                      "count": 0,
+                      "results": []
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "401": {
+            "description": "The `x-api-key` header is missing, or the key is not valid.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "missing_key": {
+                    "summary": "Missing key",
+                    "value": {
+                      "message": "The 'x-api-key' header is missing. Please provide your API key.",
+                      "status_code": 401,
+                      "status": "Unauthorized"
+                    }
+                  },
+                  "invalid_key": {
+                    "summary": "Invalid key",
+                    "value": {
+                      "message": "The 'x-api-key' parameter has an invalid value. Please provide a valid API key.",
+                      "status_code": 401,
+                      "status": "Unauthorized"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "402": {
+            "description": "Your credit balance does not cover the price of the call. Nothing was searched and nothing was charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "insufficient_credits": {
+                    "summary": "Insufficient credits",
+                    "value": {
+                      "message": "Insufficient credits: a /articles request costs 5 NCC but your balance is 2 NCC. Please top up your credits.",
+                      "status_code": 402,
+                      "status": "Payment required"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "403": {
+            "description": "The request asks for more than your plan includes (a larger page, a field or filter of the Enterprise plans), or the key may not use the News API.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "page_above_plan": {
+                    "summary": "Page above plan",
+                    "value": {
+                      "message": "Your plan allows up to 100 articles per page and 10 pages per query, but you requested page_size=100 and page=11.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  },
+                  "enterprise_field": {
+                    "summary": "Enterprise field",
+                    "value": {
+                      "message": "enterprise_field: theme, iptc_tags is not included in your plan. Please upgrade to Enterprise.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  },
+                  "window_above_plan": {
+                    "summary": "Window above plan",
+                    "value": {
+                      "message": "Your plan allows searching up to 365 days back, but the window you asked for ends 400 days ago.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  },
+                  "key_not_allowed": {
+                    "summary": "Key not allowed",
+                    "value": {
+                      "message": "This API key is not allowed to use the News API. Please check your account and organization access.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  },
+                  "other_product_key": {
+                    "summary": "Other product key",
+                    "value": {
+                      "message": "This API key belongs to another NewsCatcher product and cannot be used with the News API. Please use an API key from the NewsCatcher platform.",
+                      "status_code": 403,
+                      "status": "Forbidden"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "408": {
+            "description": "The search ran longer than its time budget and was stopped. Nothing was charged. Narrow the window, use a smaller `page_size` or simplify the query.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "query_too_slow": {
+                    "summary": "Query too slow",
+                    "value": {
+                      "message": "Request timed out. Reduce the date range to shorter periods, use a smaller page_size or simplify the query.",
+                      "status_code": 408,
+                      "status": "Request timeout"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "422": {
+            "description": "A parameter is missing, has the wrong type or an invalid value, is not a parameter of this endpoint, the query is not valid or the body is not valid JSON. The message names the problem. Nothing was searched and nothing was charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "invalid_value": {
+                    "summary": "Invalid value",
+                    "value": {
+                      "message": "The 'page_size' parameter must be between 1 and 100.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "page_too_deep": {
+                    "summary": "Page too deep",
+                    "value": {
+                      "message": "The 'page' x 'page_size' product must be at most 1000: a query returns up to its first 1000 articles. Narrow the query or the window to reach the rest.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "invalid_date": {
+                    "summary": "Invalid date",
+                    "value": {
+                      "message": "The 'from_date' parameter is not a valid date. Use ISO 8601 (for example 2026-10-03 or 2026-10-03T14:00:00) or a phrase such as '7 days ago'.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "invalid_query": {
+                    "summary": "Invalid query",
+                    "value": {
+                      "message": "[q] parameter contains an unclosed quote (\"). Please close the quote before proceeding.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "unknown_parameter": {
+                    "summary": "Unknown parameter",
+                    "value": {
+                      "message": "Invalid Parameter: 'is_headline'. Allowed parameters: q, search_in, from_date, to_date, sources, not_sources, predefined_sources, languages, not_languages, countries, not_countries, sort_by, page, page_size, ranked_only, from_rank, to_rank, word_count_min, word_count_max, exclude_duplicates.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "invalid_json": {
+                    "summary": "Invalid json",
+                    "value": {
+                      "message": "Invalid JSON format in request body. Please check your JSON syntax.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "429": {
+            "description": "You are over a rate limit of your plan: requests per second (per effort level, and in all) or requests per day. Wait for `Retry-After` seconds and send the request again; a refused request is not charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "per_second": {
+                    "summary": "Per second",
+                    "value": {
+                      "message": "Rate limit reached: your plan allows 1 requests per second for your organization. Please slow down and retry.",
+                      "status_code": 429,
+                      "status": "Too many requests"
+                    }
+                  },
+                  "per_day": {
+                    "summary": "Per day",
+                    "value": {
+                      "message": "Daily request limit reached: your plan allows 500 requests per day. The count restarts at 00:00 UTC.",
+                      "status_code": 429,
+                      "status": "Too many requests"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before sending the request again: until the next second for the per-second limits, until 00:00 UTC for the daily limit.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "examples": [
+                    1
+                  ]
+                }
+              },
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "500": {
+            "description": "Something failed on our side. Quote the `Correlation-ID` response header when you contact support. A failed request is not charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "internal_error": {
+                    "summary": "Internal error",
+                    "value": {
+                      "message": "Internal server error occurred. Please contact support.",
+                      "status_code": 500,
+                      "status": "Internal error occurred"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          },
+          "503": {
+            "description": "A part of the service is temporarily unavailable. Send the same request again after a short wait; it was not charged.",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "limits_unavailable": {
+                    "summary": "Limits unavailable",
+                    "value": {
+                      "message": "Request limits are temporarily unavailable. Please retry shortly.",
+                      "status_code": 503,
+                      "status": "Service unavailable"
+                    }
+                  },
+                  "search_unavailable": {
+                    "summary": "Search unavailable",
+                    "value": {
+                      "message": "The news search backend is not available.",
+                      "status_code": 503,
+                      "status": "Service unavailable"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "Correlation-ID": {
+                "$ref": "#/components/headers/Correlation-ID"
+              },
+              "X-Process-Time": {
+                "$ref": "#/components/headers/X-Process-Time"
+              }
+            }
+          }
+        }
+      }
+    },
     "/subscription": {
       "get": {
         "tags": [
           "Subscription"
         ],
         "summary": "Get subscription info",
-        "description": "Your plan, its limits and your credit balance: what one search costs per effort level, the requests per second and per day your organization may send (and how many it has used today),\nthe largest `limit`, how many days back you can search, the heavy fields you can `include`, and the NCC credits you have left. Free: it is not charged. The balance is cached for up to\n2 minutes and usage reaches it 1 to 3 minutes late.",
+        "description": "Your plan, its limits and your credit balance: what one search costs per effort level, the requests per second and per day your organization may send (and how many it has used today),\nthe largest `limit`, how many days back you can search, the heavy fields you can `include`, and the NCC credits you have left. Free: it is not charged. The balance is cached for up to\n2 minutes and usage reaches it 1 to 3 minutes late.\n\nSee [Rate limits and plan limits](/get-started/rate-limits#check-your-plan).",
         "operationId": "subscriptionGet",
         "responses": {
           "200": {
@@ -1923,6 +3363,789 @@
   },
   "components": {
     "schemas": {
+      "ArticlesAccess": {
+        "properties": {
+          "max_articles_per_page": {
+            "type": "integer",
+            "description": "Largest page_size allowed on /articles.",
+            "examples": [
+              100
+            ]
+          },
+          "max_articles_per_query": {
+            "type": "integer",
+            "description": "Maximum article offset plus page size reachable for one query.",
+            "examples": [
+              1000
+            ]
+          },
+          "max_pages": {
+            "type": "integer",
+            "description": "Pages reachable when using the maximum page size; smaller pages can reach more pages within the article limit.",
+            "examples": [
+              10
+            ]
+          },
+          "historical_days": {
+            "type": "integer",
+            "description": "Days of history available to /articles; independent of /search history.",
+            "examples": [
+              365
+            ]
+          },
+          "requests_per_second": {
+            "type": "integer",
+            "description": "Organization requests per second allowed for /articles, also subject to shared limits.",
+            "examples": [
+              5
+            ]
+          },
+          "credits_per_request": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "description": "NCC for one successful /articles call, including an empty page.",
+            "examples": [
+              5
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "max_articles_per_page",
+          "max_articles_per_query",
+          "max_pages",
+          "historical_days",
+          "requests_per_second",
+          "credits_per_request"
+        ],
+        "title": "ArticlesAccess",
+        "description": "Pagination, history and cost of the /articles endpoint."
+      },
+      "ArticlesRequest": {
+        "properties": {
+          "q": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "description": "The boolean query: `AND`, `OR`, `NOT`, parentheses, `\"exact phrases\"`, `+must`, `-mustnot`, `wild*cards` and `NEAR(\"a\", \"b\", 5)` (the words within 5 of each other). Terms and phrases are searched in the fields of `search_in`.",
+            "examples": [
+              "\"interest rate\" AND (cut OR hike) NOT crypto"
+            ]
+          },
+          "search_in": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Comma-separated values.",
+                "examples": [
+                  "title_body"
+                ]
+              },
+              {
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "title",
+                    "body",
+                    "title_body",
+                    "summary",
+                    "title_translated",
+                    "body_translated",
+                    "title_body_translated",
+                    "summary_translated"
+                  ]
+                },
+                "type": "array",
+                "maxItems": 100,
+                "examples": [
+                  [
+                    "title",
+                    "summary"
+                  ]
+                ]
+              }
+            ],
+            "description": "Where `q` is searched, comma-separated or as an array (at most 2): `title`, `body`, `title_body` (default), `summary`, and the same on the English translation: `title_translated`, `body_translated`, `title_body_translated`, `summary_translated`. A match anywhere in the article counts; the response carries the fields listed in `results`."
+          },
+          "from_date": {
+            "type": "string",
+            "description": "Start of the window: ISO 8601 (`2026-10-03`, `2026-10-03T14:00:00`, with or without an offset; UTC otherwise) or a phrase such as `7 days ago`. Default: midnight 7 days ago. Up to 365 days back (an earlier start is cut to it and the response says `window.clamped`).",
+            "examples": [
+              "2026-10-03",
+              "2026-10-03 14:00:00",
+              "7 days ago"
+            ]
+          },
+          "to_date": {
+            "type": "string",
+            "description": "End of the window, in the same formats. Default: the moment of the request. The response returns it in `window.to`: send it back when paging, so every page covers the same articles.",
+            "examples": [
+              "2026-10-03",
+              "2026-10-03 14:00:00",
+              "7 days ago"
+            ]
+          },
+          "sources": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Comma-separated values.",
+                "examples": [
+                  "reuters.com,bbc.co.uk"
+                ]
+              },
+              {
+                "items": {
+                  "type": "string",
+                  "description": "Domain of a publisher, e.g. `reuters.com`."
+                },
+                "type": "array",
+                "maxItems": 100,
+                "examples": [
+                  [
+                    "reuters.com",
+                    "bbc.co.uk"
+                  ]
+                ]
+              }
+            ],
+            "description": "Only these publishers: domains, comma-separated or as an array (at most 100). A domain with a subdomain (`news.bbc.co.uk`) matches that subdomain only."
+          },
+          "not_sources": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Comma-separated values.",
+                "examples": [
+                  "reuters.com,bbc.co.uk"
+                ]
+              },
+              {
+                "items": {
+                  "type": "string",
+                  "description": "Domain of a publisher, e.g. `reuters.com`."
+                },
+                "type": "array",
+                "maxItems": 100,
+                "examples": [
+                  [
+                    "reuters.com",
+                    "bbc.co.uk"
+                  ]
+                ]
+              }
+            ],
+            "description": "Leave out these publishers: domains, comma-separated or as an array (at most 100). Only bare domains (`cnn.com`) leave anything out; a list made of subdomains only (`edition.cnn.com`) excludes nothing."
+          },
+          "predefined_sources": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Comma-separated values.",
+                "examples": [
+                  "top 100 US"
+                ]
+              },
+              {
+                "items": {
+                  "type": "string",
+                  "pattern": "^top \\d+ ([A-Za-z]{2}|global)",
+                  "description": "`top <n> <country code>` or `top <n> global`."
+                },
+                "type": "array",
+                "maxItems": 100,
+                "examples": [
+                  [
+                    "top 100 US",
+                    "top 50 global"
+                  ]
+                ]
+              }
+            ],
+            "description": "Only the best-ranked publishers of a country or of the world: `top <n> <country code>` or `top <n> global`, for example `top 100 US`; combined with `sources`."
+          },
+          "languages": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Comma-separated values.",
+                "examples": [
+                  "en,de"
+                ]
+              },
+              {
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z]{2}$",
+                  "description": "ISO 639-1 language code; Chinese is `cn` (simplified) and `tw` (traditional), `zh` means both."
+                },
+                "type": "array",
+                "maxItems": 100,
+                "examples": [
+                  [
+                    "en",
+                    "de"
+                  ]
+                ]
+              }
+            ],
+            "description": "Only articles in these languages: ISO 639-1 codes, comma-separated or as an array (at most 100). `zh` means `cn` and `tw`."
+          },
+          "not_languages": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Comma-separated values.",
+                "examples": [
+                  "en,de"
+                ]
+              },
+              {
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z]{2}$",
+                  "description": "ISO 639-1 language code; Chinese is `cn` (simplified) and `tw` (traditional), `zh` means both."
+                },
+                "type": "array",
+                "maxItems": 100,
+                "examples": [
+                  [
+                    "en",
+                    "de"
+                  ]
+                ]
+              }
+            ],
+            "description": "Leave out articles in these languages: ISO 639-1 codes, comma-separated or as an array (at most 100). `zh` means `cn` and `tw`."
+          },
+          "countries": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Comma-separated values.",
+                "examples": [
+                  "US,GB"
+                ]
+              },
+              {
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z]{2}$",
+                  "description": "ISO 3166-1 alpha-2 country code."
+                },
+                "type": "array",
+                "maxItems": 100,
+                "examples": [
+                  [
+                    "US",
+                    "GB"
+                  ]
+                ]
+              }
+            ],
+            "description": "Only articles from publishers in these countries: ISO 3166-1 alpha-2 codes, comma-separated or as an array (at most 100). Ignored when `sources` is set."
+          },
+          "not_countries": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Comma-separated values.",
+                "examples": [
+                  "US,GB"
+                ]
+              },
+              {
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z]{2}$",
+                  "description": "ISO 3166-1 alpha-2 country code."
+                },
+                "type": "array",
+                "maxItems": 100,
+                "examples": [
+                  [
+                    "US",
+                    "GB"
+                  ]
+                ]
+              }
+            ],
+            "description": "Leave out articles from publishers in these countries: ISO 3166-1 alpha-2 codes, comma-separated or as an array (at most 100). Ignored when `sources` is set."
+          },
+          "sort_by": {
+            "type": "string",
+            "enum": [
+              "published_at",
+              "-published_at",
+              "relevancy",
+              "rank"
+            ],
+            "description": "The order of the results: `published_at` (default) newest first, `-published_at` oldest first, `relevancy` best match first, `rank` best-ranked publisher first.",
+            "default": "published_at",
+            "examples": [
+              "published_at"
+            ]
+          },
+          "page": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "description": "Page number, from 1. `page` x `page_size` is at most 1,000: a query returns up to its first 1,000 articles.",
+            "default": 1,
+            "examples": [
+              1
+            ]
+          },
+          "page_size": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "description": "Articles per page (1 to 100; a plan may allow fewer: the request is refused with 403 above it).",
+            "default": 100,
+            "examples": [
+              100
+            ]
+          },
+          "ranked_only": {
+            "type": "boolean",
+            "description": "Only articles from publishers that have a rank.",
+            "default": false,
+            "examples": [
+              true
+            ]
+          },
+          "from_rank": {
+            "type": "integer",
+            "maximum": 999999.0,
+            "minimum": 1.0,
+            "description": "Only publishers ranked at this position or lower (a larger number): the rank is the publisher's traffic rank, 1 being the best. 1 to 999999. Combined with `sources`, an article that matches either passes.",
+            "examples": [
+              1000
+            ]
+          },
+          "to_rank": {
+            "type": "integer",
+            "maximum": 999999.0,
+            "minimum": 1.0,
+            "description": "Only publishers ranked at this position or better (a smaller number). 1 to 999999.",
+            "examples": [
+              1000
+            ]
+          },
+          "word_count_min": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": 0.0,
+            "description": "Only articles of at least this many words (`0` is a filter too: articles without a word count are left out); must be lower than `word_count_max`.",
+            "examples": [
+              500
+            ]
+          },
+          "word_count_max": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": 0.0,
+            "description": "Only articles of at most this many words.",
+            "examples": [
+              500
+            ]
+          },
+          "exclude_duplicates": {
+            "type": "boolean",
+            "description": "Leave out copies of an article that another publisher published first. Off by default: the endpoint returns every match. Needs a window that starts after 2024-05-13 for English only (`languages=en`) and after 2025-03-17 otherwise.",
+            "default": false,
+            "examples": [
+              true
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "q"
+        ],
+        "title": "ArticlesRequest",
+        "description": "What to look for: a boolean query, the window, the filters and the page. The same parameters are accepted in the query string of `GET /articles` and in the JSON body of `POST /articles`."
+      },
+      "ArticlesResponse": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "The query as received (control characters replaced, ends trimmed).",
+            "examples": [
+              "\"interest rate\" AND cut"
+            ]
+          },
+          "search_in": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "title",
+                "body",
+                "title_body",
+                "summary",
+                "title_translated",
+                "body_translated",
+                "title_body_translated",
+                "summary_translated"
+              ]
+            },
+            "type": "array",
+            "description": "Where the query was searched.",
+            "examples": [
+              [
+                "title_body"
+              ]
+            ]
+          },
+          "sort_by": {
+            "type": "string",
+            "enum": [
+              "published_at",
+              "-published_at",
+              "relevancy",
+              "rank"
+            ],
+            "description": "The order of the results.",
+            "examples": [
+              "published_at"
+            ]
+          },
+          "took_ms": {
+            "type": "integer",
+            "minimum": 0.0,
+            "description": "Time the search took on our side, in milliseconds.",
+            "examples": [
+              412
+            ]
+          },
+          "window": {
+            "$ref": "#/components/schemas/ArticlesWindow",
+            "description": "The window the search covered: `from` to `to`, after your plan's history limit was applied."
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1.0,
+            "description": "The page of this response.",
+            "examples": [
+              1
+            ]
+          },
+          "page_size": {
+            "type": "integer",
+            "minimum": 1.0,
+            "description": "The page size of this response.",
+            "examples": [
+              100
+            ]
+          },
+          "total_hits": {
+            "type": "integer",
+            "minimum": 0.0,
+            "description": "How many articles match the query in the window (an exact count). A query returns up to its first 1,000 articles, whatever this number is.",
+            "examples": [
+              4812
+            ]
+          },
+          "total_pages": {
+            "type": "integer",
+            "minimum": 0.0,
+            "description": "Pages you can read: `min(total_hits, 1000)` divided by `page_size`, rounded up.",
+            "examples": [
+              10
+            ]
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "description": "Number of articles on this page.",
+            "examples": [
+              1
+            ]
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/ArticlesResult"
+            },
+            "type": "array",
+            "description": "The articles of the page, in the order of `sort_by`."
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "search_in",
+          "sort_by",
+          "took_ms",
+          "window",
+          "page",
+          "page_size",
+          "total_hits",
+          "total_pages",
+          "count",
+          "results"
+        ],
+        "title": "ArticlesResponse",
+        "description": "A page of the articles that match a query, with the total and the window that was searched.",
+        "examples": [
+          {
+            "count": 1,
+            "page": 1,
+            "page_size": 100,
+            "query": "\"interest rate\" AND cut",
+            "results": [
+              {
+                "author": "Howard Schneider",
+                "country": "US",
+                "id": "219ba6eb51d067e58b0941c8f07cfc1d",
+                "image_url": "https://www.reuters.com/resizer/photo.jpg",
+                "language": "en",
+                "published_at": "2026-11-02T14:05:00+00:00",
+                "rank": 104,
+                "score": 12.4,
+                "snippet": "Federal Reserve officials on Monday said they were in no hurry to lower interest rates again, pointing to a labor market that remains firm and inflation that has…",
+                "source": {
+                  "domain": "reuters.com",
+                  "name": "Reuters"
+                },
+                "title": "Fed officials signal patience on further rate cuts",
+                "url": "https://www.reuters.com/markets/us/fed-officials-signal-patience-further-rate-cuts-2026-11-02/",
+                "word_count": 812
+              }
+            ],
+            "search_in": [
+              "title_body"
+            ],
+            "sort_by": "published_at",
+            "took_ms": 412,
+            "total_hits": 4812,
+            "total_pages": 10,
+            "window": {
+              "from": "2026-10-03T00:00:00+00:00",
+              "to": "2026-11-02T16:00:00+00:00"
+            }
+          }
+        ]
+      },
+      "ArticlesResult": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Article id.",
+            "examples": [
+              "219ba6eb51d067e58b0941c8f07cfc1d"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "description": "Headline as published.",
+            "examples": [
+              "Fed officials signal patience on further rate cuts"
+            ]
+          },
+          "title_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "English translation of the headline; only when `search_in` searches a translated field.",
+            "examples": [
+              "Elections in Argentina: what is at stake"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "description": "Link to the article.",
+            "default": "",
+            "examples": [
+              "https://www.reuters.com/markets/us/fed-officials-signal-patience-further-rate-cuts-2026-11-02/"
+            ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/NewsSource",
+            "description": "The publisher."
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When the article was published (UTC, ISO 8601).",
+            "examples": [
+              "2026-11-02T14:05:00+00:00"
+            ]
+          },
+          "author": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The author, as published.",
+            "examples": [
+              "Howard Schneider"
+            ]
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Language of the article, an ISO 639-1 code (Chinese is `cn` for simplified, `tw` for traditional).",
+            "examples": [
+              "en"
+            ]
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Country of the publisher, an ISO 3166-1 alpha-2 code.",
+            "examples": [
+              "US"
+            ]
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Traffic rank of the publisher: 1 is the best. 999999 means the publisher has no rank.",
+            "examples": [
+              104
+            ]
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Link to the main image of the article.",
+            "examples": [
+              "https://www.reuters.com/resizer/photo.jpg"
+            ]
+          },
+          "snippet": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Start of the publisher's description, cut at a word boundary (up to your plan's snippet length, 200 characters by default).",
+            "examples": [
+              "Federal Reserve officials on Monday said they were in no hurry to lower interest rates again, pointing to a labor market that remains firm and inflation that has…"
+            ]
+          },
+          "word_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Number of words of the article.",
+            "examples": [
+              812
+            ]
+          },
+          "score": {
+            "type": "number",
+            "description": "Relevance of the article to `q`. Only the order is meaningful, not the value.",
+            "examples": [
+              12.4
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "source",
+          "score"
+        ],
+        "title": "ArticlesResult",
+        "description": "One article of the page."
+      },
+      "ArticlesWindow": {
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Start of the window (UTC, ISO 8601): your `from_date`, or your plan's history limit when it cut it.",
+            "examples": [
+              "2026-10-03T00:00:00+00:00"
+            ]
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time",
+            "description": "End of the window (UTC, ISO 8601): your `to_date`, or the moment of the request. Send it back as `to_date` when paging.",
+            "examples": [
+              "2026-11-02T16:00:00+00:00"
+            ]
+          },
+          "clamped": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "True when `from_date` was earlier than your plan allows and was cut to it. Absent otherwise.",
+            "examples": [
+              true
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "from",
+          "to"
+        ],
+        "title": "ArticlesWindow",
+        "description": "The time window that was searched."
+      },
       "EffortCredits": {
         "properties": {
           "low": {
@@ -2035,6 +4258,7 @@
               "Forbidden",
               "Not found",
               "Method not allowed",
+              "Request timeout",
               "Payload too large",
               "Validation error",
               "Too many requests",
@@ -3338,6 +5562,10 @@
             "$ref": "#/components/schemas/StoryAccess",
             "description": "Story pages: whether your plan allows them, their requests per second and their price."
           },
+          "articles": {
+            "$ref": "#/components/schemas/ArticlesAccess",
+            "description": "Limits and price of GET/POST /articles."
+          },
           "extra_fields": {
             "items": {
               "type": "string",
@@ -3383,6 +5611,7 @@
           "daily_requests_used",
           "credits_per_search",
           "story",
+          "articles",
           "extra_fields",
           "credits_balance"
         ],
@@ -3390,6 +5619,14 @@
         "description": "Plan, limits and credits of the authenticated organization.",
         "examples": [
           {
+            "articles": {
+              "credits_per_request": 5,
+              "historical_days": 365,
+              "max_articles_per_page": 100,
+              "max_articles_per_query": 1000,
+              "max_pages": 10,
+              "requests_per_second": 1
+            },
             "credits_balance": 8950.0,
             "credits_per_search": {
               "high": 10,
@@ -3493,6 +5730,14 @@
       "description": "Search the news and read every article of a story. The articles are real news, ranked and grouped into stories.",
       "externalDocs": {
         "description": "Search guide",
+        "url": "https://docs.newscatcherapi.com/"
+      }
+    },
+    {
+      "name": "Articles",
+      "description": "Every article that matches a boolean query, newest first, to page through: the last 12 months, up to 1,000 articles per query.",
+      "externalDocs": {
+        "description": "Articles guide",
         "url": "https://docs.newscatcherapi.com/"
       }
     },

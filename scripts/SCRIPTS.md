@@ -133,6 +133,8 @@ and `api-reference/agent/`, the specs behind the Latest API Reference tab.
 - Removes fields that are not part of the public reference, with the
   sentences that mention them
 - Corrects wrong endpoint names listed in `CORRECTIONS`
+- Shortens the endpoints listed in `GUIDES` to the first paragraph of their
+  description, followed by links to the guides that explain the rest
 - Keeps everything else as served
 
 **Usage:**
