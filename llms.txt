@@ -391,7 +391,7 @@ deleted — it becomes unassigned and continues to exist.
 
 ### API Reference — Source groups
 
-- [List Source Groups Get (GET)](https://www.newscatcherapi.com/docs/news-api/api-reference/source-groups/list-source-groups-get): Returns a paginated list of source groups: named, curated collections of publisher domains. Pass a group's `slug` to the `source_groups` parameter of the Search endpoint to restrict a search to the group's domains. Only groups published for general use are listed. This endpoint requires an API key but does not count toward your plan's quota.
+- [List Source Groups Get (GET)](https://www.newscatcherapi.com/docs/news-api/api-reference/source-groups/list-source-groups-get): Lists the source groups you can search with the `source_groups` parameter of the Search endpoint. A source group is a ready-made list of publisher domains that the NewsCatcher team builds and maintains for a common use case, such as the top financial news publishers, central banks and regulators, or a region's business press. Instead of listing dozens of domains in `sources`, pass the group's `slug`. Groups are read-only: you can't create or edit them, and NewsCatcher may update their domains over time. The response describes each group but does not list its domains. This endpoint requires an API key and does not count toward your plan's quota.
 
 
 ### API Reference — Aggregation count

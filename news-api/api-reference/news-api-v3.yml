@@ -645,7 +645,7 @@ paths:
         - SourceGroups
       summary: List source groups
       description: |
-        Returns a paginated list of source groups: named, curated collections of publisher domains. Pass a group's `slug` to the `source_groups` parameter of the Search endpoint to restrict a search to the group's domains. Only groups published for general use are listed. This endpoint requires an API key but does not count toward your plan's quota.
+        Lists the source groups you can search with the `source_groups` parameter of the Search endpoint. A source group is a ready-made list of publisher domains that the NewsCatcher team builds and maintains for a common use case, such as the top financial news publishers, central banks and regulators, or a region's business press. Instead of listing dozens of domains in `sources`, pass the group's `slug`. Groups are read-only: you can't create or edit them, and NewsCatcher may update their domains over time. The response describes each group but does not list its domains. This endpoint requires an API key and does not count toward your plan's quota.
       operationId: sourceGroupsGet
       parameters:
         - $ref: "#/components/parameters/SourceGroupsPage"
@@ -905,17 +905,17 @@ components:
 
     SourceGroups:
       description: |
-        One or more source group slugs to restrict the search to the publisher domains of those groups. To specify multiple groups, use a comma-separated string. You can pass up to 20 groups.
+        Restricts the search to one or more source groups, given by slug. A source group is a ready-made list of publisher domains that the NewsCatcher team curates for a common use case, for example `top_100_financial_news` or `financial_regulators_central_banks`. Use it instead of listing the domains yourself in `sources`. To specify multiple groups, use a comma-separated string. You can pass up to 20 groups.
 
-        To get the available slugs, call [List source groups](https://www.newscatcherapi.com/docs/news-api/api-reference/source-groups/list-source-groups-get).
+        To see the available groups, call [List source groups](https://www.newscatcherapi.com/docs/news-api/api-reference/source-groups/list-source-groups-get).
 
-        **Note**: The domains of all groups are merged with `sources` and `predefined_sources`. As with `sources`, the `countries` and `not_countries` filters are ignored when `source_groups` is set.
+        **Note**: The domains of all groups are merged with `sources` and `predefined_sources`, so you can add your own domains on top of a group. As with `sources`, the `countries` and `not_countries` filters are ignored when `source_groups` is set. An unknown slug returns a `422` error.
       name: source_groups
       in: query
       required: false
       schema:
         type: string
-        example: "top_100_us_finance"
+        example: "top_100_financial_news,wires_news_agencies_global"
 
     SourceGroupsPage:
       description: The page number to return, starting from 1.
@@ -3029,7 +3029,7 @@ components:
           title: Total
           description: The total number of source groups across all pages.
           type: integer
-          example: 12
+          example: 21
         page:
           title: Page
           description: The current page number.
@@ -3043,7 +3043,7 @@ components:
 
     SourceGroup:
       title: Source Group
-      description: A named, curated collection of publisher domains.
+      description: A ready-made list of publisher domains, curated and maintained by the NewsCatcher team.
       required:
         - slug
         - name
@@ -3053,19 +3053,19 @@ components:
           title: Slug
           description: The identifier to pass to the `source_groups` parameter of the Search endpoint.
           type: string
-          example: "top_100_us_finance"
+          example: "top_100_financial_news"
         name:
           title: Name
           description: The display name of the group.
           type: string
-          example: "Top 100 US Finance"
+          example: "Top 100 financial news publishers"
         description:
           title: Description
-          description: What the group covers.
+          description: What kind of publishers the group covers.
           type:
             - string
             - "null"
-          example: "Leading US finance and business publishers."
+          example: "The most read finance and markets publishers, English-language."
 
     SourceInfo:
       title: Source Info
@@ -3328,17 +3328,17 @@ components:
     SourceGroups:
       oneOf:
         - type: string
-          example: "top_100_us_finance"
+          example: "top_100_financial_news,wires_news_agencies_global"
         - type: array
           items:
             type: string
-          example: ["top_100_us_finance"]
+          example: ["top_100_financial_news", "wires_news_agencies_global"]
       description: |
-        One or more source group slugs to restrict the search to the publisher domains of those groups. To specify multiple groups, use a comma-separated string or an array of strings. You can pass up to 20 groups.
+        Restricts the search to one or more source groups, given by slug. A source group is a ready-made list of publisher domains that the NewsCatcher team curates for a common use case, for example `top_100_financial_news` or `financial_regulators_central_banks`. Use it instead of listing the domains yourself in `sources`. To specify multiple groups, use a comma-separated string or an array of strings. You can pass up to 20 groups.
 
-        To get the available slugs, call [List source groups](https://www.newscatcherapi.com/docs/news-api/api-reference/source-groups/list-source-groups-get).
+        To see the available groups, call [List source groups](https://www.newscatcherapi.com/docs/news-api/api-reference/source-groups/list-source-groups-get).
 
-        **Note**: The domains of all groups are merged with `sources` and `predefined_sources`. As with `sources`, the `countries` and `not_countries` filters are ignored when `source_groups` is set. An unknown slug, or groups that contain no sources, return a `422` error.
+        **Note**: The domains of all groups are merged with `sources` and `predefined_sources`, so you can add your own domains on top of a group. As with `sources`, the `countries` and `not_countries` filters are ignored when `source_groups` is set. An unknown slug returns a `422` error.
 
     SourceName:
       oneOf:
