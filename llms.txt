@@ -389,6 +389,11 @@ deleted — it becomes unassigned and continues to exist.
 - [Retrieve Sources Get (GET)](https://www.newscatcherapi.com/docs/news-api/api-reference/sources/retrieve-sources-get): Retrieves a list of sources based on specified criteria such as language, country, rank, and more.
 - [Retrieve Sources Post (POST)](https://www.newscatcherapi.com/docs/news-api/api-reference/sources/retrieve-sources-post): Retrieves the list of sources available in the database. You can filter the sources by language, country, and more.
 
+### API Reference — Source groups
+
+- [List Source Groups Get (GET)](https://www.newscatcherapi.com/docs/news-api/api-reference/source-groups/list-source-groups-get): Lists the source groups you can search with the `source_groups` parameter of the Search endpoint. A source group is a ready-made list of publisher domains that the NewsCatcher team builds and maintains for a common use case, such as the top financial news publishers, central banks and regulators, or a region's business press. Instead of listing dozens of domains in `sources`, pass the group's `slug`. Groups are read-only: you can't create or edit them, and NewsCatcher may update their domains over time. The response describes each group but does not list its domains. This endpoint requires an API key and does not count toward your plan's quota.
+
+
 ### API Reference — Aggregation count
 
 - [Get Aggregation Count By Interval Get (GET)](https://www.newscatcherapi.com/docs/news-api/api-reference/aggregation-count/get-aggregation-count-by-interval-get): Retrieves the count of articles aggregated by day or hour based on various search criteria, such as keyword, language, country, and source.

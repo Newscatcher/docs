@@ -21,6 +21,7 @@ might encounter while using the News API:
 | 429         | Too many requests     | Exceeded the allowed rate limit for API requests.                                                       | Implement request throttling and retry with exponential backoff. Consider upgrading your plan for higher limits.                      |
 | 499         | Unknown status code   | Client-side errors that do not fit standard HTTP status codes.                                          | Check for missing fields or incorrect parameters. Follow the [API Reference](/news-api/api-reference/search/search-articles-get). |
 | 500         | Internal server error | Unexpected server-side issue. Could be due to a malformed payload or temporary server issues.           | Retry after a few minutes. Check the [status page](https://status.newscatcherapi.com) for known issues. Validate payload.             |
+| 503         | Service unavailable   | A part of the service is temporarily unavailable, for example the source group catalog. Not charged.   | Retry after a short wait.                                                                                                             |
 
 ### Quick tips
 

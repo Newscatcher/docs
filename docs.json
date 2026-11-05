@@ -478,6 +478,12 @@
                     ]
                   },
                   {
+                    "group": "Source groups",
+                    "pages": [
+                      "news-api/api-reference/source-groups/list-source-groups-get"
+                    ]
+                  },
+                  {
                     "group": "Aggregation count",
                     "pages": [
                       "news-api/api-reference/aggregation-count/get-aggregation-count-by-interval-get",
