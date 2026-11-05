@@ -102,9 +102,9 @@ paths:
         - $ref: "#/components/parameters/SearchIn"
         - $ref: "#/components/parameters/IncludeTranslationFields"
         - $ref: "#/components/parameters/PredefinedSources"
+        - $ref: "#/components/parameters/SourceGroups"
         - $ref: "#/components/parameters/SourceName"
         - $ref: "#/components/parameters/Sources"
-        - $ref: "#/components/parameters/SourceGroups"
         - $ref: "#/components/parameters/NotSources"
         - $ref: "#/components/parameters/Lang"
         - $ref: "#/components/parameters/NotLang"
@@ -1832,12 +1832,12 @@ components:
                 $ref: "#/components/schemas/IncludeTranslationFields"
               predefined_sources:
                 $ref: "#/components/schemas/PredefinedSources"
+              source_groups:
+                $ref: "#/components/schemas/SourceGroups"
               source_name:
                 $ref: "#/components/schemas/SourceName"
               sources:
                 $ref: "#/components/schemas/Sources"
-              source_groups:
-                $ref: "#/components/schemas/SourceGroups"
               not_sources:
                 $ref: "#/components/schemas/NotSources"
               lang:
