@@ -1900,7 +1900,7 @@
                 }
               ]
             },
-            "description": "Leave out these publishers: domains, comma-separated or as an array (at most 100). Only bare domains (`cnn.com`) leave anything out; a list made of subdomains only (`edition.cnn.com`) excludes nothing.",
+            "description": "Leave out these publishers: domains, comma-separated or as an array (at most 100). Only bare domains (`cnn.com`) leave anything out; a list made of subdomains only (`edition.cnn.com`) excludes nothing (as in the v3 API).",
             "example": "reuters.com,bbc.co.uk"
           },
           {
@@ -2032,7 +2032,7 @@
                 }
               ]
             },
-            "description": "Only articles from publishers in these countries: ISO 3166-1 alpha-2 codes, comma-separated or as an array (at most 100). Ignored when `sources` is set.",
+            "description": "Only articles from publishers in these countries: ISO 3166-1 alpha-2 codes, comma-separated or as an array (at most 100). Ignored when `sources` is set (as in the v3 API).",
             "example": "US,GB"
           },
           {
@@ -2065,7 +2065,7 @@
                 }
               ]
             },
-            "description": "Leave out articles from publishers in these countries: ISO 3166-1 alpha-2 codes, comma-separated or as an array (at most 100). Ignored when `sources` is set.",
+            "description": "Leave out articles from publishers in these countries: ISO 3166-1 alpha-2 codes, comma-separated or as an array (at most 100). Ignored when `sources` is set (as in the v3 API).",
             "example": "US,GB"
           },
           {
@@ -2146,7 +2146,7 @@
                 1000
               ]
             },
-            "description": "Only publishers ranked at this position or lower (a larger number): the rank is the publisher's traffic rank, 1 being the best. 1 to 999999. Combined with `sources`, an article that matches either passes.",
+            "description": "Only publishers ranked at this position or lower (a larger number): the rank is the publisher's traffic rank, 1 being the best. 1 to 999999. Combined with `sources`, an article that matches either passes (as in the v3 API).",
             "example": 1000
           },
           {
@@ -2176,7 +2176,7 @@
                 500
               ]
             },
-            "description": "Only articles of at least this many words (`0` is a filter too: articles without a word count are left out); must be lower than `word_count_max`.",
+            "description": "Only articles of at least this many words (`0` is a filter too: articles without a word count are left out, as in the v3 API); must be lower than `word_count_max`.",
             "example": 500
           },
           {
@@ -3541,7 +3541,7 @@
                 ]
               }
             ],
-            "description": "Leave out these publishers: domains, comma-separated or as an array (at most 100). Only bare domains (`cnn.com`) leave anything out; a list made of subdomains only (`edition.cnn.com`) excludes nothing."
+            "description": "Leave out these publishers: domains, comma-separated or as an array (at most 100). Only bare domains (`cnn.com`) leave anything out; a list made of subdomains only (`edition.cnn.com`) excludes nothing (as in the v3 API)."
           },
           "predefined_sources": {
             "anyOf": [
@@ -3649,7 +3649,7 @@
                 ]
               }
             ],
-            "description": "Only articles from publishers in these countries: ISO 3166-1 alpha-2 codes, comma-separated or as an array (at most 100). Ignored when `sources` is set."
+            "description": "Only articles from publishers in these countries: ISO 3166-1 alpha-2 codes, comma-separated or as an array (at most 100). Ignored when `sources` is set (as in the v3 API)."
           },
           "not_countries": {
             "anyOf": [
@@ -3676,7 +3676,7 @@
                 ]
               }
             ],
-            "description": "Leave out articles from publishers in these countries: ISO 3166-1 alpha-2 codes, comma-separated or as an array (at most 100). Ignored when `sources` is set."
+            "description": "Leave out articles from publishers in these countries: ISO 3166-1 alpha-2 codes, comma-separated or as an array (at most 100). Ignored when `sources` is set (as in the v3 API)."
           },
           "sort_by": {
             "type": "string",
@@ -3724,7 +3724,7 @@
             "type": "integer",
             "maximum": 999999.0,
             "minimum": 1.0,
-            "description": "Only publishers ranked at this position or lower (a larger number): the rank is the publisher's traffic rank, 1 being the best. 1 to 999999. Combined with `sources`, an article that matches either passes.",
+            "description": "Only publishers ranked at this position or lower (a larger number): the rank is the publisher's traffic rank, 1 being the best. 1 to 999999. Combined with `sources`, an article that matches either passes (as in the v3 API).",
             "examples": [
               1000
             ]
@@ -3742,7 +3742,7 @@
             "type": "integer",
             "maximum": 1000000.0,
             "minimum": 0.0,
-            "description": "Only articles of at least this many words (`0` is a filter too: articles without a word count are left out); must be lower than `word_count_max`.",
+            "description": "Only articles of at least this many words (`0` is a filter too: articles without a word count are left out, as in the v3 API); must be lower than `word_count_max`.",
             "examples": [
               500
             ]
