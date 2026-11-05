@@ -24,6 +24,10 @@ description: New features and changes to the News API and the agent.
     `/articles`. See [Rate limits](/get-started/rate-limits#check-your-plan).
   - **New error status**: `408` when an `/articles` search runs out of time. It
     is not charged. See [Errors](/get-started/errors).
+  - **Fixed**: when a part of the service does not answer in time, you now get
+    `503` with a `Retry-After` header instead of `500`. The request is not
+    charged and does not count toward your daily request limit. See
+    [Errors](/get-started/errors).
 </Update>
 
 <Update label="October 30, 2026" description="Launch">
