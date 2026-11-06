@@ -389,7 +389,8 @@
                 "pages": [
                   "news-api/get-started/introduction",
                   "news-api/get-started/quickstart",
-                  "news-api/get-started/subscription-plans"
+                  "news-api/get-started/subscription-plans",
+                  "news-api/get-started/changelog"
                 ]
               },
               {

@@ -321,6 +321,7 @@ deleted — it becomes unassigned and continues to exist.
 - [Introduction to News API](https://www.newscatcherapi.com/docs/news-api/get-started/introduction): Programmatic access to a continuously updated index of news articles from sources worldwide.
 - [Quickstart](https://www.newscatcherapi.com/docs/news-api/get-started/quickstart): Make your first News API call in under five minutes.
 - [News API subscription plans](https://www.newscatcherapi.com/docs/news-api/get-started/subscription-plans): Select a News API plan that matches your needs.
+- [News API changelog](https://www.newscatcherapi.com/docs/news-api/get-started/changelog): Track updates, improvements, and fixes to the Enterprise News API.
 
 ### Guides and concepts
 
