@@ -1,17 +1,25 @@
-# Updates the Latest docs (News API and Agent) after a merge into main of
-# agent-service (gitlab.com/newscatcher/ai-agent) or v4-api
-# (gitlab.com/newscatcher/newscatcher-news-api-v4).
+# Updates the docs after a merge into main of one of three services:
+#
+#   Product              GitLab project                        Service folder                          Docs
+#   agent                newscatcher/ai-agent                  Kubernetes_Deployments/agent-service    Latest
+#   news-api             newscatcher/newscatcher-news-api-v4   Kubernetes_Deployments/v4-api           Latest
+#   enterprise-news-api  newscatcher/newscatcher-v3-apis       Kubernetes_Deployments/v3-api-optimized Enterprise
 #
 # Flow:
 #   1. GitLab MR merged into main → GitLab webhook → repository_dispatch
 #      (event_type: gitlab-mr-merge-main). Setup notes at the bottom of this file.
 #   2. This workflow reads the MR, the version and the service's CHANGELOG.md,
-#      README.md, CLAUDE.md/AGENTS.md at the merge commit (GitLab API).
-#   3. Waits until production serves the new version, then syncs the product's
-#      OpenAPI spec with scripts/sync_latest_oas.py (the other spec is left to
-#      its own product's run).
-#   4. Runs the docs agent (AGENT.md + LESSONS.md from ai-configs/agents/
-#      platform-products-docs-update), which edits the pages and changelog.mdx.
+#      README.md, CLAUDE.md/AGENTS.md at the merge commit (GitLab API). An MR that
+#      changes nothing in the service folder is skipped (newscatcher-v3-apis holds
+#      many services).
+#   3. Saves the live spec, waits until production serves the new version, then:
+#      - Latest products: syncs the product's OpenAPI spec with
+#        scripts/sync_latest_oas.py (the other spec is left to its own product's run).
+#      - Enterprise News API: saves the live spec again. The spec in the docs
+#        (news-api/api-reference/news-api-v3.yml) is hand-edited by the agent from
+#        the before/after difference, never replaced.
+#   4. Runs the product's docs agent (AGENT.md + LESSONS.md from ai-configs/agents/
+#      <agent name>), which edits the pages and the product's changelog.
 #   5. Regenerates llms.txt and sitemap.xml, commits, opens a docs PR for review.
 #   6. Opens a GitLab MR on ai-configs when the agent added to LESSONS.md.
 
@@ -23,7 +31,7 @@ on:
   workflow_dispatch:
     inputs:
       mr_url:
-        description: "GitLab MR URL of the Agent or News API repo (e.g. https://gitlab.com/newscatcher/ai-agent/-/merge_requests/57)"
+        description: "GitLab MR URL of the Agent, News API or v3 APIs repo (e.g. https://gitlab.com/newscatcher/ai-agent/-/merge_requests/57)"
         required: true
         type: string
       any_mr:
@@ -32,14 +40,14 @@ on:
         default: false
         type: boolean
       wait_minutes:
-        description: "How long to wait for production to serve the new version (0 = don't wait)"
+        description: "How long to wait for production to serve the new version, in minutes (empty = the product's default: 45, or 5 for the Enterprise News API; 0 = don't wait)"
         required: false
-        default: "45"
+        default: ""
         type: string
 
 concurrency:
   # One run per product at a time, whether started by the webhook or by hand.
-  group: latest-docs-${{ (contains(inputs.mr_url, '/ai-agent/') || github.event.client_payload.project == 'newscatcher/ai-agent') && 'agent' || 'news-api' }}
+  group: latest-docs-${{ (contains(inputs.mr_url, '/ai-agent/') || github.event.client_payload.project == 'newscatcher/ai-agent') && 'agent' || ((contains(inputs.mr_url, '/newscatcher-v3-apis/') || github.event.client_payload.project == 'newscatcher/newscatcher-v3-apis') && 'enterprise-news-api' || 'news-api') }}
   cancel-in-progress: false
 
 jobs:
@@ -55,7 +63,6 @@ jobs:
       GITLAB_BRANCH: "main"
       GITLAB_PROJECT: ${{ secrets.GITLAB_PROJECT }}
       API_HOST: "https://api.newscatcherapi.com"
-      AGENT_DIR: "/tmp/agents/platform-products-docs-update"
       RELEASE_DIR: "/tmp/release"
       CLAUDE_MODEL: "claude-opus-5-5"
 
@@ -83,6 +90,7 @@ jobs:
           # One project access token per source repo, so each is easy to tell apart and rotate.
           GITLAB_AGENT_PAT: ${{ secrets.GITLAB_AGENT_PAT }}
           GITLAB_NEWS_API_PAT: ${{ secrets.GITLAB_NEWS_API_PAT }}
+          GITLAB_V3_APIS_PAT: ${{ secrets.GITLAB_V3_APIS_PAT }}
           EVENT_NAME: ${{ github.event_name }}
           PAYLOAD_PROJECT: ${{ github.event.client_payload.project }}
           PAYLOAD_MR_IID: ${{ github.event.client_payload.mr_iid }}
@@ -104,16 +112,44 @@ jobs:
             fi
           fi
 
+          # Per product:
+          #   VERSION_FILE  file in SERVICE_PATH that holds __version__ = "x.y.z"
+          #   SPEC_PATH     the product's spec in this repo
+          #   LIVE_SPEC_URL production spec, polled until info.version == release
+          #   SPEC_MODE     sync: scripts/sync_latest_oas.py rewrites SPEC_PATH
+          #                 manual: the agent hand-edits SPEC_PATH from the live spec diff
+          #   AGENT_NAME    folder in ai-configs/agents with AGENT.md and LESSONS.md
+          #   DOCS_SET      Latest or Enterprise (commit message and PR title)
+          #   WAIT_DEFAULT  minutes to wait for the deploy when wait_minutes is not given
+          WAIT_DEFAULT=45
           case "$PROJECT" in
             newscatcher/ai-agent)
               PRODUCT="agent"; PRODUCT_NAME="Agent"
               SERVICE_PATH="Kubernetes_Deployments/agent-service"
+              VERSION_FILE="__version__.py"
+              SPEC_PATH="api-reference/agent/openapi.json"
+              LIVE_SPEC_URL="${API_HOST}/agent/openapi.json"
+              SPEC_MODE="sync"; AGENT_NAME="platform-products-docs-update"; DOCS_SET="Latest"
               GITLAB_SOURCE_PAT="$GITLAB_AGENT_PAT"; TOKEN_NAME="GITLAB_AGENT_PAT" ;;
             # Renamed from newscatcher-prod-news-api-v4; old clones and URLs still use that name.
             newscatcher/newscatcher-news-api-v4|newscatcher/newscatcher-prod-news-api-v4)
               PRODUCT="news-api"; PRODUCT_NAME="News API"
               SERVICE_PATH="Kubernetes_Deployments/v4-api"
+              VERSION_FILE="__version__.py"
+              SPEC_PATH="api-reference/news-api/openapi.json"
+              LIVE_SPEC_URL="${API_HOST}/news-api/openapi.json"
+              SPEC_MODE="sync"; AGENT_NAME="platform-products-docs-update"; DOCS_SET="Latest"
               GITLAB_SOURCE_PAT="$GITLAB_NEWS_API_PAT"; TOKEN_NAME="GITLAB_NEWS_API_PAT" ;;
+            newscatcher/newscatcher-v3-apis)
+              PRODUCT="enterprise-news-api"; PRODUCT_NAME="Enterprise News API"
+              SERVICE_PATH="Kubernetes_Deployments/v3-api-optimized"
+              VERSION_FILE="configs/version.py"
+              SPEC_PATH="news-api/api-reference/news-api-v3.yml"
+              LIVE_SPEC_URL="https://v3-api.newscatcherapi.com/docs/openapi.json"
+              SPEC_MODE="manual"; AGENT_NAME="enterprise-news-api-docs-update"; DOCS_SET="Enterprise"
+              # Jenkins deploys v3-api-optimized within about 5 minutes of the merge.
+              WAIT_DEFAULT=5
+              GITLAB_SOURCE_PAT="$GITLAB_V3_APIS_PAT"; TOKEN_NAME="GITLAB_V3_APIS_PAT" ;;
             *)
               echo "::error::Unknown GitLab project '${PROJECT}'"; exit 1 ;;
           esac
@@ -184,27 +220,46 @@ jobs:
           fi
           rm -f changes.full.diff diffs.json
 
-          # Service files at the merge commit. Only __version__.py is required.
-          for f in __version__.py CHANGELOG.md README.md CLAUDE.md AGENTS.md; do
+          # Service files at the merge commit. Only the version file is required.
+          # Each is saved under its base name (configs/version.py -> version.py).
+          for f in "$VERSION_FILE" CHANGELOG.md README.md CLAUDE.md AGENTS.md; do
+            out=$(basename "$f")
             enc=$(jq -rn --arg p "${SERVICE_PATH}/${f}" '$p|@uri')
-            code=$(curl -sS -o "$f" -w '%{http_code}' -H "PRIVATE-TOKEN: $GITLAB_SOURCE_PAT" \
+            code=$(curl -sS -o "$out" -w '%{http_code}' -H "PRIVATE-TOKEN: $GITLAB_SOURCE_PAT" \
               "${API}/repository/files/${enc}/raw?ref=${SHA}")
-            if [ "$code" = "200" ]; then echo "Fetched ${f}"; else rm -f "$f"; echo "No ${f} (HTTP ${code})"; fi
+            if [ "$code" = "200" ]; then echo "Fetched ${f}"; else rm -f "$out"; echo "No ${f} (HTTP ${code})"; fi
           done
 
-          RELEASE_VERSION=$(grep -oP '__version__\s*=\s*"\K[^"]+' __version__.py | head -1 || true)
+          VERSION_BASENAME=$(basename "$VERSION_FILE")
+          RELEASE_VERSION=$(grep -oP '__version__\s*=\s*"\K[^"]+' "$VERSION_BASENAME" | head -1 || true)
           if [ -z "$RELEASE_VERSION" ]; then
-            echo "::error::Could not read __version__ from ${SERVICE_PATH}/__version__.py at ${SHA}"; exit 1
+            echo "::error::Could not read __version__ from ${SERVICE_PATH}/${VERSION_FILE} at ${SHA}"; exit 1
           fi
-          rm -f __version__.py
+          rm -f "$VERSION_BASENAME"
 
-          SPEC_PATH="api-reference/${PRODUCT}/openapi.json"
-          cp "${GITHUB_WORKSPACE}/${SPEC_PATH}" spec-before.json
-          PREVIOUS_VERSION=$(jq -r '.info.version' spec-before.json)
+          # The docs spec as it was before this run (JSON for Latest, YAML for Enterprise).
+          SPEC_EXT="${SPEC_PATH##*.}"
+          cp "${GITHUB_WORKSPACE}/${SPEC_PATH}" "spec-before.${SPEC_EXT}"
+          PREVIOUS_VERSION=$(python -c 'import sys, json, yaml; p = sys.argv[1]; f = open(p, encoding="utf-8"); d = json.load(f) if p.endswith(".json") else yaml.safe_load(f); print(d["info"]["version"])' "spec-before.${SPEC_EXT}")
+
+          # Production's spec before the deploy (normally still the previous release).
+          # Enterprise uses it with live-spec-after.json to see what changed.
+          if curl -sSf -m 30 "$LIVE_SPEC_URL" -o live-spec-before.json; then
+            echo "Saved live spec before the deploy: $(jq -r '.info.version' live-spec-before.json)"
+          else
+            rm -f live-spec-before.json
+            echo "::warning::Could not fetch ${LIVE_SPEC_URL} before the deploy."
+          fi
 
           {
             echo "PRODUCT=${PRODUCT}"
             echo "PRODUCT_NAME=${PRODUCT_NAME}"
+            echo "LIVE_SPEC_URL=${LIVE_SPEC_URL}"
+            echo "SPEC_MODE=${SPEC_MODE}"
+            echo "AGENT_NAME=${AGENT_NAME}"
+            echo "AGENT_DIR=/tmp/agents/${AGENT_NAME}"
+            echo "DOCS_SET=${DOCS_SET}"
+            echo "WAIT_DEFAULT=${WAIT_DEFAULT}"
             echo "MR_IID=${MR_IID}"
             echo "MR_URL=${MR_URL}"
             echo "RELEASE_VERSION=${RELEASE_VERSION}"
@@ -220,15 +275,22 @@ jobs:
       - name: Wait for production to serve the new version
         if: steps.resolve.outputs.skip != 'true'
         env:
-          WAIT_MINUTES: ${{ inputs.wait_minutes || '45' }}
+          WAIT_INPUT: ${{ inputs.wait_minutes }}
         run: |
           set -uo pipefail
+          WAIT_MINUTES="${WAIT_INPUT:-$WAIT_DEFAULT}"
+          if ! [[ "$WAIT_MINUTES" =~ ^[0-9]+$ ]]; then
+            echo "::error::wait_minutes must be a whole number, got '${WAIT_MINUTES}'"; exit 1
+          fi
+          echo "Waiting up to ${WAIT_MINUTES} minutes for ${RELEASE_VERSION}."
           deadline=$(( $(date +%s) + WAIT_MINUTES * 60 ))
           while :; do
-            live=$(curl -sSf -m 30 "${API_HOST}/${PRODUCT}/openapi.json" | jq -r '.info.version' 2>/dev/null || echo "unreachable")
+            live=$(curl -sSf -m 30 "$LIVE_SPEC_URL" | jq -r '.info.version' 2>/dev/null || echo "unreachable")
             if [ "$live" = "$RELEASE_VERSION" ]; then
               echo "Production serves ${PRODUCT} ${live}"
               echo "SPEC_LIVE=true" >> "$GITHUB_ENV"
+              curl -sSf -m 30 "$LIVE_SPEC_URL" -o "${RELEASE_DIR}/live-spec-after.json" \
+                || echo "::warning::Could not save the live spec after the deploy."
               break
             fi
             if [ "$(date +%s)" -ge "$deadline" ]; then
@@ -240,9 +302,10 @@ jobs:
             sleep 60
           done
 
-      # The sync script always fetches both specs. Only this product's spec is
-      # kept, so an Agent PR never carries an undocumented News API change (or
-      # the reverse); that product's own run documents its spec.
+      # The sync script always fetches both Latest specs. Only this product's spec
+      # is kept, so an Agent PR never carries an undocumented News API change (or
+      # the reverse); that product's own run documents its spec. The Enterprise
+      # spec is never synced: its agent edits it by hand.
       - name: Create the docs branch and sync this product's OpenAPI spec
         if: steps.resolve.outputs.skip != 'true'
         run: |
@@ -250,6 +313,10 @@ jobs:
           git config user.name "docs-update-bot"
           git config user.email "bot@newscatcherapi.com"
           git checkout -B "$BRANCH" origin/main
+          if [ "$SPEC_MODE" != "sync" ]; then
+            echo "${SPEC_PATH} is edited by the agent; no sync."
+            exit 0
+          fi
           python scripts/sync_latest_oas.py --base "$API_HOST"
           for spec in api-reference/*/openapi.json; do
             if [ "$spec" != "$SPEC_PATH" ] && ! git diff --quiet -- "$spec"; then
@@ -269,7 +336,7 @@ jobs:
           mkdir -p "$AGENT_DIR"
           for f in AGENT.md LESSONS.md; do
             curl -sSf -H "PRIVATE-TOKEN: $GITLAB_PAT" \
-              "${GITLAB_BASE}/${GITLAB_PROJECT}/repository/files/agents%2Fplatform-products-docs-update%2F${f}/raw?ref=${GITLAB_BRANCH}" \
+              "${GITLAB_BASE}/${GITLAB_PROJECT}/repository/files/agents%2F${AGENT_NAME}%2F${f}/raw?ref=${GITLAB_BRANCH}" \
               -o "${AGENT_DIR}/${f}"
           done
           head -5 "${AGENT_DIR}/AGENT.md"
@@ -313,7 +380,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m "Docs | Update Latest docs for ${PRODUCT_NAME} ${RELEASE_VERSION}" \
+          git commit -m "Docs | Update ${DOCS_SET} docs for ${PRODUCT_NAME} ${RELEASE_VERSION}" \
                      -m "Source MR: ${MR_URL}"
           git push --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/${BRANCH}"
 
@@ -322,8 +389,8 @@ jobs:
             printf '## %s %s: docs update\n\nSource MR: %s\n\nThe agent wrote no PR body. Review the diff by hand.\n' \
               "$PRODUCT_NAME" "$RELEASE_VERSION" "$MR_URL" > "$BODY_FILE"
           fi
-          printf '\n---\nWorkflow run: %s/%s/actions/runs/%s\n\n🤖 Generated by the platform-products-docs-update agent\n' \
-            "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" >> "$BODY_FILE"
+          printf '\n---\nWorkflow run: %s/%s/actions/runs/%s\n\n🤖 Generated by the %s agent\n' \
+            "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" "$AGENT_NAME" >> "$BODY_FILE"
 
           TITLE="Docs | ${PRODUCT_NAME} ${RELEASE_VERSION}"
           EXISTING=$(gh pr list --head "$BRANCH" --state open --json number -q '.[0].number')
@@ -345,9 +412,13 @@ jobs:
         run: |
           set -uo pipefail
 
+          if [ -z "${AGENT_NAME:-}" ]; then
+            echo "The product was never resolved. Nothing to push."
+            exit 0
+          fi
           LESSONS="${AGENT_DIR}/LESSONS.md"
           ORIGINAL="${LESSONS}.original"
-          FILE_PATH="agents%2Fplatform-products-docs-update%2FLESSONS.md"
+          FILE_PATH="agents%2F${AGENT_NAME}%2FLESSONS.md"
           PROJECT_API="${GITLAB_BASE}/${GITLAB_PROJECT}"
           LABEL="${PRODUCT:-unknown}-v${RELEASE_VERSION:-unknown}"
 
@@ -379,7 +450,7 @@ jobs:
             exit 0
           fi
 
-          BRANCH_NAME="docs-agent/platform-lessons-${LABEL}-${GITHUB_RUN_ID}"
+          BRANCH_NAME="docs-agent/${AGENT_NAME}-lessons-${LABEL}-${GITHUB_RUN_ID}"
 
           api POST "${PROJECT_API}/repository/branches" \
             "$(jq -n --arg branch "$BRANCH_NAME" --arg ref "$GITLAB_BRANCH" '{branch: $branch, ref: $ref}')" \
@@ -387,14 +458,14 @@ jobs:
 
           api PUT "${PROJECT_API}/repository/files/${FILE_PATH}" \
             "$(jq -n --arg branch "$BRANCH_NAME" --arg content "$(base64 -w 0 "$LESSONS")" \
-                 --arg msg "docs-agent: update platform LESSONS.md after ${LABEL} run" \
+                 --arg msg "docs-agent: update ${AGENT_NAME} LESSONS.md after ${LABEL} run" \
                  '{branch: $branch, encoding: "base64", content: $content, commit_message: $msg}')" \
             || { echo "::error::Could not commit LESSONS.md to ${BRANCH_NAME}"; exit 1; }
 
           api POST "${PROJECT_API}/merge_requests" \
             "$(jq -n --arg source "$BRANCH_NAME" --arg target "$GITLAB_BRANCH" \
-                 --arg title "docs-agent: platform LESSONS.md update after ${LABEL} run" \
-                 --arg desc "Automated LESSONS.md update from the Latest docs agent (${LABEL}). Run: ${RUN_URL}. Please review the added lessons before merging." \
+                 --arg title "docs-agent: ${AGENT_NAME} LESSONS.md update after ${LABEL} run" \
+                 --arg desc "Automated LESSONS.md update from the ${AGENT_NAME} docs agent (${LABEL}). Run: ${RUN_URL}. Please review the added lessons before merging." \
                  '{source_branch: $source, target_branch: $target, title: $title, description: $desc, remove_source_branch: true}')" \
             || { echo "::error::Could not open the merge request"; exit 1; }
 
@@ -412,8 +483,14 @@ jobs:
 #   GITLAB_NEWS_API_PAT  — NEW. Project access token on
 #                          newscatcher/newscatcher-news-api-v4: role Reporter,
 #                          scope read_api.
+#   GITLAB_V3_APIS_PAT   — NEW. Project access token on
+#                          newscatcher/newscatcher-v3-apis: role Reporter,
+#                          scope read_api.
 #
-# GitLab webhook, once in EACH source project
+# ai-configs needs agents/enterprise-news-api-docs-update/{AGENT.md,LESSONS.md}
+# next to agents/platform-products-docs-update.
+#
+# GitLab webhook, once in EACH source project (all three)
 # (Settings → Webhooks → Add new webhook):
 #
 #   URL:      https://api.github.com/repos/Newscatcher/docs/dispatches

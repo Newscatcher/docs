@@ -1,0 +1,234 @@
+---
+title: News API changelog
+sidebarTitle: Changelog
+description: Track updates, improvements, and fixes to the Enterprise News API.
+rss: true
+---
+
+<Update label="3.25.0" description="2026-11-06">
+## Source groups
+
+- **Source groups**: search ready-made lists of publishers that the NewsCatcher
+  team curates for common use cases, such as top financial news or central
+  banks and regulators. Pass one or more slugs in the new `source_groups`
+  parameter of [Search](/news-api/api-reference/search/search-articles-get),
+  and list the available groups with
+  [`GET /api/source-groups`](/news-api/api-reference/source-groups/list-source-groups-get).
+- **Fixed**: `COUNT("Apple", 2, "gt")` in the `*_entity_name` parameters now
+  returns the articles that mention the entity more often than the given count.
+  A malformed `COUNT` call returns `422`. See
+  [Search by entity](/news-api/how-to/search-by-entity).
+- **Fixed**: with `by_parse_date=true`, the
+  [Aggregation count](/news-api/api-reference/aggregation-count/get-aggregation-count-by-interval-get)
+  endpoint counts articles per interval by parse date, the same date it
+  filters on.
+</Update>
+
+<Update label="3.24.0" description="2026-10-22">
+## Faster responses and fewer failed requests
+
+- **Performance**: major improvements of latency and response time across all
+  endpoints.
+- **Refunds**: a request that fails with `503` because the search backend
+  could not be reached is no longer counted against your quota. Such a request
+  is also retried once automatically before the error is returned.
+- **Languages**: `lang=zh` and `not_lang=zh` are accepted and searched as
+  Chinese (China), `cn`. See
+  [Enumerated parameters](/news-api/api-reference/enumerated-parameters).
+- **Fixed**: an article tagged with both an IPTC tag and one of its child tags
+  no longer makes the whole page come back empty.
+</Update>
+
+<Update label="3.23.0" description="2026-10-09">
+## Translations in Search by link
+
+- **Search by link**: the `include_translation_fields` parameter adds the
+  English translation fields to each article. See
+  [Search by link](/news-api/api-reference/search-by-link/search-articles-by-links-or-ids-get).
+- **Fixed**: on plans with embeddings, Search by link returns
+  `nlp.qwen_embedding` for articles from January 1, 2026, onward. It returned
+  no embedding for these articles before.
+</Update>
+
+<Update label="3.22.0" description="2026-10-06">
+## Clearer free trial limits
+
+- **Free trial**: a free trial key that has expired or used all its calls gets
+  `403` with a message that says which limit was reached, instead of `401`.
+</Update>
+
+<Update label="3.21.0" description="2026-10-01">
+## Updated predefined sources
+
+- **`predefined_sources`**: the top publishers per country now come from a new,
+  re-ranked list. A request such as `predefined_sources=top 100 US` can return
+  a different set of publishers than before.
+</Update>
+
+<Update label="3.20.0" description="2026-09-24">
+## Search similar retired
+
+- **Breaking**: `/api/search_similar`, deprecated earlier this year, is
+  retired. Every request returns `410 Gone`. Use
+  [Search](/news-api/api-reference/search/search-articles-get) instead.
+- **Fixed**: `not_theme` no longer drops articles without NLP data. It now
+  removes only the articles that carry the excluded theme.
+</Update>
+
+<Update label="3.19.1" description="2026-09-08">
+## Fixes
+
+- **Fixed**: when the search backend cannot be reached, the API returns `503`.
+  It returned `408` or an empty `200` before. `408` now means only that the
+  query took too long. See [Errors](/news-api/api-reference/errors).
+</Update>
+
+<Update label="3.19.0" description="2026-09-03">
+## Retry-After header
+
+- **Rate limits**: `429` responses include a `Retry-After` header that says
+  how many seconds to wait. Requests that stay within your limit get fewer
+  `429` responses. See [Rate limits](/news-api/api-reference/rate-limits).
+- **Fixed**: a server that is too busy answers `503` right away instead of
+  `408` after 30 seconds, and `408` messages now say what timed out.
+- **Fixed**: a `q` with an unbalanced quotation mark returns `422`. It returned
+  an empty `200` before.
+</Update>
+
+<Update label="3.18.1" description="2026-08-17">
+## Fixes
+
+- **Fixed**: requests no longer fail with `408` under load when the query
+  itself is fast.
+</Update>
+
+<Update label="3.18.0" description="2026-08-04">
+## Free trial content preview
+
+- **Free trial**: articles include `is_content_truncated: true` when `content`
+  is cut to a preview, and the preview ends with `...`. The `highlight` field
+  is not returned on the free trial.
+</Update>
+
+<Update label="3.17.0" description="2026-07-28">
+## Free trial plan
+
+- **Free trial**: a new plan to try the API. `content` and its translation are
+  cut to a 300-character preview. All `search_in` fields are available. See
+  [Subscription plans](/news-api/get-started/subscription-plans).
+</Update>
+
+<Update label="3.16.0" description="2026-07-01">
+## Sources and source rank combined
+
+- **`sources` with `from_rank` and `to_rank`**: you can combine a list of
+  sources, or `predefined_sources`, with a rank range. You get the articles
+  from the listed sources and from the sources in the rank range. The rank
+  range was ignored when `sources` was set before.
+- **Fixed**: `ranked_only` is no longer ignored when `sources` is set.
+</Update>
+
+<Update label="3.15.3" description="2026-06-10">
+## Fixes
+
+- **Fixed**: boolean parameters such as `is_news_domain`, `is_headline` and
+  `include_additional_info` accept `true` and `false` in any letter case.
+  Other values return `422`.
+</Update>
+
+<Update label="3.15.2" description="2026-05-11">
+## Fixes
+
+- **Fixed**: `has_nlp=true` returns every article that has NLP data, not only
+  the articles with a summary in their original language.
+</Update>
+
+<Update label="3.15.1" description="2026-04-23">
+## Fixes
+
+- **Fixed**: `from_` and `to_` values with a time zone, such as
+  `2026-04-01T00:00:00+02:00`, are converted to UTC.
+</Update>
+
+<Update label="3.15.0" description="2026-04-21">
+## Source logos
+
+- **Sources**: the `logo` field is filled in for many more publishers. See
+  [Sources](/news-api/api-reference/sources/retrieve-sources-get).
+</Update>
+
+<Update label="3.14.0" description="2026-04-15">
+## New embeddings for 2026 articles
+
+- **Embeddings**: on plans with embeddings, results for date ranges from
+  January 1, 2026, onward return `nlp.qwen_embedding`. Earlier date ranges
+  still return `nlp.new_embedding`. See
+  [NLP enrichments](/news-api/guides-and-concepts/nlp-enrichments).
+- **Fixed**: a quoted phrase inside `NEAR` matches the exact phrase. It allowed
+  one extra word in between before.
+</Update>
+
+<Update label="3.13.1" description="2026-03-13">
+## Fixes
+
+- **Fixed**: a POST request with invalid JSON returns `422` with a message
+  about the JSON syntax. It returned `500` before.
+- **Fixed**: unexpected server errors return a JSON body with a message.
+</Update>
+
+<Update label="3.13.0" description="2026-02-18">
+## Clustering for 2026 articles
+
+- **Clustering**: for date ranges from January 1, 2026, onward, clustering uses
+  new embeddings, and the default `clustering_threshold` is `0.7`.
+  `clustering_variable` has no effect on these ranges. See
+  [Clustering](/news-api/guides-and-concepts/clustering-news-articles).
+- **New error**: `clustering_enabled=true` with a date range that spans
+  January 1, 2026, returns `422`. Split the request into two ranges.
+</Update>
+
+<Update label="3.12.0" description="2026-01-15">
+## Search by link text
+
+- **`all_links_text`**: a new filter that finds articles by the text of the
+  links they contain. Matching articles include `all_links_data` with each
+  link, its domain and its text.
+- **Fixed**: `all_links` and `all_domain_links` also match recent articles,
+  and return these fields for them.
+</Update>
+
+<Update label="3.11.0" description="2025-12-26">
+## Robots.txt compliance per source
+
+- **Sources**: with `include_additional_info=true`, each source includes
+  `robots_compliant`, its robots.txt compliance as a percentage such as
+  `"100%"`.
+</Update>
+
+<Update label="3.10.0" description="2025-12-11">
+## More languages
+
+- **Languages**: `lang` and `not_lang` accept about 120 ISO 639-1 codes, up
+  from about 60. Codes such as `am`, `hy`, `ka`, `kk`, `my` and `uz` no longer
+  return `422`. See
+  [Enumerated parameters](/news-api/api-reference/enumerated-parameters).
+</Update>
+
+<Update label="3.9.2" description="2025-12-10">
+## Fixes
+
+- **Fixed**: `theme` and `not_theme` are case-insensitive and accept
+  multi-word themes such as `Financial Crime`.
+- **Fixed**: `exclude_duplicates=true` no longer drops articles that were not
+  checked for duplicates yet.
+- **Fixed**: with several languages in `lang`, every field in `search_in` is
+  searched, not only the first one.
+</Update>
+
+<Update label="3.9.1" description="2025-11-17">
+## Fixes
+
+- **Fixed**: `NEAR` with a multi-word phrase, such as
+  `NEAR("artificial intelligence", "regulation", 15)`, no longer returns
+  `422`. See [Advanced querying](/news-api/guides-and-concepts/advanced-querying).
+</Update>
