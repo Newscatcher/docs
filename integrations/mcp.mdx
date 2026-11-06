@@ -1,0 +1,421 @@
+---
+title: MCP server
+description: Use the News API and the agent from Claude, Cursor and other MCP clients.
+---
+
+The NewsCatcher MCP server lets an AI assistant search the news and run the
+[agent](/agent/overview) for you. Ask in plain language; the assistant picks the
+tools, and answers with headlines, summaries, sources and links.
+
+- **News**: ranked search in every language, every article that matches a
+  query over 12 months, article counts over time, and the coverage of one
+  story.
+- **Agent**: verified tables of events, news about a list of companies, saved
+  company lists and monitors that bring only what is new.
+
+The server is hosted at `https://mcp.newscatcherapi.com/mcp` and is open
+source: [Newscatcher/newscatcher-mcp](https://github.com/Newscatcher/newscatcher-mcp).
+
+<Note>
+  The tools are not a copy of the API. Each one is built for an assistant: it
+  may call several endpoints and returns compact text instead of the full
+  JSON. To build an application, call the [News API](/news/quickstart) or the
+  [agent](/agent/quickstart) directly.
+</Note>
+
+## Before you start
+
+- A NewsCatcher API key from the
+  [platform](https://platform.newscatcherapi.com). It is the same key you use
+  for the API, and tool calls draw on the same credit balance.
+- An MCP client that supports remote (HTTP) servers: Claude, Cursor, VS Code,
+  Windsurf, Codex, Gemini CLI and most others.
+
+## Authentication
+
+Send your key with every request, in one of these ways:
+
+| How | When to use it |
+|---|---|
+| `x-api-key: YOUR_API_KEY` header | Recommended, for every client that can send headers |
+| `Authorization: Bearer YOUR_API_KEY` header | Clients that only send bearer tokens |
+| `?apiKey=YOUR_API_KEY` on the server URL | Clients with no field for headers, such as Claude.ai custom connectors |
+
+A header wins over `?apiKey=` when both are set. A request without a key gets
+`401`.
+
+<Warning>
+  A key in the URL can end up in logs and screenshots. Use a header when your
+  client allows it, and never commit a configuration file that holds your key.
+  Use a separate key for the MCP server, so you can revoke it without touching
+  your applications.
+</Warning>
+
+<Info>
+  OAuth sign-in is coming soon. You will then connect with your NewsCatcher
+  account instead of pasting an API key, and the key in the URL will no longer
+  be needed.
+</Info>
+
+## Connect to Claude
+
+<Tabs>
+  <Tab title="Claude Code plugin">
+    The plugin connects Claude Code to the server and adds ready-made
+    [skills](#plugins-and-skills) for common news tasks.
+
+    <Steps>
+      <Step title="Add the marketplace">
+        In Claude Code, run:
+
+        ```text
+        /plugin marketplace add Newscatcher/newscatcher-mcp
+        ```
+      </Step>
+      <Step title="Install the plugin">
+        ```text
+        /plugin install newscatcher@newscatcher
+        ```
+
+        Claude Code asks for your API key once and keeps it in your system
+        keychain.
+      </Step>
+      <Step title="Test it">
+        Start a new session and ask: "Check my NewsCatcher account." This calls
+        `get_account`, which is free, and shows your plan and balance.
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="Claude Code">
+    To add only the server, without the skills, run:
+
+    ```bash
+    claude mcp add --transport http newscatcher \
+      https://mcp.newscatcherapi.com/mcp \
+      --header "x-api-key: YOUR_API_KEY"
+    ```
+
+    Run `/mcp` in a session to check that `newscatcher` is connected. Then ask:
+    "Check my NewsCatcher account."
+  </Tab>
+
+  <Tab title="Claude.ai and Claude Desktop">
+    <Steps>
+      <Step title="Open connectors">
+        Go to [claude.ai/customize/connectors](https://claude.ai/customize/connectors),
+        or **Settings > Connectors** in Claude Desktop. Click **+** and select
+        **Add custom connector**.
+      </Step>
+      <Step title="Add the server">
+        - **Name**: `NewsCatcher`
+        - **Remote MCP server URL**:
+
+        ```text
+        https://mcp.newscatcherapi.com/mcp?apiKey=YOUR_API_KEY
+        ```
+
+        Custom connectors cannot send headers, so the key goes in the URL.
+      </Step>
+      <Step title="Test it">
+        Open a new chat and ask: "Check my NewsCatcher account."
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+## Connect to other clients
+
+<Tabs>
+  <Tab title="Cursor">
+    Add to `~/.cursor/mcp.json`:
+
+    ```json
+    {
+      "mcpServers": {
+        "newscatcher": {
+          "type": "http",
+          "url": "https://mcp.newscatcherapi.com/mcp?client=cursor",
+          "headers": { "x-api-key": "YOUR_API_KEY" }
+        }
+      }
+    }
+    ```
+  </Tab>
+
+  <Tab title="VS Code">
+    Add to `.vscode/mcp.json`. VS Code asks for the key the first time and
+    stores it, so it never lands in a file you might commit:
+
+    ```json
+    {
+      "inputs": [
+        {
+          "type": "promptString",
+          "id": "newscatcher-api-key",
+          "description": "NewsCatcher API key",
+          "password": true
+        }
+      ],
+      "servers": {
+        "newscatcher": {
+          "type": "http",
+          "url": "https://mcp.newscatcherapi.com/mcp",
+          "headers": { "x-api-key": "${input:newscatcher-api-key}" }
+        }
+      }
+    }
+    ```
+  </Tab>
+
+  <Tab title="Codex">
+    Add to `~/.codex/config.toml`, with your key in the `NEWSCATCHER_API_KEY`
+    environment variable:
+
+    ```toml
+    [mcp_servers.newscatcher]
+    url = "https://mcp.newscatcherapi.com/mcp"
+    bearer_token_env_var = "NEWSCATCHER_API_KEY"
+    ```
+  </Tab>
+
+  <Tab title="Windsurf">
+    Add to `~/.codeium/windsurf/mcp_config.json`:
+
+    ```json
+    {
+      "mcpServers": {
+        "newscatcher": {
+          "serverUrl": "https://mcp.newscatcherapi.com/mcp",
+          "headers": { "x-api-key": "YOUR_API_KEY" }
+        }
+      }
+    }
+    ```
+  </Tab>
+
+  <Tab title="Gemini CLI">
+    Add to `~/.gemini/settings.json`:
+
+    ```json
+    {
+      "mcpServers": {
+        "newscatcher": {
+          "httpUrl": "https://mcp.newscatcherapi.com/mcp",
+          "headers": { "x-api-key": "YOUR_API_KEY" }
+        }
+      }
+    }
+    ```
+  </Tab>
+
+  <Tab title="Other clients">
+    For a client that supports remote MCP servers with headers:
+
+    ```json
+    {
+      "mcpServers": {
+        "newscatcher": {
+          "url": "https://mcp.newscatcherapi.com/mcp",
+          "headers": { "x-api-key": "YOUR_API_KEY" }
+        }
+      }
+    }
+    ```
+
+    For a client that only runs local servers, use the `mcp-remote` proxy
+    (needs Node.js):
+
+    ```json
+    {
+      "mcpServers": {
+        "newscatcher": {
+          "command": "npx",
+          "args": [
+            "mcp-remote",
+            "https://mcp.newscatcherapi.com/mcp",
+            "--header",
+            "x-api-key:YOUR_API_KEY"
+          ]
+        }
+      }
+    }
+    ```
+
+    Write the header as `x-api-key:YOUR_API_KEY`, with no space after the
+    colon.
+  </Tab>
+</Tabs>
+
+Restart the client after you change its configuration file.
+
+## Plugins and skills
+
+The [repository](https://github.com/Newscatcher/newscatcher-mcp) includes a
+plugin for Claude Code, with manifests for Codex and Cursor. It has:
+
+- **The server connection**, with your key kept in the keychain (Claude Code)
+  or read from `NEWSCATCHER_API_KEY` (Codex).
+- **53 skills**. Each one tells the assistant which tools to call for a task
+  and how to present the result.
+- **A `news-researcher` subagent** for research that takes several searches.
+  It returns a short, cited brief and keeps the searches out of your main
+  conversation.
+
+You do not call skills by name: ask for the task, and the assistant loads the
+matching skill.
+
+<Accordion title="What the skills cover">
+  | Area | Skills |
+  |---|---|
+  | Briefings | News briefing, weekly digest, breaking news, market-moving news, story deep dive, event timeline, local news, multilingual news |
+  | Companies and people | Company brief, company watchlist, competitor intelligence, person profile, executive moves, startup discovery |
+  | Risk | Adverse media screening, sanctions watch, supplier risk, geopolitical risk, ESG controversies, cyber incidents, litigation, regulatory changes, bankruptcy and distress, recalls and safety, brand crisis |
+  | Deals and events | M&A, funding rounds, IPOs, layoffs, partnerships, expansions, product launches, government contracts, earnings season, pharma pipeline, commodities |
+  | Sales, PR and analysis | Sales trigger events, share of voice, PR coverage report, media outreach targets, coverage comparison, news trend analysis, fact check |
+  | Data and building | Event datasets, news data export, query writing, news grounding for agents, News API and agent integration, news alerts, News API evaluation, migrating from NewsAPI.org |
+</Accordion>
+
+## Tools
+
+The server has 15 tools in four toolsets.
+
+| Toolset | Tool | What it does | Learn more |
+|---|---|---|---|
+| `news` | `search_news` | Ranked, story-grouped search over the last 30 days, in any language | [Search](/news/quickstart), [effort levels](/news/effort-levels) |
+| `news` | `list_articles` | Every article that matches a query over 12 months, with the exact total; can tally them by outlet, author, country or language | [Every matching article](/news/articles) |
+| `news` | `count_articles` | Article counts per day, week or month for up to five queries, for trends and share of voice | [Every matching article](/news/articles) |
+| `news` | `get_story` | All coverage of one story: newsrooms, languages and the earliest articles | [Stories](/news/stories) |
+| `news` | `get_account` | Plan, credit balance and limits | [Rate limits](/get-started/rate-limits) |
+| `research` | `start_research` | Starts an agent run for events or companies. `dry_run` estimates time and cost for free | [Event research](/agent/event-research), [company research](/agent/company-research) |
+| `research` | `get_research` | Waits for a run and shows its table, or lists your runs | [Results and exports](/agent/results-and-exports) |
+| `research` | `cancel_research` | Stops a run | [Runs](/agent/runs) |
+| `lists` | `save_company_list`, `get_company_list`, `edit_company_list` | Reusable lists of companies | [Company lists](/agent/company-lists) |
+| `monitors` | `create_monitor`, `get_monitor`, `get_monitor_updates`, `update_monitor` | Repeat research on a schedule and read only what is new | [Monitors](/agent/monitors) |
+
+The server also has two guides the assistant can read
+(`newscatcher://guides/query-syntax` and
+`newscatcher://guides/research-agent`) and three prompts: `news_briefing`,
+`company_watch` and `event_dataset`.
+
+### Load only some tools
+
+Every tool description takes space in the assistant's context. To load fewer
+tools, add `?tools=` to the server URL with the toolsets you need:
+
+```text
+https://mcp.newscatcherapi.com/mcp?tools=news
+https://mcp.newscatcherapi.com/mcp?tools=news,research
+```
+
+Without `?tools=`, all four toolsets load.
+
+## Credits
+
+Tool calls cost the same as the API requests behind them. See
+[Credits and pricing](/get-started/credits-and-pricing) for the prices.
+
+- `search_news` costs 1, 5 or 10 credits by
+  [effort](/news/effort-levels). `get_story` costs 1, `list_articles` costs 5
+  per call.
+- `count_articles` makes one 5-credit call per time bucket and query, up to 60
+  calls. A 30-day daily trend for two queries is 60 calls.
+- Agent runs and monitors are charged like runs started through the API. Ask
+  for a dry run first ("how much would this cost?") to get the estimate for
+  free.
+- `get_account`, `get_research`, `cancel_research` and the company list tools
+  are free.
+
+<Tip>
+  The server tells the assistant to confirm large agent jobs with you before
+  starting them: `standard` or `max` runs, many companies, or hourly
+  schedules.
+</Tip>
+
+## Example prompts
+
+**What happened**
+
+> What were the biggest stories about Nvidia this week? Cite sources.
+
+**Every article, older news**
+
+> How many articles mentioned "Ozempic" AND "shortage" between March and June?
+> Which outlets wrote the most?
+
+**Trends**
+
+> Compare daily coverage of OpenAI and Anthropic over the last 30 days. When
+> did each one spike, and why?
+
+**A table of events**
+
+> Build a table of layoffs announced by US tech companies in the last 30
+> days, with company, number of jobs and source.
+
+**Companies**
+
+> Get the last 90 days of funding and acquisition news for stripe.com,
+> adyen.com and checkout.com, then keep me updated weekly.
+
+## Limits
+
+- `search_news` covers the last 30 days. For older news, the assistant uses
+  `list_articles`, which reaches back 12 months.
+- The hosted server cannot write files. Agent tables come back in the answer,
+  up to 200 rows at a time. Download the full table from the run in the
+  [platform](https://platform.newscatcherapi.com) or through
+  [exports](/agent/results-and-exports).
+- A tool call answers within about four minutes. If a run is still going,
+  `get_research` returns what it has; ask the assistant to check again.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="401 Unauthorized">
+    The request carried no key, or an invalid one. Check the header name
+    (`x-api-key`) and the key in the
+    [platform](https://platform.newscatcherapi.com). In Claude.ai, check that
+    the URL ends with `?apiKey=YOUR_API_KEY`.
+  </Accordion>
+
+  <Accordion title="Tools do not appear">
+    Restart the client after editing its configuration file. A connector added
+    in Claude.ai or Claude Desktop needs no restart: open a new chat. If only
+    some tools appear, check the `?tools=` parameter on the URL.
+  </Accordion>
+
+  <Accordion title="A research run takes long">
+    `fast` runs take a few minutes; `standard` and `max` runs can take 10 to 30
+    minutes or more. Ask the assistant to check the run again later, or follow
+    it in the [platform](https://platform.newscatcherapi.com).
+  </Accordion>
+
+  <Accordion title="The assistant mentions export_research or save_as">
+    Some skills mention file tools that only exist in local setups. On the
+    hosted server, ask for the table in the answer, or download it from the
+    platform.
+  </Accordion>
+</AccordionGroup>
+
+<Note>
+  Using the Enterprise News API? It has its own
+  [MCP server](/news-api/integrations/mcp).
+</Note>
+
+## See also
+
+<CardGroup cols={2}>
+  <Card title="GitHub repository" icon="github" href="https://github.com/Newscatcher/newscatcher-mcp">
+    Source code, changelog, plugin and issues
+  </Card>
+  <Card title="News API quickstart" icon="rocket" href="/news/quickstart">
+    Make your first search
+  </Card>
+  <Card title="Agent overview" icon="robot" href="/agent/overview">
+    What the agent researches and how
+  </Card>
+  <Card title="Docs for AI agents" icon="book" href="/resources/docs-for-agents">
+    Let your coding agent read these docs
+  </Card>
+</CardGroup>
