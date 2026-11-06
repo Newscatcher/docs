@@ -41,6 +41,10 @@
 - [Results and exports](https://www.newscatcherapi.com/docs/agent/results-and-exports): Read a run's table, and download it as CSV or Excel.
 - [Best practices](https://www.newscatcherapi.com/docs/agent/best-practices): Write better requests, pick the right mode and keep monitors cheap.
 
+### Integrations
+
+- [MCP server](https://www.newscatcherapi.com/docs/integrations/mcp): Use the News API and the agent from Claude, Cursor and other MCP clients.
+
 ### Resources
 
 - [Migrate from the v3 News API](https://www.newscatcherapi.com/docs/resources/migrate-from-v3): Map v3 search requests to the new News API.

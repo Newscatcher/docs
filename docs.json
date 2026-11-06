@@ -76,6 +76,12 @@
                 ]
               },
               {
+                "group": "Integrations",
+                "pages": [
+                  "integrations/mcp"
+                ]
+              },
+              {
                 "group": "Resources",
                 "pages": [
                   "resources/migrate-from-v3",
