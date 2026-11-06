@@ -18,7 +18,7 @@ Use the HTTP status to decide what to do:
 | `422` | A parameter is missing, invalid or unknown, or the body is not valid JSON. | No, fix it first |
 | `429` | A rate limit of your plan. | Yes, after `Retry-After` seconds |
 | `500` | Something failed on our side. | Yes, and send us the `Correlation-ID` |
-| `503` | A part of the service is temporarily unavailable. | Yes, after a short wait |
+| `503` | A part of the service is temporarily unavailable. | Yes, after a short wait (News API: after `Retry-After` seconds) |
 
 ## Error body
 
