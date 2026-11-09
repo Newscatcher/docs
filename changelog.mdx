@@ -3,6 +3,20 @@ title: Changelog
 description: New features and changes to the News API and the agent.
 ---
 
+<Update label="November 9, 2026" description="Agent 1.7.0">
+  ## Clearer progress messages
+
+  - **Progress**: when a search query is too long to show in full in a
+    progress message, it now ends with `…`, so you can tell it was shortened.
+    The search itself always uses the whole query. See
+    [Follow a run live](/agent/runs#follow-a-run-live).
+  - **Removed**: the `conversation_id` field of `POST /monitors` and of monitor
+    responses. It had no effect, and the API now ignores it. See
+    [Monitors](/agent/monitors).
+  - **Fixed**: a query that contains quoted phrases now shows exactly as you
+    wrote it in progress messages.
+</Update>
+
 <Update label="November 4, 2026" description="Agent 1.5.0">
   ## Company monitor price
 

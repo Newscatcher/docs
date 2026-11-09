@@ -3,7 +3,7 @@
   "info": {
     "title": "NewsCatcher Agent API",
     "description": "Agent runs (events from a query, or news about companies), company lists and monitors. Authenticate with your API key in the x-api-key header.",
-    "version": "1.5.1"
+    "version": "1.7.0"
   },
   "servers": [
     {
@@ -6081,19 +6081,6 @@
           },
           "settings": {
             "$ref": "#/components/schemas/SettingsIn"
-          },
-          "conversation_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Conversation Id",
-            "description": "Your chat conversation where each run's result is also posted."
           }
         },
         "type": "object",
@@ -6636,18 +6623,6 @@
             "title": "Source Run Id",
             "description": "The run it was made from (\"Keep updated\", \"Monitor this\"): its first run."
           },
-          "conversation_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Conversation Id"
-          },
           "created_at": {
             "anyOf": [
               {
@@ -7019,7 +6994,7 @@
           "title"
         ],
         "title": "RenameRequest",
-        "description": "PATCH a run or conversation: its new title in the caller's history."
+        "description": "PATCH a run: its new title in the caller's history."
       },
       "RowListResponse": {
         "properties": {
