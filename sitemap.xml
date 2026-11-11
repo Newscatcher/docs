@@ -535,10 +535,16 @@
         <loc>https://www.newscatcherapi.com/docs/local-news-api/get-started/subscription-plans</loc>
     </url>
     <url>
+        <loc>https://www.newscatcherapi.com/docs/local-news-api/get-started/changelog</loc>
+    </url>
+    <url>
         <loc>https://www.newscatcherapi.com/docs/local-news-api/guides-and-concepts/location-detection-methods</loc>
     </url>
     <url>
         <loc>https://www.newscatcherapi.com/docs/local-news-api/guides-and-concepts/geonames-filtering</loc>
+    </url>
+    <url>
+        <loc>https://www.newscatcherapi.com/docs/local-news-api/guides-and-concepts/content-types</loc>
     </url>
     <url>
         <loc>https://www.newscatcherapi.com/docs/local-news-api/api-reference/search/search-articles-post</loc>

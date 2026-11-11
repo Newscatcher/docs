@@ -1,0 +1,119 @@
+---
+title: Local News API changelog
+sidebarTitle: Changelog
+description: Track updates, improvements, and fixes to the Local News API.
+rss: true
+---
+
+<Update label="3.1.0" description="2026-11-11">
+## Content type filter
+
+- **Content type**: filter articles by the kind of page they are with the new
+  `content_type` parameter on
+  [Search](/local-news-api/api-reference/search/search-articles-post),
+  [Search advanced](/local-news-api/api-reference/search/search-advanced-post),
+  [Latest headlines](/local-news-api/api-reference/latest-headlines/retrieve-latest-headlines-post),
+  and
+  [Latest headlines advanced](/local-news-api/api-reference/latest-headlines/latest-headlines-advanced-post).
+  Pass one or more of `news_report`, `analysis`, `interview`, `opinion`,
+  `press_release`, `listicle`, `service`, `commerce`, `review`, `autogen`,
+  `seo_spam`, `obituary`, `ugc`, and `non_article`, as a comma-separated
+  string or an array. `news` is a shortcut for `news_report`, `analysis`, and
+  `interview`, and `all` applies no filter. See
+  [Content types](/local-news-api/guides-and-concepts/content-types).
+- **Response**: every article includes its label in `nlp.content_type`.
+- **Availability**: labels are available for articles from October 17, 2026.
+  Later in Q4 2026, articles back to January 1, 2026, will be labelled too.
+  Articles without a label are left out when the filter is set. Requests
+  without `content_type` return articles of every content type, as before.
+</Update>
+
+<Update label="3.0.2" description="2026-10-23">
+## Country filter and better matching
+
+- **Countries**: filter articles by the country where the publisher is located
+  with the `countries` parameter on the search and latest headlines endpoints.
+  Pass two-letter ISO 3166-1 alpha-2 codes as a comma-separated string
+  (`"US,CA"`) or an array. Codes are case-insensitive. When `sources` is also
+  set, `countries` is ignored.
+- **Fixed**: wildcard terms with accents now match on language-specific
+  search fields. For example, `q: "éolien*"` with `lang: "fr"` now finds
+  `éolienne`. Both the accented and unaccented forms are searched, so results
+  can only grow.
+- **Fixed**: a date range that starts more than 30 days ago and ends within the
+  last 30 days now returns articles from the whole range. Before, articles
+  older than 30 days were left out when `to_` was recent.
+</Update>
+
+<Update label="3.0.1" description="2026-10-08">
+## Detection method names
+
+- **Fixed**: `geonames[].detection_methods` on the advanced endpoints now
+  accepts the documented names: `dedicated_source`, `local_section`,
+  `regional_source`, `standard_format`, `proximity_mention`, and
+  `ai_extracted`. Before, filtering with these names matched nothing. See
+  [GeoNames filtering](/local-news-api/guides-and-concepts/geonames-filtering).
+- **Fixed**: responses return `geonames[].detection_methods` with the same
+  documented names, without duplicates.
+- **Changed**: an unknown value in `geonames[].detection_methods` now returns a
+  validation error instead of matching nothing. Values that worked before
+  still work.
+</Update>
+
+<Update label="3.0.0" description="2026-02-25">
+## New clustering for 2026 data
+
+- **Clustering**: articles published on or after January 1, 2026, are
+  clustered with a new method based on graph clustering of Qwen embeddings.
+  Date ranges that end before January 1, 2026, use the previous method. The
+  start of the range (`from_` or `when`) decides which method runs.
+- **Clustering threshold**: set the similarity threshold for clustering with
+  the `clustering_threshold` parameter on the advanced endpoints. It must be
+  greater than 0 and at most 1. The default is `0.7` for ranges from
+  January 1, 2026, onward and `0.6` for older ranges.
+- **Embeddings**: `qwen_embedding` is now accepted in `embeddings_output` on
+  the search, latest headlines, and search by endpoints, for plans that include
+  embeddings.
+- **Breaking**: a request with `clustering: true` whose date range crosses
+  January 1, 2026, 00:00:00 UTC is rejected with a validation error. Keep the
+  range entirely before or entirely on or after that date.
+</Update>
+
+<Update label="2.2.0" description="2026-02-13">
+## Faster historical queries
+
+- **Performance**: requests for older date ranges are served from a cluster
+  optimized for historical data, so they respond faster.
+</Update>
+
+<Update label="2.1.7" description="2026-02-09">
+## Theme filter and search by fixes
+
+- **Fixed**: the `theme` filter accepts several themes, as a comma-separated
+  string (`"Business,Finance"`) or an array. Theme names are
+  case-insensitive, and an article is returned if it matches any of them.
+  Before, a theme filter could return no results.
+- **Changed**: an unknown `theme` value returns a validation error. Accepted
+  themes: `business`, `politics`, `entertainment`, `sports`, `finance`,
+  `crime`, `tech`, `general`, `health`, `economics`, `science`, `automotive`,
+  `weather`, `travel`, and `lifestyle`.
+- **Fixed**: [Search by](/local-news-api/api-reference/search-by/search-articles-by-identifiers-post)
+  returned `500` when the request contained only `links`.
+- **Changed**: on Search by, `from_` and `to_` no longer default to
+  `"7 days ago"` and `"now"`, so lookups by link, ID, or RSS GUID are no longer
+  limited to the last 7 days.
+- **Search by**: `embeddings_output` is accepted for plans that include
+  embeddings, and responses include `geonames`.
+</Update>
+
+<Update label="2.1.4" description="2025-12-10">
+## Translated fields and more languages
+
+- **Fixed**: `search_in` with translated fields (`title_translated`,
+  `content_translated`, `summary_translated`, `title_content_translated`) now
+  searches the right fields.
+- **Fixed**: when `lang` held more than one language, only the first
+  `search_in` field was searched. All requested fields are now searched.
+- **Languages**: `lang` accepts 124 ISO 639-1 codes, up from 55.
+  All previously supported codes still work.
+</Update>

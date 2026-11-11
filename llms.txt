@@ -426,11 +426,13 @@ deleted — it becomes unassigned and continues to exist.
 - [Introduction to Local News API](https://www.newscatcherapi.com/docs/local-news-api/get-started/introduction): Access location-specific news with advanced geographic relevance detection and structured filtering capabilities.
 - [Local News API quickstart guide](https://www.newscatcherapi.com/docs/local-news-api/get-started/quickstart): Get started with location-specific news data using Local News API.
 - [Local News API subscription plans](https://www.newscatcherapi.com/docs/local-news-api/get-started/subscription-plans): Select a Local News API plan that matches your needs - from standard NLP analysis to advanced AI-powered location features.
+- [Local News API changelog](https://www.newscatcherapi.com/docs/local-news-api/get-started/changelog): Track updates, improvements, and fixes to the Local News API.
 
 ### Guides and concepts
 
 - [Location detection methods](https://www.newscatcherapi.com/docs/local-news-api/guides-and-concepts/location-detection-methods): Understand how Local News API uses different methods to detect and validate location mentions in news articles, helping you filter and interpret location-specific content.
 - [GeoNames filtering](https://www.newscatcherapi.com/docs/local-news-api/guides-and-concepts/geonames-filtering): Use structured geographic data to filter local news with precise administrative hierarchy, coordinates, localization and confidence scores.
+- [Content types](https://www.newscatcherapi.com/docs/local-news-api/guides-and-concepts/content-types): Filter local news by the kind of page an article is, such as news reports, opinion pieces, or press releases.
 
 ### API Reference — Search
 
