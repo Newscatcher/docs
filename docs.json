@@ -530,14 +530,16 @@
                 "pages": [
                   "local-news-api/get-started/introduction",
                   "local-news-api/get-started/quickstart",
-                  "local-news-api/get-started/subscription-plans"
+                  "local-news-api/get-started/subscription-plans",
+                  "local-news-api/get-started/changelog"
                 ]
               },
               {
                 "group": "Guides and concepts",
                 "pages": [
                   "local-news-api/guides-and-concepts/location-detection-methods",
-                  "local-news-api/guides-and-concepts/geonames-filtering"
+                  "local-news-api/guides-and-concepts/geonames-filtering",
+                  "local-news-api/guides-and-concepts/content-types"
                 ]
               },
               {

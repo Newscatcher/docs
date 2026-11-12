@@ -20,6 +20,7 @@ info:
 
     - Multiple location detection methods including dedicated sources, proximity analysis, and AI extraction
     - Natural language processing for sentiment analysis and entity recognition on original content and English translations
+    - Content type labels to keep news reports and leave out press releases, opinion, and other kinds of pages
     - Article clustering for topic analysis
     - English translations for non-English content
 
@@ -28,7 +29,7 @@ info:
     name: Maksym Sugonyaka
     email: maksym@newscatcherapi.com
     url: https://www.newscatcherapi.com/book-a-demo
-  version: 1.2.0
+  version: 3.1.0
 
 externalDocs:
   description: Find out more about Local News API
@@ -460,6 +461,8 @@ components:
           $ref: "#/components/schemas/ClusteringEnabled"
         theme:
           $ref: "#/components/schemas/Theme"
+        content_type: # New in v3.1.0
+          $ref: "#/components/schemas/ContentType"
         PER_entity_name:
           $ref: "#/components/schemas/PerEntityName"
         LOC_entity_name:
@@ -511,6 +514,8 @@ components:
           $ref: "#/components/schemas/ClusteringEnabled"
         theme:
           $ref: "#/components/schemas/Theme"
+        content_type: # New in v3.1.0
+          $ref: "#/components/schemas/ContentType"
         PER_entity_name:
           $ref: "#/components/schemas/PerEntityName"
         LOC_entity_name:
@@ -964,6 +969,26 @@ components:
 
         Available options: `Business`, `Economics`, `Entertainment`, `Finance`, `Health`, `Politics`, `Science`, `Sports`, `Tech`, `Crime`, `Financial Crime`, `Lifestyle`, `Automotive`, `Travel`, `Weather`, `General`.
       example: ["Business", "Finance"]
+
+    ContentType:
+      oneOf:
+        - type: string
+        - type: array
+          items:
+            type: string
+      description: |
+        Filters articles by content type, the kind of page the article is, as determined by NLP analysis. To select multiple content types, use a comma-separated string or an array of strings. Values are case-insensitive. If not set, articles of all content types are returned.
+
+        Shortcuts:
+        - `news`: `news_report`, `analysis`, and `interview`.
+        - `all`: no content type filter.
+
+        **Note**: Content type labels are available for articles from October 17, 2026. Later in Q4 2026, articles back to January 1, 2026, will be labelled too. Articles without a label are not returned when this filter is set. An unknown value returns a `422` error.
+
+        To learn more, see [Content types](https://www.newscatcherapi.com/docs/local-news-api/guides-and-concepts/content-types).
+
+        Available options: `news_report`, `analysis`, `interview`, `opinion`, `press_release`, `listicle`, `service`, `commerce`, `review`, `autogen`, `seo_spam`, `obituary`, `ugc`, `non_article`, `news`, `all`.
+      example: ["news"]
 
     OrgEntityName:
       type: string
@@ -1610,6 +1635,14 @@ components:
         summary:
           type: string
           description: A brief AI-generated summary of the article content.
+        content_type:
+          type: string
+          nullable: true
+          description: |
+            The kind of page the article is, for example `news_report`, `opinion`, or `press_release`. Available for articles from October 17, 2026; articles back to January 1, 2026, will be labelled later in Q4 2026. `null` for articles without a label.
+
+            To learn more, see [Content types](https://www.newscatcherapi.com/docs/local-news-api/guides-and-concepts/content-types).
+          example: news_report
         sentiment:
           $ref: "#/components/schemas/SentimentScores"
         new_embedding:
