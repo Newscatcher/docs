@@ -23,6 +23,9 @@ A search is charged by the [effort](/news/effort-levels) you ask for:
   nothing is still charged.
 - A request that is refused or fails (`401`, `402`, `403`, `408`, `422`, `429`,
   `500`, `503`) is never charged.
+- Counts over time (`count_articles` in the [MCP server](/integrations/mcp#credits))
+  make one 5 NCC `/articles` call per query and time step, up to 60 calls a
+  request. A 30-day daily trend for two queries is 60 calls, 300 NCC.
 
 Your plan's prices are in the `credits_per_search`, `story` and `articles`
 fields of
@@ -42,12 +45,41 @@ first 50. Company research and company monitors are charged per company.
 | Company research | 500 NCC per company |
 | Event monitor, daily | Half a run of its mode |
 | Event monitor, weekly or less often | One run of its mode |
-| Company monitor | 3,000 NCC per company per month |
+| Company monitor | About 3,000 NCC per company per month, charged per update ([below](#company-monitors)) |
 
 Failed runs are free. A run that finds nothing is still charged.
+
+### Company monitors
+
+A company monitor is charged per company update as it runs, never in advance:
+25 NCC for an update every 6 hours, or 100 NCC for a daily one. The service
+picks the rhythm from how much news each company gets, so a company comes to
+about 3,000 NCC a month either way.
+
+- An update that fails is free.
+- If several of your organization's monitors follow the same company, each
+  update of that company is charged once.
+- Pausing or deleting a monitor stops the charges from its next update.
+- A monitor that follows a [company list](/agent/company-lists) picks up added
+  companies from its next run and charges for them from then on. Removed
+  companies stop costing.
+
+### Free monitor
+
+Each organization has one free monitor. It is your oldest enabled monitor that
+is either:
+
+- a company monitor, with any number of companies up to your plan's list limit
+  (10 on Free, 50 on pay as you go), or
+- a `fast` event monitor that runs daily or weekly.
+
+Its runs and its company updates cost nothing. It pauses itself
+(`paused_reason: "idle"`) when its results are not opened for 14 days; resume
+it to go on.
 
 ## When your balance runs out
 
 A News API request your balance does not cover gets `402`. A monitor whose
 runs your balance no longer covers is paused with `paused_reason:
-"out_of_credits"`: top up, then resume it.
+"out_of_credits"`: top up, then resume it. Company monitors pause once the
+balance can't cover one daily update (100 NCC).
