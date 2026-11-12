@@ -14,7 +14,8 @@ tools, and answers with headlines, summaries, sources and links.
   company lists and monitors that bring only what is new.
 
 The server is hosted at `https://mcp.newscatcherapi.com/mcp` and is open
-source: [Newscatcher/newscatcher-mcp](https://github.com/Newscatcher/newscatcher-mcp).
+source under the MIT license:
+[Newscatcher/newscatcher-mcp](https://github.com/Newscatcher/newscatcher-mcp).
 
 <Note>
   The tools are not a copy of the API. Each one is built for an assistant: it
@@ -25,13 +26,38 @@ source: [Newscatcher/newscatcher-mcp](https://github.com/Newscatcher/newscatcher
 
 ## Before you start
 
-- A NewsCatcher API key from the
-  [platform](https://platform.newscatcherapi.com). It is the same key you use
-  for the API, and tool calls draw on the same credit balance.
+- A NewsCatcher [platform](https://platform.newscatcherapi.com) account. Tool
+  calls draw on the same credit balance as the API.
 - An MCP client that supports remote (HTTP) servers: Claude, Cursor, VS Code,
   Windsurf, Codex, Gemini CLI and most others.
 
 ## Authentication
+
+Connect in one of two ways:
+
+- **Sign in with your NewsCatcher account.** Add the server URL with no key,
+  click **Connect**, sign in to the platform and approve access. There is no
+  key to copy. Use this in Claude.ai, Claude Desktop, Claude Code and other
+  clients that support OAuth for remote MCP servers.
+- **Use an API key.** For clients without sign-in, or when you want to choose
+  the key yourself.
+
+### Sign in
+
+When you sign in, the server uses the **Default API Key** of your default
+workspace in the platform. Your workspace's credit balance pays for the tool
+calls. If you have several workspaces, the default one is the first workspace
+that is not named "Personal".
+
+If your workspace has no API key, the connection still works, but tool calls
+return an error that tells you to create one. Create a key in the
+[platform](https://platform.newscatcherapi.com) and try again.
+
+To disconnect, remove the connector in your client. To give the MCP server a
+key of its own, which you can revoke without touching your applications,
+connect with an API key instead.
+
+### API key
 
 Send your key with every request, in one of these ways:
 
@@ -39,23 +65,17 @@ Send your key with every request, in one of these ways:
 |---|---|
 | `x-api-key: YOUR_API_KEY` header | Recommended, for every client that can send headers |
 | `Authorization: Bearer YOUR_API_KEY` header | Clients that only send bearer tokens |
-| `?apiKey=YOUR_API_KEY` on the server URL | Clients with no field for headers, such as Claude.ai custom connectors |
+| `?apiKey=YOUR_API_KEY` on the server URL | Last resort, for clients with no sign-in and no field for headers |
 
-A header wins over `?apiKey=` when both are set. A request without a key gets
-`401`.
+The `x-api-key` header wins over every other way. A request with no key and no
+sign-in gets `401`.
 
 <Warning>
-  A key in the URL can end up in logs and screenshots. Use a header when your
-  client allows it, and never commit a configuration file that holds your key.
-  Use a separate key for the MCP server, so you can revoke it without touching
-  your applications.
+  A key in the URL can end up in logs and screenshots. Sign in, or use a
+  header, when your client allows it. Never commit a configuration file that
+  holds your key. Use a separate key for the MCP server, so you can revoke it
+  without touching your applications.
 </Warning>
-
-<Info>
-  OAuth sign-in is coming soon. You will then connect with your NewsCatcher
-  account instead of pasting an API key, and the key in the URL will no longer
-  be needed.
-</Info>
 
 ## Connect to Claude
 
@@ -92,12 +112,20 @@ A header wins over `?apiKey=` when both are set. A request without a key gets
 
     ```bash
     claude mcp add --transport http newscatcher \
+      https://mcp.newscatcherapi.com/mcp
+    ```
+
+    In a session, run `/mcp`, select `newscatcher` and choose
+    **Authenticate**. Your browser opens the platform sign-in. Then ask:
+    "Check my NewsCatcher account."
+
+    To use an API key instead of signing in, add the header:
+
+    ```bash
+    claude mcp add --transport http newscatcher \
       https://mcp.newscatcherapi.com/mcp \
       --header "x-api-key: YOUR_API_KEY"
     ```
-
-    Run `/mcp` in a session to check that `newscatcher` is connected. Then ask:
-    "Check my NewsCatcher account."
   </Tab>
 
   <Tab title="Claude.ai and Claude Desktop">
@@ -112,15 +140,24 @@ A header wins over `?apiKey=` when both are set. A request without a key gets
         - **Remote MCP server URL**:
 
         ```text
-        https://mcp.newscatcherapi.com/mcp?apiKey=YOUR_API_KEY
+        https://mcp.newscatcherapi.com/mcp
         ```
 
-        Custom connectors cannot send headers, so the key goes in the URL.
+        Leave the OAuth fields under **Advanced settings** empty, and click
+        **Add**.
+      </Step>
+      <Step title="Sign in">
+        Click **Connect** on the NewsCatcher connector. Sign in to the
+        NewsCatcher platform and approve access.
       </Step>
       <Step title="Test it">
         Open a new chat and ask: "Check my NewsCatcher account."
       </Step>
     </Steps>
+
+    On a Team or Enterprise plan, an owner adds the connector once for the
+    organization. Each member then clicks **Connect** and signs in with their
+    own NewsCatcher account.
   </Tab>
 </Tabs>
 
@@ -128,7 +165,16 @@ A header wins over `?apiKey=` when both are set. A request without a key gets
 
 <Tabs>
   <Tab title="Cursor">
-    Add to `~/.cursor/mcp.json`:
+    To get the server and the [skills](#plugins-and-skills), install the
+    plugin:
+
+    1. Install **NewsCatcher** from the Cursor Marketplace
+       (**Customize > Plugins**).
+    2. Under **Plugins > NewsCatcher > Configure**, set `NEWSCATCHER_API_KEY`
+       to your API key.
+    3. Open a new chat and ask: "Check my NewsCatcher account."
+
+    To add only the server, add to `~/.cursor/mcp.json`:
 
     ```json
     {
@@ -252,10 +298,13 @@ Restart the client after you change its configuration file.
 ## Plugins and skills
 
 The [repository](https://github.com/Newscatcher/newscatcher-mcp) includes a
-plugin for Claude Code, with manifests for Codex and Cursor. It has:
+plugin for Claude Code, Cursor and Codex. Install it from the Claude Code
+marketplace ([steps](#connect-to-claude)), the Cursor Marketplace
+([steps](#connect-to-other-clients)), or the repository (Codex). It has:
 
-- **The server connection**, with your key kept in the keychain (Claude Code)
-  or read from `NEWSCATCHER_API_KEY` (Codex).
+- **The server connection**, with your key kept in the keychain (Claude Code),
+  set in the plugin settings (Cursor) or read from `NEWSCATCHER_API_KEY`
+  (Codex).
 - **53 skills**. Each one tells the assistant which tools to call for a task
   and how to present the result.
 - **A `news-researcher` subagent** for research that takes several searches.
@@ -373,10 +422,23 @@ Tool calls cost the same as the API requests behind them. See
 
 <AccordionGroup>
   <Accordion title="401 Unauthorized">
-    The request carried no key, or an invalid one. Check the header name
-    (`x-api-key`) and the key in the
-    [platform](https://platform.newscatcherapi.com). In Claude.ai, check that
-    the URL ends with `?apiKey=YOUR_API_KEY`.
+    The request carried no key and no sign-in, or an invalid key. If you use a
+    key, check the header name (`x-api-key`) and the key in the
+    [platform](https://platform.newscatcherapi.com). If your client has a
+    **Connect** or **Authenticate** button, use it to sign in instead.
+  </Accordion>
+
+  <Accordion title="Signed in, but the connection stops working">
+    A `401` with `invalid_token` means your sign-in expired or was rejected.
+    Disconnect and connect again: in Claude.ai, click **Disconnect**, then
+    **Connect** on the connector; in Claude Code, run `/mcp` and choose
+    **Authenticate**.
+  </Accordion>
+
+  <Accordion title="Signed in, but tools say there is no API key">
+    Your default workspace has no API key. Create one in the
+    [platform](https://platform.newscatcherapi.com), then run the request
+    again.
   </Accordion>
 
   <Accordion title="Tools do not appear">
