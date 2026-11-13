@@ -2621,7 +2621,7 @@ components:
         content_type:
           type: string
           description: |
-            The kind of page the article is, as determined by NLP analysis, for example `news_report` or `opinion`. Articles indexed before content type labelling started have no content type.
+            The kind of page the article is, as determined by NLP analysis, for example `news_report` or `opinion`. Available for articles from October 17, 2026; articles back to January 1, 2026, will be labelled later in Q4 2026. Articles without a label have no content type.
 
             To learn more, see [Content types](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/content-types).
         summary:
