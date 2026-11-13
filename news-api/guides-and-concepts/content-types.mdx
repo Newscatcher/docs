@@ -1,0 +1,163 @@
+---
+title: Content types
+sidebarTitle: Content types
+description:
+  Filter articles and sources by the kind of page an article is, such as news
+  reports, opinion pieces, or press releases.
+---
+
+Every article gets exactly one content type label from NLP analysis: the kind
+of page it is, independent of what it is about. Labels work in all languages.
+The label is returned in `nlp.content_type`, and the `content_type` parameter
+filters on it.
+
+Use it to keep straight reporting and leave out press releases, shopping pages,
+or automatically generated content that news sites also publish.
+
+## Content type values
+
+| Value           | What it is                                                                                  | Example headline                                    |
+| --------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| `news_report`   | Reports a specific, recent event: breaking news, wire stories, match reports, earnings coverage | "Tesla recalls 120,000 cars over seat-belt fault"   |
+| `analysis`      | A journalist's explainer or feature about current events                                    | "Why Tesla's price cuts are worrying investors"     |
+| `interview`     | A Q&A or interview with a newsworthy person                                                 | "'We'll be profitable next year': interview with the CEO" |
+| `opinion`       | Columns, editorials, op-eds, personal blogs, investing commentary                           | "Why I'm selling my Tesla shares"                   |
+| `press_release` | A company or government announcement published as is                                        | "Acme Corp announces Q3 results"                    |
+| `listicle`      | Lists, rankings, roundups, galleries                                                        | "10 best electric cars of 2026"                     |
+| `service`       | How-tos, recipes, TV listings, weather boilerplate, horoscopes, puzzles                     | "What's on TV tonight"                              |
+| `commerce`      | Shopping deals, coupons, sponsored or affiliate content                                     | "Save 30% on Tesla accessories today"               |
+| `review`        | A review of a product, film, book, game, or restaurant                                      | "Model Y 2026 review: still the one to beat?"       |
+| `autogen`       | Template pages filled with data automatically: stock tickers, rating changes, sports stats  | "TSLA shares bought by XYZ Capital"                 |
+| `seo_spam`      | Content farms and fake "market report" pages                                                | "EV Market Size, Share & Forecast 2026-2034"        |
+| `obituary`      | Death notices and funeral announcements                                                     | "John Smith, 1950-2026"                             |
+| `ugc`           | User-generated content: forum posts, community Q&A, social media pages                      | "Anyone else having issues with their Model 3?"     |
+| `non_article`   | Homepages, tag pages, video-only pages, paywall stubs, error pages                          | "Tesla: latest news and updates" (a tag page)       |
+
+The first three, `news_report`, `analysis`, and `interview`, are news. The
+rest are other kinds of pages that news sites also publish.
+
+<Note>
+  Some pages sit between two labels, such as an analysis piece and an opinion
+  column, or a story about a press release and the press release itself. In
+  these cases the label can differ from what a person would pick. Telling news
+  from the other kinds of pages is more reliable than the exact label.
+</Note>
+
+The `content_type` parameter also accepts two shortcuts:
+
+- `news`: `news_report`, `analysis`, and `interview`.
+- `all`: no content type filter. This is the same as not setting
+  `content_type`.
+
+## Filter by content type
+
+The `content_type` parameter works on these endpoints, with `GET` and `POST`:
+
+- [`/api/search`](/news-api/api-reference/search/search-articles-post)
+- [`/api/latest_headlines`](/news-api/api-reference/latest-headlines/retrieve-latest-headlines-post)
+- [`/api/breaking_news`](/news-api/api-reference/breaking-news/retrieve-breaking-news-post)
+- [`/api/authors`](/news-api/api-reference/authors/search-articles-by-author-post)
+- [`/api/aggregation_count`](/news-api/api-reference/aggregation-count/get-aggregation-count-by-interval-post)
+- [`/api/sources`](/news-api/api-reference/sources/retrieve-sources-post),
+  which works differently. See
+  [Rank sources by content type](#rank-sources-by-content-type).
+
+Pass one or more values as a comma-separated string. In `POST` requests, you
+can also pass an array of strings. Values are case-insensitive, and an article
+is returned if it matches any of them:
+
+<CodeGroup>
+
+```bash Shortcut
+curl -X POST "https://v3-api.newscatcherapi.com/api/search" \
+  -H "x-api-token: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "q": "Tesla",
+    "content_type": "news"
+  }'
+```
+
+```bash Array
+curl -X POST "https://v3-api.newscatcherapi.com/api/search" \
+  -H "x-api-token: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "q": "Tesla",
+    "content_type": ["news_report", "opinion"]
+  }'
+```
+
+```bash GET
+curl -G "https://v3-api.newscatcherapi.com/api/search" \
+  -H "x-api-token: YOUR_API_KEY" \
+  --data-urlencode "q=Tesla" \
+  --data-urlencode "content_type=news_report,opinion"
+```
+
+</CodeGroup>
+
+An unknown value returns a `422` error that names the value and lists the
+accepted values.
+
+## Rank sources by content type
+
+On [`/api/sources`](/news-api/api-reference/sources/retrieve-sources-post),
+`content_type` does not filter the sources themselves. It narrows the articles
+that each source is counted from. The order of the results,
+`nb_articles_for_7d`, and the minimum of 5 articles per source apply to
+matching articles only, so you get the top sources for news rather than the
+top sources overall. A source with fewer than 5 matching articles is left out.
+
+```bash
+curl -X POST "https://v3-api.newscatcherapi.com/api/sources" \
+  -H "x-api-token: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "countries": "US",
+    "content_type": "news",
+    "include_additional_info": true
+  }'
+```
+
+`content_type` is not enough on its own. Send at least one of `lang`,
+`countries`, `source_url`, `source_name`, or `predefined_sources`. Unlike most
+parameters, you can combine `content_type` with `source_url` and
+`predefined_sources`.
+
+## Availability
+
+Content type labels are available on all subscription plans for articles from
+October 17, 2026. Later in Q4 2026, articles back to January 1, 2026, will be
+labelled too.
+
+<Note>
+  Articles without a label are left out whenever `content_type` is set, so a
+  filtered request over an older date range can return fewer articles. Without
+  `content_type`, all articles are returned as before.
+</Note>
+
+## Content type in the response
+
+Each article includes its label in the `nlp` object:
+
+```json
+{
+  "title": "Tesla recalls 120,000 cars over seat-belt fault",
+  "nlp": {
+    "theme": "Business",
+    "summary": "Tesla is recalling about 120,000 vehicles...",
+    "content_type": "news_report"
+  }
+}
+```
+
+On plans with NLP enrichments, `nlp.content_type` follows `include_nlp_data`
+like the rest of the `nlp` object. Articles that have no label yet have no
+`nlp.content_type`. See [Availability](#availability).
+
+## See also
+
+- [NLP Enrichments](/news-api/guides-and-concepts/nlp-enrichments)
+- [Check sources coverage](/news-api/how-to/check-sources-coverage)
+- [Subscription plans](/news-api/get-started/subscription-plans)

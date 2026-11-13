@@ -47,6 +47,7 @@ entities exist — check `nlp.translation_ner_PER` instead.
 | Feature | What it produces |
 |---|---|
 | Theme | One or more topic labels per article, for example `Tech` or `Finance`. Filterable with `theme` and `not_theme`. |
+| Content type | One label per article for the kind of page it is, for example `news_report` or `opinion`. Filterable with `content_type`. See [Content types](/news-api/guides-and-concepts/content-types). |
 | Summary | AI-generated article summary. `nlp.summary` for native, `nlp.translation_summary` for translation-based. |
 | Sentiment | Tone scores from `-1.0` to `1.0` for title and content independently. |
 | Named entity recognition | Persons, organizations, locations, and miscellaneous entities with mention counts. |
@@ -57,6 +58,7 @@ entities exist — check `nlp.translation_ner_PER` instead.
 
 ## See also
 
+- [Content types](/news-api/guides-and-concepts/content-types)
 - [Search by entity](/news-api/how-to/search-by-entity)
 - [Search in translations](/news-api/how-to/search-in-translations)
 - [Clustering news articles](/news-api/guides-and-concepts/clustering-news-articles)
