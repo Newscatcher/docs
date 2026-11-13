@@ -333,6 +333,7 @@ deleted — it becomes unassigned and continues to exist.
 - [Clustering news articles](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/clustering-news-articles): Group related articles together to identify trends and reduce noise in large volumes of news data.
 - [Articles deduplication](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/articles-deduplication): How News API identifies and filters near-identical articles, and how to use deduplication in your queries.
 - [NLP Enrichments](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/nlp-enrichments): NLP fields available on indexed articles and how to use them in News API requests.
+- [Content types](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/content-types): Filter articles and sources by the kind of page an article is, such as news reports, opinion pieces, or press releases.
 - [Custom tags](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/custom-tags): Filter and classify news articles using your organization's unique taxonomy.
 - [Breaking news](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/breaking-news): Discover emerging stories with significant coverage traction using the breaking news endpoint.
 - [Robots.txt compliance](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/robots-txt-compliance): Understand robots.txt compliance fields and parameters in News API to build applications that respect publisher permissions.

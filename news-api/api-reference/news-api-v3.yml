@@ -17,7 +17,7 @@ info:
   contact:
     name: Maksym Sugonyaka
     email: maksym@newscatcherapi.com
-  version: 3.25.0
+  version: 3.26.0
 externalDocs:
   description: Find out more about NewsCatcher News API
   url: https://www.newscatcherapi.com/docs
@@ -141,6 +141,7 @@ paths:
         - $ref: "#/components/parameters/HasNlp"
         - $ref: "#/components/parameters/Theme"
         - $ref: "#/components/parameters/NotTheme"
+        - $ref: "#/components/parameters/ContentType"
         - $ref: "#/components/parameters/OrgEntityName"
         - $ref: "#/components/parameters/PerEntityName"
         - $ref: "#/components/parameters/LocEntityName"
@@ -251,6 +252,7 @@ paths:
         - $ref: "#/components/parameters/HasNlp"
         - $ref: "#/components/parameters/Theme"
         - $ref: "#/components/parameters/NotTheme"
+        - $ref: "#/components/parameters/ContentType"
         - $ref: "#/components/parameters/OrgEntityName"
         - $ref: "#/components/parameters/PerEntityName"
         - $ref: "#/components/parameters/LocEntityName"
@@ -336,6 +338,7 @@ paths:
         - $ref: "#/components/parameters/HasNlp"
         - $ref: "#/components/parameters/Theme"
         - $ref: "#/components/parameters/NotTheme"
+        - $ref: "#/components/parameters/ContentType"
         - $ref: "#/components/parameters/OrgEntityName"
         - $ref: "#/components/parameters/PerEntityName"
         - $ref: "#/components/parameters/LocEntityName"
@@ -438,6 +441,7 @@ paths:
         - $ref: "#/components/parameters/HasNlp"
         - $ref: "#/components/parameters/Theme"
         - $ref: "#/components/parameters/NotTheme"
+        - $ref: "#/components/parameters/ContentType"
         - $ref: "#/components/parameters/NerName"
         - $ref: "#/components/parameters/TitleSentimentMin"
         - $ref: "#/components/parameters/TitleSentimentMax"
@@ -589,6 +593,7 @@ paths:
         - $ref: "#/components/parameters/IsNewsDomain"
         - $ref: "#/components/parameters/NewsDomainType"
         - $ref: "#/components/parameters/NewsType"
+        - $ref: "#/components/parameters/SourcesContentType"
         - $ref: "#/components/parameters/FromRank"
         - $ref: "#/components/parameters/ToRank"
       responses:
@@ -714,6 +719,7 @@ paths:
         - $ref: "#/components/parameters/HasNlp"
         - $ref: "#/components/parameters/Theme"
         - $ref: "#/components/parameters/NotTheme"
+        - $ref: "#/components/parameters/ContentType"
         - $ref: "#/components/parameters/OrgEntityName"
         - $ref: "#/components/parameters/PerEntityName"
         - $ref: "#/components/parameters/LocEntityName"
@@ -1186,6 +1192,22 @@ components:
       schema:
         $ref: "#/components/schemas/NotTheme"
 
+    ContentType:
+      description: |
+        Filters articles by content type: the kind of page an article is, as determined by NLP analysis. To select multiple content types, use a comma-separated string. Values are case-insensitive, and an article is returned if it matches any of them.
+
+        Available options: `news_report`, `analysis`, `interview`, `opinion`, `press_release`, `listicle`, `service`, `commerce`, `review`, `autogen`, `seo_spam`, `obituary`, `ugc`, `non_article`. Shortcuts: `news` selects `news_report`, `analysis`, and `interview`; `all` applies no filter.
+
+        **Note**: Articles without a content type label are excluded whenever `content_type` is set. An unknown value returns a `422` error.
+
+        To learn more, see [Content types](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/content-types).
+      name: content_type
+      in: query
+      required: false
+      schema:
+        type: string
+        example: "news"
+
     OrgEntityName:
       name: ORG_entity_name
       in: query
@@ -1385,7 +1407,7 @@ components:
         The domain(s) of the news publication to search for. 
 
         **Caution**:  When specifying the `source_url` parameter, 
-        you can only use `include_additional_info` as an extra parameter.
+        you can only use `include_additional_info` and `content_type` as extra parameters.
       name: source_url
       in: query
       required: false
@@ -1432,6 +1454,22 @@ components:
       schema:
         type: string
       example: "General News Outlets,Tech News and Updates"
+
+    SourcesContentType:
+      description: |
+        Counts only articles of the given content types when ranking sources. The order of the results, `nb_articles_for_7d`, and the minimum of 5 articles per source apply to matching articles only, so a source with fewer matching articles is left out. To select multiple content types, use a comma-separated string. Values are case-insensitive.
+
+        Available options: `news_report`, `analysis`, `interview`, `opinion`, `press_release`, `listicle`, `service`, `commerce`, `review`, `autogen`, `seo_spam`, `obituary`, `ugc`, `non_article`. Shortcuts: `news` selects `news_report`, `analysis`, and `interview`; `all` applies no filter.
+
+        **Note**: You can combine `content_type` with `source_url` and `predefined_sources`. It is not enough on its own: send at least one of `lang`, `countries`, `source_url`, `source_name`, or `predefined_sources`.
+
+        To learn more, see [Content types](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/content-types).
+      name: content_type
+      in: query
+      required: false
+      schema:
+        type: string
+        example: "news"
 
     TopNArticles:
       name: top_n_articles
@@ -1528,6 +1566,8 @@ components:
                 $ref: "#/components/schemas/Theme"
               not_theme:
                 $ref: "#/components/schemas/NotTheme"
+              content_type:
+                $ref: "#/components/schemas/ContentType"
               ORG_entity_name:
                 $ref: "#/components/schemas/OrgEntityName"
               PER_entity_name:
@@ -1632,6 +1672,8 @@ components:
                 $ref: "#/components/schemas/Theme"
               not_theme:
                 $ref: "#/components/schemas/NotTheme"
+              content_type:
+                $ref: "#/components/schemas/ContentType"
               ner_name:
                 $ref: "#/components/schemas/NerName"
               title_sentiment_min:
@@ -1727,6 +1769,8 @@ components:
                 $ref: "#/components/schemas/Theme"
               not_theme:
                 $ref: "#/components/schemas/NotTheme"
+              content_type:
+                $ref: "#/components/schemas/ContentType"
               ORG_entity_name:
                 $ref: "#/components/schemas/OrgEntityName"
               PER_entity_name:
@@ -1793,6 +1837,8 @@ components:
                 $ref: "#/components/schemas/Theme"
               not_theme:
                 $ref: "#/components/schemas/NotTheme"
+              content_type:
+                $ref: "#/components/schemas/ContentType"
               ORG_entity_name:
                 $ref: "#/components/schemas/OrgEntityName"
               PER_entity_name:
@@ -1914,6 +1960,8 @@ components:
                 $ref: "#/components/schemas/Theme"
               not_theme:
                 $ref: "#/components/schemas/NotTheme"
+              content_type:
+                $ref: "#/components/schemas/ContentType"
               ORG_entity_name:
                 $ref: "#/components/schemas/OrgEntityName"
               PER_entity_name:
@@ -2006,6 +2054,8 @@ components:
                 $ref: "#/components/schemas/NewsDomainType"
               news_type:
                 $ref: "#/components/schemas/NewsType"
+              content_type:
+                $ref: "#/components/schemas/SourcesContentType"
               from_rank:
                 $ref: "#/components/schemas/FromRank"
               to_rank:
@@ -2568,6 +2618,12 @@ components:
         theme:
           type: string
           description: The themes or categories identified in the article.
+        content_type:
+          type: string
+          description: |
+            The kind of page the article is, as determined by NLP analysis, for example `news_report` or `opinion`. Articles indexed before content type labelling started have no content type.
+
+            To learn more, see [Content types](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/content-types).
         summary:
           type: string
           description: A brief AI-generated summary of the article content.
@@ -3657,6 +3713,40 @@ components:
 
         To learn more, see [NLP Enrichments](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/nlp-enrichments).
 
+    ContentType:
+      oneOf:
+        - type: string
+          example: "news"
+        - type: array
+          items:
+            type: string
+          example: ["news_report", "opinion"]
+      description: |
+        Filters articles by content type: the kind of page an article is, as determined by NLP analysis. To select multiple content types, use a comma-separated string or an array of strings. Values are case-insensitive, and an article is returned if it matches any of them.
+
+        Available options: `news_report`, `analysis`, `interview`, `opinion`, `press_release`, `listicle`, `service`, `commerce`, `review`, `autogen`, `seo_spam`, `obituary`, `ugc`, `non_article`. Shortcuts: `news` selects `news_report`, `analysis`, and `interview`; `all` applies no filter.
+
+        **Note**: Articles without a content type label are excluded whenever `content_type` is set. An unknown value returns a `422` error.
+
+        To learn more, see [Content types](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/content-types).
+
+    SourcesContentType:
+      oneOf:
+        - type: string
+          example: "news"
+        - type: array
+          items:
+            type: string
+          example: ["news_report", "opinion"]
+      description: |
+        Counts only articles of the given content types when ranking sources. The order of the results, `nb_articles_for_7d`, and the minimum of 5 articles per source apply to matching articles only, so a source with fewer matching articles is left out. To select multiple content types, use a comma-separated string or an array of strings. Values are case-insensitive.
+
+        Available options: `news_report`, `analysis`, `interview`, `opinion`, `press_release`, `listicle`, `service`, `commerce`, `review`, `autogen`, `seo_spam`, `obituary`, `ugc`, `non_article`. Shortcuts: `news` selects `news_report`, `analysis`, and `interview`; `all` applies no filter.
+
+        **Note**: You can combine `content_type` with `source_url` and `predefined_sources`. It is not enough on its own: send at least one of `lang`, `countries`, `source_url`, `source_name`, or `predefined_sources`.
+
+        To learn more, see [Content types](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/content-types).
+
     OrgEntityName:
       type: string
       description: |
@@ -3937,7 +4027,7 @@ components:
         The domains of the news publication to search for. To specify multiple news sources, 
         use a comma-separated string or an array of strings.
 
-        **Caution**:  When specifying the `source_url` parameter, you can only use `include_additional_info` as an extra parameter.
+        **Caution**:  When specifying the `source_url` parameter, you can only use `include_additional_info` and `content_type` as extra parameters.
       example: bbc.com
 
     AggregationBy:

@@ -1,0 +1,148 @@
+---
+title: Content types
+sidebarTitle: Content types
+description:
+  Filter articles and sources by the kind of page an article is, such as news
+  reports, opinion pieces, or press releases.
+---
+
+Every labelled article has one content type from NLP analysis: the kind of
+page it is, independent of what it is about. The label is returned in
+`nlp.content_type`, and the `content_type` parameter filters on it.
+
+Use it to keep news reporting and leave out press releases, shopping pages, or
+automatically generated pages that news sites also publish.
+
+## Content type values
+
+| Value           | What it is                                                                                      |
+| --------------- | ----------------------------------------------------------------------------------------------- |
+| `news_report`   | Reports a specific, recent event: breaking news, wire stories, match reports, earnings coverage |
+| `analysis`      | A journalist's explainer or feature about current events                                        |
+| `interview`     | A Q&A or interview with a newsworthy person                                                     |
+| `opinion`       | Columns, editorials, op-eds, personal blogs, investing commentary                               |
+| `press_release` | A company or government announcement published as is                                            |
+| `listicle`      | Lists, rankings, roundups, galleries                                                            |
+| `service`       | How-tos, recipes, TV listings, weather boilerplate, horoscopes, puzzles                         |
+| `commerce`      | Shopping deals, coupons, sponsored or affiliate content                                         |
+| `review`        | A review of a product, film, book, game, or restaurant                                          |
+| `autogen`       | Template pages filled with data automatically: stock tickers, rating changes, sports stats      |
+| `seo_spam`      | Content farms and fake "market report" pages                                                    |
+| `obituary`      | Death notices and funeral announcements                                                         |
+| `ugc`           | User-generated content: forum posts, community Q&A, social media pages                          |
+| `non_article`   | Homepages, tag pages, video-only pages, paywall stubs, error pages                              |
+
+The first three, `news_report`, `analysis`, and `interview`, are news. The
+rest are other kinds of pages that news sites also publish.
+
+The `content_type` parameter also accepts two shortcuts:
+
+- `news`: `news_report`, `analysis`, and `interview`.
+- `all`: no content type filter. This is the same as not setting
+  `content_type`.
+
+## Filter articles by content type
+
+The `content_type` parameter works on these endpoints, with `GET` and `POST`:
+
+- [Search](/news-api/api-reference/search/search-articles-post)
+- [Latest headlines](/news-api/api-reference/latest-headlines/retrieve-latest-headlines-post)
+- [Breaking news](/news-api/api-reference/breaking-news/retrieve-breaking-news-post)
+- [Authors](/news-api/api-reference/authors/search-articles-by-author-post)
+- [Aggregation count](/news-api/api-reference/aggregation-count/get-aggregation-count-by-interval-post)
+- [Sources](/news-api/api-reference/sources/retrieve-sources-post), which
+  works differently. See [Rank sources by content type](#rank-sources-by-content-type).
+
+Pass one or more values as a comma-separated string. In `POST` requests, you
+can also pass an array of strings. Values are case-insensitive, and an article
+is returned if it matches any of them:
+
+<CodeGroup>
+
+```bash Shortcut
+curl -X POST "https://v3-api.newscatcherapi.com/api/search" \
+  -H "x-api-token: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "q": "Tesla",
+    "content_type": "news"
+  }'
+```
+
+```bash Array
+curl -X POST "https://v3-api.newscatcherapi.com/api/search" \
+  -H "x-api-token: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "q": "Tesla",
+    "content_type": ["news_report", "opinion"]
+  }'
+```
+
+```bash GET
+curl -G "https://v3-api.newscatcherapi.com/api/search" \
+  -H "x-api-token: YOUR_API_KEY" \
+  --data-urlencode "q=Tesla" \
+  --data-urlencode "content_type=news_report,opinion"
+```
+
+</CodeGroup>
+
+An unknown value returns a `422` error that names the value and lists the
+accepted values.
+
+<Note>
+  Articles indexed before content type labelling started have no content type,
+  so they are left out whenever `content_type` is set. A filtered request over
+  an older date range can return fewer articles. Without `content_type`, all
+  articles are returned as before.
+</Note>
+
+## Rank sources by content type
+
+On [Sources](/news-api/api-reference/sources/retrieve-sources-post),
+`content_type` does not filter the sources themselves. It narrows the articles
+that each source is counted from. The order of the results,
+`nb_articles_for_7d`, and the minimum of 5 articles per source apply to
+matching articles only, so you get the top sources for news rather than the
+top sources overall. A source with fewer than 5 matching articles is left out.
+
+```bash
+curl -X POST "https://v3-api.newscatcherapi.com/api/sources" \
+  -H "x-api-token: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "countries": "US",
+    "content_type": "news",
+    "include_additional_info": true
+  }'
+```
+
+`content_type` is not enough on its own. Send at least one of `lang`,
+`countries`, `source_url`, `source_name`, or `predefined_sources`. Unlike most
+parameters, you can combine `content_type` with `source_url` and
+`predefined_sources`.
+
+## Content type in the response
+
+Each article includes its label in the `nlp` object:
+
+```json
+{
+  "nlp": {
+    "theme": "Business",
+    "content_type": "news_report"
+  }
+}
+```
+
+`nlp.content_type` is returned on all subscription plans. On plans with NLP
+enrichments, it follows `include_nlp_data` like the rest of the `nlp` object.
+Articles indexed before content type labelling started have no
+`nlp.content_type`.
+
+## See also
+
+- [NLP Enrichments](/news-api/guides-and-concepts/nlp-enrichments)
+- [Check sources coverage](/news-api/how-to/check-sources-coverage)
+- [Subscription plans](/news-api/get-started/subscription-plans)

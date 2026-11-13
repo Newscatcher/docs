@@ -5,6 +5,25 @@ description: Track updates, improvements, and fixes to the Enterprise News API.
 rss: true
 ---
 
+<Update label="3.26.0" description="2026-11-13">
+## Content types
+
+- **Content type filter**: filter articles by the kind of page they are, such
+  as news reports, opinion pieces, or press releases, with the new
+  `content_type` parameter. Pass one or more of 14 labels, or `news` for news
+  reports, analysis, and interviews. Available on
+  [Search](/news-api/api-reference/search/search-articles-get), Latest
+  headlines, Breaking news, Authors, and Aggregation count, on all plans. See
+  [Content types](/news-api/guides-and-concepts/content-types).
+- **Sources by content type**: `content_type` on
+  [Sources](/news-api/api-reference/sources/retrieve-sources-get) ranks and
+  counts publishers by matching articles only, for example to find the top
+  sources for news. You can combine it with `source_url` and
+  `predefined_sources`.
+- **Response**: each article has a new `nlp.content_type` field with its label,
+  on all plans.
+</Update>
+
 <Update label="3.25.0" description="2026-11-06">
 ## Source groups
 
