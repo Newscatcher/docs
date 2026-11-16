@@ -3,6 +3,24 @@ title: Changelog
 description: New features and changes to the News API and the agent.
 ---
 
+<Update label="November 16, 2026" description="Agent 1.8.2">
+  ## Large company runs and monitors finish
+
+  - **Company monitors**: a monitor run now refreshes every company it follows,
+    however many there are. Before, a run stopped after 60 minutes and skipped
+    the companies it had not reached. See [Monitors](/agent/monitors#schedule).
+  - **Company monitors**: if a run is still going when the next scheduled time
+    comes, the monitor skips that time instead of starting a second run.
+  - **Fixed**: a company that runs out of time no longer fails the whole
+    company run. It shows `incomplete` with the stories found so far, and the
+    run goes on with the other companies. See
+    [Coverage per company](/agent/company-research#coverage-per-company).
+  - **Fixed**: companies with a very large amount of news, such as Apple or
+    Microsoft, no longer run out of time before any news is found.
+  - **Fixed**: large company runs and monitor runs no longer fail when one part
+    of the work stops on an internal error. That part starts again.
+</Update>
+
 <Update label="November 12, 2026" description="MCP server 0.2.0">
   ## Sign in to the MCP server
 

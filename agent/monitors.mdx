@@ -87,6 +87,12 @@ The default is daily at 09:00 UTC. Event monitors made from `standard` or
 `max` runs default to weekly, on the weekday the monitor is created, and may run
 daily too.
 
+A company monitor's run refreshes every company it follows, however many there
+are. Each company has its own time limit, as in
+[company runs](/agent/company-research#coverage-per-company). If a run is still
+going when the next scheduled time comes, the monitor skips that time instead of
+starting a second run.
+
 ## Get what a monitor delivered
 
 | To | Call |

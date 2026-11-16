@@ -80,6 +80,10 @@ Besides the stories, a companies run returns one row per company in
 | `pending` | Not reached yet; the run is still going. |
 | `not_searched` | The run ended before reaching the company. |
 
+Each company has up to 20 minutes. A company that reaches that limit keeps the
+stories found so far and shows `incomplete`, and the run goes on with the other
+companies.
+
 Download it with `GET /runs/{run_id}/companies.csv` or `companies.xlsx`.
 
 If the run used a company list, fix a company with `identity_unknown` in the
