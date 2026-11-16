@@ -47,7 +47,9 @@ first 50. Company research and company monitors are charged per company.
 | Event monitor, weekly or less often | One run of its mode |
 | Company monitor | About 3,000 NCC per company per month, charged per update ([below](#company-monitors)) |
 
-Failed runs are free. A run that finds nothing is still charged.
+Failed runs are free. A run whose news searches all failed, so nothing was
+researched, fails with `search_failed` and is free too: try it again in a few
+minutes. A run whose searches worked but found nothing is still charged.
 
 ### Company monitors
 

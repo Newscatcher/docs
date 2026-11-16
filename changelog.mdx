@@ -3,6 +3,18 @@ title: Changelog
 description: New features and changes to the News API and the agent.
 ---
 
+<Update label="November 16, 2026" description="Agent 1.8.3">
+  ## Fixes for long windows and failed searches
+
+  - **Fixed**: `standard` and `max` event runs that ask for "the last 12
+    months" find news again. Before, they ended with no rows. See
+    [Event research](/agent/event-research#parameters).
+  - **Failed searches are free**: a run whose news searches all failed now
+    fails with `search_failed` and is not charged, instead of succeeding with
+    0 rows. A run whose searches worked but found nothing is still charged. See
+    [Credits and pricing](/get-started/credits-and-pricing).
+</Update>
+
 <Update label="November 16, 2026" description="Agent 1.8.2">
   ## Large company runs and monitors finish
 

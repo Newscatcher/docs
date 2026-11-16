@@ -1,9 +1,10 @@
 ---
 title: News API MCP agent setup
 sidebarTitle: Agent setup
-# Reachable by URL only: not in the sidebar, search, sitemap or search engines.
-# It is the target of the paste-into-your-agent line, not a page to browse to.
-hidden: true
+# Not in the sidebar: it is the target of the paste-into-your-agent line, not a
+# page to browse to, so it is left out of docs.json navigation. It is indexed and
+# listed in sitemap.xml through EXTRA_PAGES in scripts/generate_sitemap.py.
+noindex: false
 description:
   Written for the AI agent doing the setup. Hand it this page and it connects
   the News API MCP server to whatever client it is running in, then verifies

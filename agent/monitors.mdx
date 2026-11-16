@@ -63,6 +63,10 @@ A new monitor first runs at its next scheduled time. `POST
 /monitors/{monitor_id}/run` runs it at the scheduler's next tick, within 5
 minutes; its schedule then continues as before.
 
+A monitor never runs twice at once. If its last run is still queued or running
+at a scheduled time, that time is skipped and the monitor runs again at the
+next one.
+
 ## Schedule
 
 <ParamField body="schedule.every" type="string" default="day">
@@ -89,9 +93,7 @@ daily too.
 
 A company monitor's run refreshes every company it follows, however many there
 are. Each company has its own time limit, as in
-[company runs](/agent/company-research#coverage-per-company). If a run is still
-going when the next scheduled time comes, the monitor skips that time instead of
-starting a second run.
+[company runs](/agent/company-research#coverage-per-company).
 
 ## Get what a monitor delivered
 

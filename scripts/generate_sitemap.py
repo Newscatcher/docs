@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Generate sitemap.xml for NewsCatcher API documentation.
 
-Reads docs.json (navigation source of truth) and produces a sitemap.xml
-following the Sitemaps protocol (https://www.sitemaps.org/protocol.html).
+Reads docs.json (navigation source of truth), adds the pages in EXTRA_PAGES,
+and produces a sitemap.xml following the Sitemaps protocol (https://www.sitemaps.org/protocol.html).
 
 The output is deterministic: identical docs.json inputs always produce
 identical output. <lastmod> is intentionally omitted so the committed file
@@ -30,6 +30,12 @@ from pathlib import Path
 BASE_URL = "https://www.newscatcherapi.com/docs"
 DOCS_JSON_PATH = "docs.json"
 OUTPUT_PATH = "sitemap.xml"
+
+# Pages served and indexed but kept out of the sidebar, so not in docs.json
+# navigation. They are added after the navigation pages, in this order.
+EXTRA_PAGES = [
+    "news-api/integrations/mcp-agent-setup",
+]
 
 # Navigation entries like "GET /search" are endpoints Mintlify generates from
 # an OpenAPI spec, not MDX pages.
@@ -137,6 +143,15 @@ def main() -> None:
     if not pages:
         print("Error: no pages found in docs.json navigation", file=sys.stderr)
         sys.exit(1)
+
+    for extra in EXTRA_PAGES:
+        if not (root / f"{extra}.mdx").exists():
+            print(f"Error: EXTRA_PAGES entry {extra} has no {extra}.mdx", file=sys.stderr)
+            sys.exit(1)
+        if extra in pages:
+            print(f"Error: EXTRA_PAGES entry {extra} is already in docs.json navigation", file=sys.stderr)
+            sys.exit(1)
+    pages.extend(EXTRA_PAGES)
 
     sitemap = build_sitemap(pages)
     output_path = root / args.output
