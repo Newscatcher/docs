@@ -567,4 +567,7 @@
     <url>
         <loc>https://www.newscatcherapi.com/docs/local-news-api/api-reference/search-by/search-articles-by-identifiers-post</loc>
     </url>
+    <url>
+        <loc>https://www.newscatcherapi.com/docs/news-api/integrations/mcp-agent-setup</loc>
+    </url>
 </urlset>
