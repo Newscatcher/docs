@@ -63,6 +63,10 @@ A new monitor first runs at its next scheduled time. `POST
 /monitors/{monitor_id}/run` runs it at the scheduler's next tick, within 5
 minutes; its schedule then continues as before.
 
+A monitor never runs twice at once. If its last run is still queued or running
+at a scheduled time, that time is skipped and the monitor runs again at the
+next one.
+
 ## Schedule
 
 <ParamField body="schedule.every" type="string" default="day">

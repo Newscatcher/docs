@@ -3,6 +3,26 @@ title: Changelog
 description: New features and changes to the News API and the agent.
 ---
 
+<Update label="November 16, 2026" description="Agent 1.8.3">
+  ## Fixes for long windows and large company runs
+
+  - **Fixed**: `standard` and `max` event runs that ask for "the last 12
+    months" find news again. Before, they ended with no rows. See
+    [Event research](/agent/event-research#parameters).
+  - **Failed searches are free**: a run whose news searches all failed now
+    fails with `search_failed` and is not charged, instead of succeeding with
+    0 rows. A run whose searches worked but found nothing is still charged. See
+    [Credits and pricing](/get-started/credits-and-pricing).
+  - **No overlapping monitor runs**: if a monitor's last run is still working
+    at its next scheduled time, that time is skipped. See
+    [Monitors](/agent/monitors).
+  - **Fixed**: company monitors of many companies now refresh every company.
+    Before, a monitor run stopped after 60 minutes and skipped the companies it
+    had not reached.
+  - **Fixed**: a company whose search runs out of time no longer fails the
+    whole companies run. The run goes on with its other companies.
+</Update>
+
 <Update label="November 12, 2026" description="MCP server 0.2.0">
   ## Sign in to the MCP server
 
