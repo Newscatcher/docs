@@ -81,7 +81,7 @@ these columns:
 | `story_type` | What happened: `funding`, `acquisition`, `leadership`, `workforce`, `financial_results`, `product`, `partnership`, `legal_regulatory`, `incident`, `expansion`, `market_activity` or `other`. `unscreened` means the agent could not check the story's articles; it has `importance` `0` and ranks last. |
 | `importance` | How much the story matters to someone tracking the company, from `1` to `5`. `5`: major, such as an acquisition, a CEO change, a large funding round, financial results, a major lawsuit or fine, large layoffs or a major launch. `3`: notable. `1`: trivial, such as a small price move or a passing promotion. The agent rates each article; a story takes its highest rating. |
 | `headline` | Headline of the lead article, in English when a translation exists. When that headline is cut off or too short, the agent's one-line description of the event instead. |
-| `summary` | What happened, in one English sentence with the company as the subject, written by the agent. |
+| `summary` | One-line abstractive summary of the story, in English: an AI model writes what happened in its own words instead of copying the text, with the company as the subject, in about 15 words at most. The agent writes such a line for each article, and the story keeps the one that best represents its articles. Empty for `unscreened` stories. |
 | `outlets` | Number of different publishers that covered the story. News aggregators are not counted. |
 | `articles` | Number of articles in the story, copies of the same article included. |
 | `source` | Domain of the lead article: the article that best shows the story. |
