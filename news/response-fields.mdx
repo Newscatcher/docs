@@ -89,10 +89,12 @@ The response of [`/articles`](/news/articles).
 <ResponseField name="title" type="string">Headline as published.</ResponseField>
 <ResponseField name="title_en" type="string">English translation of the headline. Non-English articles only.</ResponseField>
 <ResponseField name="summary" type="string">
-  One-line summary in the article's language. Absent when the article has none.
+  One-sentence summary of the article, in the article's language. It is
+  abstractive: an AI model writes it in its own words instead of copying
+  sentences from the text. Absent when the article has none.
 </ResponseField>
 <ResponseField name="summary_en" type="string">
-  One-line summary in English. Non-English articles only.
+  The same one-sentence summary in English. Non-English articles only.
 </ResponseField>
 <ResponseField name="snippet" type="string">
   Start of the publisher's description, up to your plan's snippet length (200
@@ -129,5 +131,5 @@ add, see [Enterprise plans](/get-started/enterprise-plans).
 | `entities` | `entities` | People (`ner_PER`), organizations (`ner_ORG`), locations (`ner_LOC`) and other names (`ner_MISC`), plus the same found in the English translation. |
 | `sentiment` | `sentiment` | Sentiment of the headline and of the article, from -1 (very negative) to 1 (very positive). |
 | `themes` | `themes` | Themes of the article. |
-| `translation` | `translation` | English headline and summary of a non-English article. |
+| `translation` | `translation` | English headline, text and summary of a non-English article. This summary is taken from the article text, so it differs from `summary_en`. |
 | `embedding` | `embedding` | A 1,024-value vector of the article, rounded to 4 decimal places. |
