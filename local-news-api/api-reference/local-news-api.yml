@@ -1115,9 +1115,9 @@ components:
     IsPaidContent:
       type: boolean
       description: |
-        Filters articles by content completeness.
+        Filters articles by whether they are paid content: behind a paywall, or marked as sponsored or paid.
 
-        If false, returns only articles for which full-text content is publicly available. If true, returns all indexed articles, including those where only partial content is publicly available (e.g., headlines, summaries, or preview paragraphs from paywalled sources).
+        If true, returns only paid content articles, for which only part of the content is publicly available (e.g., headlines, summaries, or preview paragraphs from paywalled sources). If false, excludes them and returns only articles that are not paid content. If not set, returns both.
 
         **Note**: NewsCatcher indexes content that is publicly accessible and available for crawling in accordance with publisher access controls (e.g., robots.txt and similar mechanisms). For paywalled sources, only content that publishers make publicly available (such as headlines, summaries, or preview text) is indexed. NewsCatcher does not bypass paywalls, authentication systems, or other technical access restrictions.
       example: false
