@@ -66,6 +66,29 @@ companies is split into runs of up to 50, grouped in a
 [batch](/agent/runs#batches). The response then has a `batch_id` and the
 `run_ids` of every part.
 
+## Story columns
+
+A companies run returns one story per row. A story is a group of articles about
+the same event. The `rows` of the result and the CSV and Excel exports have
+these columns:
+
+| Column | Meaning |
+|---|---|
+| `domain` | The company's domain. |
+| `company` | The company's name. |
+| `rank` | Position of the story within its company, `1` first. Stories covered by more independent outlets rank higher, `importance` breaks ties, and market activity ranks last. |
+| `date` | Date of the story's earliest article (`YYYY-MM-DD`). |
+| `story_type` | What happened: `funding`, `acquisition`, `leadership`, `workforce`, `financial_results`, `product`, `partnership`, `legal_regulatory`, `incident`, `expansion`, `market_activity` or `other`. `unscreened` means the agent could not check the story's articles; it has `importance` `0` and ranks last. |
+| `importance` | How much the story matters to someone tracking the company, from `1` to `5`. `5`: major, such as an acquisition, a CEO change, a large funding round, financial results, a major lawsuit or fine, large layoffs or a major launch. `3`: notable. `1`: trivial, such as a small price move or a passing promotion. The agent rates each article; a story takes its highest rating. |
+| `headline` | Headline of the lead article, in English when a translation exists. When that headline is cut off or too short, the agent's one-line description of the event instead. |
+| `summary` | What happened, in one English sentence with the company as the subject, written by the agent. |
+| `outlets` | Number of different publishers that covered the story. News aggregators are not counted. |
+| `articles` | Number of articles in the story, copies of the same article included. |
+| `source` | Domain of the lead article: the article that best shows the story. |
+| `url` | Link to the lead article. |
+| `origin` | Where the story was found: `news` (news articles), `web` (web search only) or `own` (only the company's own website). |
+| `related_company` | Empty for now. |
+
 ## Coverage per company
 
 Besides the stories, a companies run returns one row per company in
