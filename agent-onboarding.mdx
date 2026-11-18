@@ -132,11 +132,10 @@ wrong, empty or narrower than asked. Follow them on every call.
    write `NOT "Elon Musk"`. A lower-case `not` is an ordinary word. `NOT` checks
    the headline, the description and the summary, not the article text, and
    only the first 10 terms count.
-2. **Dates written in the query are ignored.** "This week" or "since March" in
-   the query does not change the time window. Set the window parameter:
-   `window` on `search_news` (default 7 days, up to 30), `from` and `to` on
-   `list_articles` (default the last 7 days, up to 12 months). A `list_articles`
-   count with no `from` covers only 7 days.
+2. **`list_articles` covers only the last 7 days unless you set `from`.** A
+   count of "every article that mentions X" with no `from` is a 7-day count.
+   Set `from` and `to` (up to 12 months back). On `search_news`, the window
+   is `window` (default 7 days, up to 30).
 3. **In `search_news`, the default window is cut to the plan's history
    without a flag.** A window you set that is longer than the plan allows is
    cut and marked as clamped; the default 7 days is cut with no mark. Set the
