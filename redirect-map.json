@@ -6,7 +6,7 @@
   "metadata": {
     "project": "NewsCatcher API Documentation",
     "change": "Rename Monitors -> Event Monitors and Company Watchlist -> Company Monitors, updating page slugs across concepts, how-to, and API reference.",
-    "total_redirects": 119
+    "total_redirects": 120
   },
   "redirects": [
     {
@@ -720,6 +720,12 @@
     {
       "source": "/docs/web-search-api/api-reference/monitors/update-monitor",
       "destination": "/docs/web-search-api/api-reference/event-monitors/update-monitor",
+      "type": "permanent",
+      "status_code": 301
+    },
+    {
+      "source": "/docs/resources/docs-for-agents",
+      "destination": "/docs/agent-onboarding",
       "type": "permanent",
       "status_code": 301
     }

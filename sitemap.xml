@@ -7,6 +7,9 @@
         <loc>https://www.newscatcherapi.com/docs/get-started/quickstart</loc>
     </url>
     <url>
+        <loc>https://www.newscatcherapi.com/docs/agent-onboarding</loc>
+    </url>
+    <url>
         <loc>https://www.newscatcherapi.com/docs/get-started/choose-an-api</loc>
     </url>
     <url>
@@ -83,9 +86,6 @@
     </url>
     <url>
         <loc>https://www.newscatcherapi.com/docs/resources/migrate-from-v3</loc>
-    </url>
-    <url>
-        <loc>https://www.newscatcherapi.com/docs/resources/docs-for-agents</loc>
     </url>
     <url>
         <loc>https://www.newscatcherapi.com/docs/resources/glossary</loc>

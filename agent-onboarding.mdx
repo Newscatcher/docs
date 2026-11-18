@@ -1,0 +1,275 @@
+---
+title: Onboarding for AI agents
+description: One page an AI agent reads to connect to NewsCatcher, pick the right tool, avoid the queries that fail silently and check its credits.
+---
+
+<Visibility for="humans">
+  This page is written for an AI agent. Paste this line into Claude, Cursor or
+  any agent that can read the web, and it sets up NewsCatcher for you:
+
+  ```text
+  Read and follow https://www.newscatcherapi.com/docs/agent-onboarding.md
+  ```
+
+  To set things up by hand, see the [MCP server](/integrations/mcp) page.
+</Visibility>
+
+<Visibility for="agents">
+  You are the agent doing the setup. Everything you need is on this page: you
+  do not need `llms.txt` or other pages to finish. Work through the steps in
+  order, and read "Rules that break silently" before your first search.
+</Visibility>
+
+## What NewsCatcher is
+
+NewsCatcher is news search and news research for agents, in every language.
+It has two products, behind one account, one credit balance and one MCP
+server:
+
+- **News API**: answers in seconds. Ranked articles grouped into stories for
+  the last 30 days, or every article that matches a boolean query over the
+  last 12 months.
+- **Agent API**: research that takes minutes and returns a table. Every event of
+  a kind (deals, layoffs, recalls...) with its sources, or the news stories
+  of each company in a list. Monitors repeat it on a schedule.
+
+## Which tool to use
+
+| The person wants | Use | Takes |
+|---|---|---|
+| What happened, the latest on a topic, company or person, last 30 days | `search_news` | Seconds |
+| Every article that matches, an exact count, or news older than 30 days (up to 12 months) | `list_articles` (`count_only=true` for just the number) | Seconds |
+| A trend: article counts per day, week or month, up to 5 queries | `count_articles` | Seconds |
+| All coverage of one story | `get_story`, with a story id from `search_news` | Seconds |
+| A table of events with sources: deals, layoffs, funding rounds, recalls, lawsuits | `start_research` with `query`, then `get_research` | Minutes |
+| The news of each company in a list | `start_research` with `companies` or `company_list_id`, then `get_research` | Minutes |
+| Any of these again on a schedule | `start_research(keep_updated=true)` or `create_monitor`, then `get_monitor_updates` | Scheduled |
+| Credits, plan and limits | `get_account` | Free |
+
+Use `search_news` when the top results are enough. Use `list_articles` when you
+need every match. Use an agent run when the person needs
+a list in which every row is checked against its sources.
+
+## Step 1: connect
+
+The MCP server is `https://mcp.newscatcherapi.com/mcp` (streamable HTTP).
+Connect in one of two ways.
+
+**Sign in (preferred).** Add the server URL with no key. The client asks the
+person to sign in to their NewsCatcher account and approve access; there is
+no key to copy. This needs a client that supports sign-in for remote MCP
+servers, such as Claude.ai, Claude Desktop and Claude Code, and a person to
+complete it: you cannot finish it alone.
+
+- **Claude Code:** run
+  `claude mcp add --transport http newscatcher https://mcp.newscatcherapi.com/mcp`,
+  then ask the person to run `/mcp`, pick `newscatcher` and choose
+  **Authenticate**.
+- **Claude.ai and Claude Desktop:** the person adds a custom connector under
+  **Settings > Connectors** with the URL above, leaves the OAuth fields empty,
+  and clicks **Connect**.
+
+**API key (fallback).** For clients without sign-in, scripts and CI. The
+person creates a key in the [platform](https://platform.newscatcherapi.com).
+Ask for it if you do not have it. Send it in one of these ways, highest
+precedence first:
+
+1. `x-api-key: YOUR_API_KEY` header (use this when the client has a headers
+   field)
+2. `Authorization: Bearer YOUR_API_KEY` header
+3. `?apiKey=YOUR_API_KEY` on the server URL, only for clients with no headers
+   field (the key can end up in logs)
+
+No tool takes the key as an argument. Claude Code with a key:
+
+```bash
+claude mcp add --transport http newscatcher \
+  https://mcp.newscatcherapi.com/mcp \
+  --header "x-api-key: YOUR_API_KEY"
+```
+
+Other clients (Cursor, VS Code, Windsurf, Codex, Gemini CLI): add a remote
+HTTP server with the URL above and the `x-api-key` header. The exact config
+file for each is on the [MCP server](/integrations/mcp#connect-to-other-clients)
+page.
+
+**No MCP support?** Call the REST APIs directly with the same key in the
+`x-api-key` header:
+
+- News API: `https://api.newscatcherapi.com/news-api` (`POST /search`,
+  `POST /articles`, `GET /stories/{story_id}`, `GET /subscription`)
+- Agent API: `https://api.newscatcherapi.com/agent` (`POST /runs`,
+  `GET /runs/{run_id}`, `/monitors`, `/companies/lists`)
+
+## Step 2: verify
+
+A wrong key is not refused when you connect. It fails on the first tool call.
+So verify before anything else:
+
+- **MCP:** call `get_account`. It is free and returns the plan, the credit
+  balance and the limits. If it returns an error, fix the key or the sign-in
+  now.
+- **REST:** `GET https://api.newscatcherapi.com/news-api/subscription` with
+  the `x-api-key` header. It is free and returns `credits_balance` and your
+  plan's limits.
+
+```bash
+curl "https://api.newscatcherapi.com/news-api/subscription" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY"
+```
+
+A request with no key and no sign-in gets `401`. If the person signed in but
+their workspace has no API key, every tool returns an error telling them to
+create one in the platform.
+
+## Rules that break silently
+
+These do not return an error. They return results that look fine and are
+wrong, empty or narrower than asked. Follow them on every call.
+
+1. **In `search_news`, `NOT` takes one word or one quoted phrase, and only in
+   upper case.** `NOT Elon Musk` drops only "Elon" and searches for "Musk";
+   write `NOT "Elon Musk"`. A lower-case `not` is an ordinary word. `NOT` checks
+   the headline, the description and the summary, not the article text, and
+   only the first 10 terms count.
+2. **`list_articles` covers only the last 7 days unless you set `from`.** A
+   count of "every article that mentions X" with no `from` is a 7-day count.
+   Set `from` and `to` (up to 12 months back). On `search_news`, the window
+   is `window` (default 7 days, up to 30).
+3. **In `search_news`, the default window is cut to the plan's history
+   without a flag.** A window you set that is longer than the plan allows is
+   cut and marked as clamped; the default 7 days is cut with no mark. Set the
+   window yourself when the dates matter.
+4. **Non-news is handled differently by the two search tools.**
+   `search_news` drops press releases, blogs and opinion by default (set
+   `include_non_news=true` to keep them). `list_articles` includes them and
+   has no filter to drop them.
+5. **Paging stops at 1,000 articles, and a date-only `to` ends at 00:00.**
+   `list_articles` pages through the first 1,000 matches only; `total_hits`
+   still gives the exact count. `to="2026-10-03"` means 2026-10-03 00:00, so
+   that day is left out: send `2026-10-03T23:59:59`.
+6. **A company run ends `succeeded` even when companies failed.** Check the
+   coverage status of every company (`news_status`). Only `found` and
+   `no_news` mean the company was searched in full. `identity_unknown` means
+   it was not searched at all. `incomplete`, `out_of_time`,
+   `model_unavailable`, `internal_error`, `failed` and `not_searched` mean the
+   search did not finish.
+7. **The Agent REST API drops unknown request fields.** In `POST /runs`, a
+   misspelled field (say `lookback` for `lookback_days`) is ignored without an
+   error, and the run uses the default. `lookback_days` above 365 becomes 365,
+   and `0` becomes 30. Check `window_from` and `window_to` of a company run in
+   the response.
+8. **A tool call stops after about 4 minutes and returns what it has.** For
+   agent runs, `get_research` returns the partial table; call it again until
+   the run's status is `succeeded`, `failed` or `cancelled`. Do not start the
+   run again.
+
+## The tools
+
+The server has four toolsets. All load by default.
+
+| Toolset | Tools |
+|---|---|
+| `news` | `search_news`, `list_articles`, `count_articles`, `get_story`, `get_account` |
+| `research` | `start_research`, `get_research`, `cancel_research` |
+| `lists` | `save_company_list`, `get_company_list`, `edit_company_list` |
+| `monitors` | `create_monitor`, `get_monitor`, `get_monitor_updates`, `update_monitor` |
+
+To load fewer tools and save context, add `?tools=` to the server URL:
+`https://mcp.newscatcherapi.com/mcp?tools=news` or `?tools=news,research`.
+Unknown names are ignored; if none is valid, every toolset loads.
+
+The server also has two guides you can read as resources:
+`newscatcher://guides/query-syntax` and `newscatcher://guides/research-agent`.
+
+## Credits and limits
+
+One balance of NCC credits pays for everything. Only successful work is
+charged, and a search that finds nothing is still a success.
+
+| Call | Credits |
+|---|---|
+| `search_news` | 1, 5 or 10 by `effort` (`low`, `medium` default, `high`) |
+| `list_articles` | 5 per call; with `tally`, 5 per page read (3 pages by default) |
+| `count_articles` | 5 per query and time bucket, up to 60 calls per request |
+| `get_story` | 1 |
+| Agent events run | 1,000 (`fast`), 3,000 (`standard`) or 6,000 (`max`), 50 rows included; each extra 50 rows adds 500, 1,500 or 3,000 |
+| Agent company run | 500 per company searched (`found` or `no_news`) |
+| `get_account`, `get_research`, `cancel_research`, company lists, `get_monitor`, `get_monitor_updates` | Free |
+
+- **Check before big jobs.** `start_research(dry_run=true)` is free and shows
+  the time, the cost and your balance. Confirm `standard` or `max` runs, many
+  companies and hourly monitors with the person first.
+- **The full price is held when a run starts.** A run your balance cannot
+  cover is refused with `402`.
+- **Check the balance** with `get_account` (MCP) or `GET /subscription` (REST),
+  both free. The balance can lag usage by a minute or two.
+- **Your plan limits how many agent runs go at once.** One more gets
+  `429 too_many_runs`; wait for a run to finish.
+
+For every price and plan limit, see
+[Credits and pricing](/get-started/credits-and-pricing) and
+[Rate limits](/get-started/rate-limits).
+
+## When a call fails
+
+- `401`: the key is missing or wrong. Fix it; do not retry.
+- `402`: not enough credits. Nothing was charged. Tell the person to top up.
+- `403`: the plan does not allow this (a field, a page depth, a mode, a window
+  older than the plan's history). Do not retry unchanged.
+- `422`: the request is invalid; the message names the field. Fix it and retry
+  once.
+- `429`: wait for `Retry-After` when it is sent (for the daily limit it is the
+  next midnight UTC). For `too_many_runs`, wait for a run to finish.
+- `503` and `500`: retry once after a few seconds.
+- An agent run that ends `failed` (`model_unavailable`, `search_failed`,
+  `worker_restarted`, `internal_error`) is free: start it again.
+
+## Examples
+
+**News, with MCP:** the biggest stories about Nvidia in the last 7 days.
+
+```json
+{"name": "search_news", "arguments": {"query": "Nvidia export restrictions China", "window": "7d", "effort": "medium", "group": "story", "limit": 10}}
+```
+
+**Every match, with MCP:** how many articles mentioned Ozempic and a shortage
+from March to June, and which outlets wrote the most.
+
+```json
+{"name": "list_articles", "arguments": {"query": "Ozempic AND (shortage OR shortages)", "from": "2026-03-01", "to": "2026-06-30T23:59:59", "tally": ["source"]}}
+```
+
+**An agent run, with MCP:** check the cost, then start it and wait.
+
+```json
+{"name": "start_research", "arguments": {"query": "Layoffs announced by US tech companies since 2026-10-01", "mode": "fast", "max_rows": 50, "dry_run": true}}
+```
+
+Run it again without `dry_run`, then call `get_research` with the `run_id`
+until the status is `succeeded`.
+
+**The same with REST:**
+
+```bash
+curl -X POST "https://api.newscatcherapi.com/news-api/search" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"q": "Nvidia export restrictions China", "search_window": "7d", "effort": "medium"}'
+
+curl -X POST "https://api.newscatcherapi.com/agent/runs" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Layoffs announced by US tech companies since 2026-10-01", "mode": "fast", "max_rows": 50}'
+```
+
+The agent run answers `202` with a `run_id`. Poll `GET /runs/{run_id}` every
+15 seconds or so until `status` is `succeeded`, `failed` or `cancelled`.
+
+## Reading these docs
+
+- **Docs MCP server:** `https://www.newscatcherapi.com/docs/mcp` searches and
+  reads these docs from any MCP client.
+- **Markdown:** add `.md` to any page URL to get it as Markdown.
+- **Index:** [`llms.txt`](https://www.newscatcherapi.com/docs/llms.txt) lists
+  every page with a one-line description.
