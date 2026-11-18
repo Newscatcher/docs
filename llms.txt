@@ -1,464 +1,160 @@
-# NewsCatcher API Documentation
+# NewsCatcher
 
-> News search and research APIs for applications and AI agents. The News API ranks the last 30 days of news in every language and groups results into stories; the Agent researches events or companies in the background and returns a table, once or on a schedule. Enterprise docs cover the v3 News API, CatchAll (Web Search API) and the Local News API.
+> NewsCatcher is news search and news research for applications and AI agents, in every language. The News API answers in seconds: ranked articles grouped into stories for the last 30 days (`/search`), or every article that matches a boolean query over the last 12 months (`/articles`). The Agent does research that takes minutes and returns a table: every event of a kind (deals, layoffs, recalls, funding rounds) checked against its sources, or the news stories of each company in a list. Monitors repeat agent research on a schedule and deliver only what is new.
 
-- [NewsCatcher documentation](https://www.newscatcherapi.com/docs/home/index): Enterprise APIs for web search, news and local news data
+**Important notes:**
 
-## Documentation
+- One account, one API key and one balance of NCC credits pay for both products. Only successful work is charged.
+- News API: `https://api.newscatcherapi.com/news-api`. Agent API: `https://api.newscatcherapi.com/agent`. Send the key in the `x-api-key` header.
+- `/search` returns the best articles, not every match. For every match, an exact count or news older than 30 days, use `/articles`.
+- Agent runs are asynchronous: `POST /runs` answers `202` with a `run_id`; poll `GET /runs/{run_id}` until `status` is `succeeded`, `failed` or `cancelled`.
+- `GET /subscription` is free and returns your plan, limits and credit balance.
 
-### Get started
+## Which route to use
 
-- [NewsCatcher API](https://www.newscatcherapi.com/docs/get-started/overview): Search the world's news in any language, or let the agent research events and companies for you.
-- [Quickstart](https://www.newscatcherapi.com/docs/get-started/quickstart): Get an API key and make your first News API search and agent run.
-- [Onboarding for AI agents](https://www.newscatcherapi.com/docs/agent-onboarding): One page an AI agent reads to connect to NewsCatcher, pick the right tool, avoid the queries that fail silently and check its credits.
-- [Choose an API](https://www.newscatcherapi.com/docs/get-started/choose-an-api): When to use a News API search, an agent run or a monitor.
-- [Authentication](https://www.newscatcherapi.com/docs/get-started/authentication): Send your API key in the x-api-key header.
-- [Credits and pricing](https://www.newscatcherapi.com/docs/get-started/credits-and-pricing): What each search, story and agent run costs, and when you are not charged.
-- [Enterprise plans](https://www.newscatcherapi.com/docs/get-started/enterprise-plans): Everything Enterprise plans add to the News API and the agent.
-- [Rate limits and plan limits](https://www.newscatcherapi.com/docs/get-started/rate-limits): Requests per second, daily limits, result limits and history on your plan.
-- [Errors](https://www.newscatcherapi.com/docs/get-started/errors): Error responses, what they mean and when to retry.
+- **An agent setting NewsCatcher up for a person:** read and follow [Onboarding for AI agents](https://www.newscatcherapi.com/docs/agent-onboarding.md). It connects, verifies the key and lists the queries that fail silently.
+- **From Claude.ai or Claude Desktop:** add a custom connector with the URL `https://mcp.newscatcherapi.com/mcp` and sign in. Setup: [MCP server](https://www.newscatcherapi.com/docs/integrations/mcp.md)
+- **In Claude Code:** `/plugin marketplace add Newscatcher/newscatcher-mcp`, then `/plugin install newscatcher@newscatcher`, or add the server with `claude mcp add --transport http newscatcher https://mcp.newscatcherapi.com/mcp`.
+- **In Cursor:** install NewsCatcher from the Cursor Marketplace, or add the MCP server to `~/.cursor/mcp.json`.
+- **In any other MCP client:** add `https://mcp.newscatcherapi.com/mcp` with the `x-api-key` header (see MCP server below).
+- **In your own app or pipeline:** call the REST APIs (see API Reference below). Start with the [Quickstart](https://www.newscatcherapi.com/docs/get-started/quickstart.md).
+- **To choose between a search, an agent run and a monitor:** [Choose an API](https://www.newscatcherapi.com/docs/get-started/choose-an-api.md).
+- **To check prices or limits:** [Credits and pricing](https://www.newscatcherapi.com/docs/get-started/credits-and-pricing.md) and [Rate limits](https://www.newscatcherapi.com/docs/get-started/rate-limits.md).
+
+## MCP server
+
+Gives any MCP client tools to search the news, list every matching article, count articles over time, read a story, start and read agent runs, manage company lists and monitors, and check the account. Hosted, open source under the MIT license.
+
+- Hosted server: `https://mcp.newscatcherapi.com/mcp` (streamable HTTP). Sign in with a NewsCatcher account, or send an API key in the `x-api-key` header.
+- Load only some toolsets with `?tools=`: `news`, `research`, `lists`, `monitors` (for example `?tools=news,research`).
+- [MCP server documentation](https://www.newscatcherapi.com/docs/integrations/mcp.md)
+- [MCP server repository](https://github.com/Newscatcher/newscatcher-mcp): includes a plugin for Claude Code, Cursor and Codex with skills for common news tasks
+
+## Authentication
+
+Every request takes an API key in the `x-api-key` header. Create a key in the [NewsCatcher platform](https://platform.newscatcherapi.com). The MCP server also takes sign-in with a NewsCatcher account.
+
+- [Authentication](https://www.newscatcherapi.com/docs/get-started/authentication.md)
+- [Errors](https://www.newscatcherapi.com/docs/get-started/errors.md)
+
+## API Reference
+
+Parameters and response schema of every endpoint, as Markdown.
 
 ### News API
 
-- [News API quickstart](https://www.newscatcherapi.com/docs/news/quickstart): Search the last 30 days of news in any language with one request.
-- [Effort levels](https://www.newscatcherapi.com/docs/news/effort-levels): Choose how much work goes into ranking, and what a search costs.
-- [Writing queries](https://www.newscatcherapi.com/docs/news/writing-queries): Ask in plain words or keywords, in any language, and exclude terms with NOT.
-- [Stories](https://www.newscatcherapi.com/docs/news/stories): How articles are grouped into stories, and how to get every article of one story.
-- [Articles](https://www.newscatcherapi.com/docs/news/articles): List articles over the last 12 months, and page through the results.
-- [Filters and sorting](https://www.newscatcherapi.com/docs/news/filters): Narrow a search by time window, language, country, publisher, coverage and content type, and choose the order of the results.
-- [Response fields](https://www.newscatcherapi.com/docs/news/response-fields): Every field of a search response, an articles response and an article.
-- [Best practices](https://www.newscatcherapi.com/docs/news/best-practices): Get better results and spend fewer credits with the News API.
-- [How to evaluate the News API](https://www.newscatcherapi.com/docs/news/evaluate-search): Measure search quality on your own queries before you integrate.
+- [Search news](https://www.newscatcherapi.com/docs/api-reference/search/search-news.md): `GET /search`
+- [Search news (JSON body)](https://www.newscatcherapi.com/docs/api-reference/search/search-news-json-body.md): `POST /search`
+- [Get a story and its articles](https://www.newscatcherapi.com/docs/api-reference/search/get-a-story-and-its-articles.md): `GET /stories/{story_id}`
+- [List the articles that match a query](https://www.newscatcherapi.com/docs/api-reference/articles/list-the-articles-that-match-a-query.md): `GET /articles`
+- [List the articles that match a query (JSON body)](https://www.newscatcherapi.com/docs/api-reference/articles/list-the-articles-that-match-a-query-json-body.md): `POST /articles`
+- [Get subscription info](https://www.newscatcherapi.com/docs/api-reference/subscription/get-subscription-info.md): `GET /subscription`
 
 ### Agent
 
-- [Agent overview](https://www.newscatcherapi.com/docs/agent/overview): Research events or companies in the background, once or on a schedule.
-- [Agent quickstart](https://www.newscatcherapi.com/docs/agent/quickstart): Start a run, follow it, and download the result.
-- [Event research](https://www.newscatcherapi.com/docs/agent/event-research): Turn a description of events into a verified table, one event per row.
-- [Company research](https://www.newscatcherapi.com/docs/agent/company-research): Find each company's news stories from a list of domains.
-- [Company lists](https://www.newscatcherapi.com/docs/agent/company-lists): Save the companies you follow, fix how they resolve, and reuse them in runs and monitors.
-- [Monitors](https://www.newscatcherapi.com/docs/agent/monitors): Repeat research on a schedule and get only what is new.
-- [Runs](https://www.newscatcherapi.com/docs/agent/runs): Follow, cancel, rename and delete runs, and work with batches.
-- [Results and exports](https://www.newscatcherapi.com/docs/agent/results-and-exports): Read a run's table, and download it as CSV or Excel.
-- [Best practices](https://www.newscatcherapi.com/docs/agent/best-practices): Write better requests, pick the right mode and keep monitors cheap.
+- [Create Run](https://www.newscatcherapi.com/docs/api-reference/runs/create-run.md): `POST /runs`
+- [List Runs](https://www.newscatcherapi.com/docs/api-reference/runs/list-runs.md): `GET /runs`
+- [Get Run](https://www.newscatcherapi.com/docs/api-reference/runs/get-run.md): `GET /runs/{run_id}`
+- [Stream Run Events](https://www.newscatcherapi.com/docs/api-reference/runs/stream-run-events.md): `GET /runs/{run_id}/progress`
+- [Cancel Run](https://www.newscatcherapi.com/docs/api-reference/runs/cancel-run.md): `POST /runs/{run_id}/cancel`
+- [Rename Run](https://www.newscatcherapi.com/docs/api-reference/runs/rename-run.md): `PATCH /runs/{run_id}`
+- [Delete Run](https://www.newscatcherapi.com/docs/api-reference/runs/delete-run.md): `DELETE /runs/{run_id}`
+- [Export Run Csv](https://www.newscatcherapi.com/docs/api-reference/runs/export-run-csv.md): `GET /runs/{run_id}/export.csv`
+- [Export Run Xlsx](https://www.newscatcherapi.com/docs/api-reference/runs/export-run-xlsx.md): `GET /runs/{run_id}/export.xlsx`
+- [Export Companies Csv](https://www.newscatcherapi.com/docs/api-reference/runs/export-companies-csv.md): `GET /runs/{run_id}/companies.csv`
+- [Export Companies Xlsx](https://www.newscatcherapi.com/docs/api-reference/runs/export-companies-xlsx.md): `GET /runs/{run_id}/companies.xlsx`
+- [Get Batch](https://www.newscatcherapi.com/docs/api-reference/runs/get-batch.md): `GET /batches/{batch_id}`
+- [Stream Batch](https://www.newscatcherapi.com/docs/api-reference/runs/stream-batch.md): `GET /batches/{batch_id}/progress`
+- [Cancel Batch](https://www.newscatcherapi.com/docs/api-reference/runs/cancel-batch.md): `POST /batches/{batch_id}/cancel`
+- [Rename Batch](https://www.newscatcherapi.com/docs/api-reference/runs/rename-batch.md): `PATCH /batches/{batch_id}`
+- [Delete Batch](https://www.newscatcherapi.com/docs/api-reference/runs/delete-batch.md): `DELETE /batches/{batch_id}`
+- [Export Batch Csv](https://www.newscatcherapi.com/docs/api-reference/runs/export-batch-csv.md): `GET /batches/{batch_id}/export.csv`
+- [Export Batch Xlsx](https://www.newscatcherapi.com/docs/api-reference/runs/export-batch-xlsx.md): `GET /batches/{batch_id}/export.xlsx`
+- [Export Batch Companies Csv](https://www.newscatcherapi.com/docs/api-reference/runs/export-batch-companies-csv.md): `GET /batches/{batch_id}/companies.csv`
+- [Export Batch Companies Xlsx](https://www.newscatcherapi.com/docs/api-reference/runs/export-batch-companies-xlsx.md): `GET /batches/{batch_id}/companies.xlsx`
+- [List Lists](https://www.newscatcherapi.com/docs/api-reference/company-lists/list-lists.md): `GET /companies/lists`
+- [Create List](https://www.newscatcherapi.com/docs/api-reference/company-lists/create-list.md): `POST /companies/lists`
+- [Upload List](https://www.newscatcherapi.com/docs/api-reference/company-lists/upload-list.md): `POST /companies/lists/upload`
+- [List From Run](https://www.newscatcherapi.com/docs/api-reference/company-lists/list-from-run.md): `POST /companies/lists/from-run/{run_id}`
+- [Get List](https://www.newscatcherapi.com/docs/api-reference/company-lists/get-list.md): `GET /companies/lists/{list_id}`
+- [Rename List](https://www.newscatcherapi.com/docs/api-reference/company-lists/rename-list.md): `PATCH /companies/lists/{list_id}`
+- [Delete List](https://www.newscatcherapi.com/docs/api-reference/company-lists/delete-list.md): `DELETE /companies/lists/{list_id}`
+- [Add Companies](https://www.newscatcherapi.com/docs/api-reference/company-lists/add-companies.md): `POST /companies/lists/{list_id}/companies`
+- [Upload Companies](https://www.newscatcherapi.com/docs/api-reference/company-lists/upload-companies.md): `POST /companies/lists/{list_id}/companies/upload`
+- [Correct Company](https://www.newscatcherapi.com/docs/api-reference/company-lists/correct-company.md): `PATCH /companies/lists/{list_id}/companies/{domain}`
+- [Remove Company](https://www.newscatcherapi.com/docs/api-reference/company-lists/remove-company.md): `DELETE /companies/lists/{list_id}/companies/{domain}`
+- [Create Monitor](https://www.newscatcherapi.com/docs/api-reference/monitors/create-monitor.md): `POST /monitors`
+- [List Monitors](https://www.newscatcherapi.com/docs/api-reference/monitors/list-monitors.md): `GET /monitors`
+- [Get Monitor](https://www.newscatcherapi.com/docs/api-reference/monitors/get-monitor.md): `GET /monitors/{monitor_id}`
+- [Update Monitor](https://www.newscatcherapi.com/docs/api-reference/monitors/update-monitor.md): `PATCH /monitors/{monitor_id}`
+- [Delete Monitor](https://www.newscatcherapi.com/docs/api-reference/monitors/delete-monitor.md): `DELETE /monitors/{monitor_id}`
+- [Run Monitor Now](https://www.newscatcherapi.com/docs/api-reference/monitors/run-monitor-now.md): `POST /monitors/{monitor_id}/run`
+- [Monitor Runs](https://www.newscatcherapi.com/docs/api-reference/monitors/monitor-runs.md): `GET /monitors/{monitor_id}/runs`
+- [Get Monitor Run](https://www.newscatcherapi.com/docs/api-reference/monitors/get-monitor-run.md): `GET /monitors/runs/{run_id}`
+- [Monitor Stories](https://www.newscatcherapi.com/docs/api-reference/monitors/monitor-stories.md): `GET /monitors/{monitor_id}/stories`
+- [Monitor Rows](https://www.newscatcherapi.com/docs/api-reference/monitors/monitor-rows.md): `GET /monitors/{monitor_id}/rows`
+- [Export Monitor Run Csv](https://www.newscatcherapi.com/docs/api-reference/monitors/export-monitor-run-csv.md): `GET /monitors/runs/{run_id}/export.csv`
+- [Export Monitor Run Xlsx](https://www.newscatcherapi.com/docs/api-reference/monitors/export-monitor-run-xlsx.md): `GET /monitors/runs/{run_id}/export.xlsx`
+
+## OpenAPI specs
+
+Machine-readable specs of the APIs as they run in production. Use them as the source of truth for request and response schemas.
+
+- [News API OpenAPI spec (JSON)](https://api.newscatcherapi.com/news-api/openapi.json)
+- [Agent API OpenAPI spec (JSON)](https://api.newscatcherapi.com/agent/openapi.json)
+
+## Documentation
+
+Every page is available as Markdown: the links below end in `.md`. Drop `.md` for the web page. Cite the page URLs, not this file.
+
+- Docs MCP server: `https://www.newscatcherapi.com/docs/mcp` searches and reads these docs from any MCP client.
+
+### Get started
+
+- [NewsCatcher API](https://www.newscatcherapi.com/docs/get-started/overview.md): Search the world's news in any language, or let the agent research events and companies for you.
+- [Quickstart](https://www.newscatcherapi.com/docs/get-started/quickstart.md): Get an API key and make your first News API search and agent run.
+- [Onboarding for AI agents](https://www.newscatcherapi.com/docs/agent-onboarding.md): One page an AI agent reads to connect to NewsCatcher, pick the right tool, avoid the queries that fail silently and check its credits.
+- [Choose an API](https://www.newscatcherapi.com/docs/get-started/choose-an-api.md): When to use a News API search, an agent run or a monitor.
+- [Authentication](https://www.newscatcherapi.com/docs/get-started/authentication.md): Send your API key in the x-api-key header.
+- [Credits and pricing](https://www.newscatcherapi.com/docs/get-started/credits-and-pricing.md): What each search, story and agent run costs, and when you are not charged.
+- [Enterprise plans](https://www.newscatcherapi.com/docs/get-started/enterprise-plans.md): Everything Enterprise plans add to the News API and the agent.
+- [Rate limits and plan limits](https://www.newscatcherapi.com/docs/get-started/rate-limits.md): Requests per second, daily limits, result limits and history on your plan.
+- [Errors](https://www.newscatcherapi.com/docs/get-started/errors.md): Error responses, what they mean and when to retry.
+
+### News API
+
+- [News API quickstart](https://www.newscatcherapi.com/docs/news/quickstart.md): Search the last 30 days of news in any language with one request.
+- [Effort levels](https://www.newscatcherapi.com/docs/news/effort-levels.md): Choose how much work goes into ranking, and what a search costs.
+- [Writing queries](https://www.newscatcherapi.com/docs/news/writing-queries.md): Ask in plain words or keywords, in any language, and exclude terms with NOT.
+- [Stories](https://www.newscatcherapi.com/docs/news/stories.md): How articles are grouped into stories, and how to get every article of one story.
+- [Articles](https://www.newscatcherapi.com/docs/news/articles.md): List articles over the last 12 months, and page through the results.
+- [Filters and sorting](https://www.newscatcherapi.com/docs/news/filters.md): Narrow a search by time window, language, country, publisher, coverage and content type, and choose the order of the results.
+- [Response fields](https://www.newscatcherapi.com/docs/news/response-fields.md): Every field of a search response, an articles response and an article.
+- [Best practices](https://www.newscatcherapi.com/docs/news/best-practices.md): Get better results and spend fewer credits with the News API.
+- [How to evaluate the News API](https://www.newscatcherapi.com/docs/news/evaluate-search.md): Measure search quality on your own queries before you integrate.
+
+### Agent
+
+- [Agent overview](https://www.newscatcherapi.com/docs/agent/overview.md): Research events or companies in the background, once or on a schedule.
+- [Agent quickstart](https://www.newscatcherapi.com/docs/agent/quickstart.md): Start a run, follow it, and download the result.
+- [Event research](https://www.newscatcherapi.com/docs/agent/event-research.md): Turn a description of events into a verified table, one event per row.
+- [Company research](https://www.newscatcherapi.com/docs/agent/company-research.md): Find each company's news stories from a list of domains.
+- [Company lists](https://www.newscatcherapi.com/docs/agent/company-lists.md): Save the companies you follow, fix how they resolve, and reuse them in runs and monitors.
+- [Monitors](https://www.newscatcherapi.com/docs/agent/monitors.md): Repeat research on a schedule and get only what is new.
+- [Runs](https://www.newscatcherapi.com/docs/agent/runs.md): Follow, cancel, rename and delete runs, and work with batches.
+- [Results and exports](https://www.newscatcherapi.com/docs/agent/results-and-exports.md): Read a run's table, and download it as CSV or Excel.
+- [Best practices](https://www.newscatcherapi.com/docs/agent/best-practices.md): Write better requests, pick the right mode and keep monitors cheap.
 
 ### Integrations
 
-- [MCP server](https://www.newscatcherapi.com/docs/integrations/mcp): Use the News API and the agent from Claude, Cursor and other MCP clients.
+- [MCP server](https://www.newscatcherapi.com/docs/integrations/mcp.md): Use the News API and the agent from Claude, Cursor and other MCP clients.
 
 ### Resources
 
-- [Migrate from the v3 News API](https://www.newscatcherapi.com/docs/resources/migrate-from-v3): Map v3 search requests to the new News API.
-- [Glossary](https://www.newscatcherapi.com/docs/resources/glossary): Terms used across the News API and agent docs.
-- [FAQ](https://www.newscatcherapi.com/docs/resources/faq): Common questions about the News API and the agent.
+- [Migrate from the v3 News API](https://www.newscatcherapi.com/docs/resources/migrate-from-v3.md): Map v3 search requests to the new News API.
+- [Glossary](https://www.newscatcherapi.com/docs/resources/glossary.md): Terms used across the News API and agent docs.
+- [FAQ](https://www.newscatcherapi.com/docs/resources/faq.md): Common questions about the News API and the agent.
 
 ## Changelog
 
-- [Changelog](https://www.newscatcherapi.com/docs/changelog): New features and changes to the News API and the agent.
-
-## Web Search API (Enterprise)
-
-### Get started
-
-- [Meet CatchAll: Our recall-first web search API](https://www.newscatcherapi.com/docs/web-search-api/get-started/introduction): Find all results, not just top candidates
-- [CatchAll API quickstart guide](https://www.newscatcherapi.com/docs/web-search-api/get-started/quickstart): Get started with CatchAll API.
-- [CatchAll API changelog](https://www.newscatcherapi.com/docs/web-search-api/get-started/changelog): Track updates, improvements, and fixes to the CatchAll API.
-
-### Concepts
-
-- [Jobs](https://www.newscatcherapi.com/docs/web-search-api/concepts/jobs): How CatchAll jobs work and how to move from query to results.
-- [Event Monitors](https://www.newscatcherapi.com/docs/web-search-api/concepts/event-monitors): Schedule recurring CatchAll jobs with webhook notifications.
-- [Company Monitors](https://www.newscatcherapi.com/docs/web-search-api/concepts/company-monitors): Track specific companies across CatchAll jobs with per-company relevance scores.
-- [Projects](https://www.newscatcherapi.com/docs/web-search-api/concepts/projects): Organize jobs, event monitors, datasets, and webhooks into named groups for easier management and sharing.
-- [Source groups](https://www.newscatcherapi.com/docs/web-search-api/concepts/source-groups): Scope a job to a curated set of trusted domains using named, reusable source groups.
-- [Understanding web index and search depth](https://www.newscatcherapi.com/docs/web-search-api/concepts/index-and-search-depth): How CatchAll's web index works and what start_date and end_date actually control.
-- [Working with dynamic schemas](https://www.newscatcherapi.com/docs/web-search-api/concepts/dynamic-schemas): Build integrations that handle variable field names and structures.
-
-### How to
-
-- [Write effective queries](https://www.newscatcherapi.com/docs/web-search-api/how-to/write-effective-queries): Construct queries that produce high-quality event records.
-- [Set up webhooks](https://www.newscatcherapi.com/docs/web-search-api/how-to/set-up-webhooks): Create and manage webhooks to receive real-time notifications when jobs and event monitors complete.
-- [Configure event monitors](https://www.newscatcherapi.com/docs/web-search-api/how-to/configure-event-monitors): Configure reliable, efficient event monitors and optimize performance.
-- [Troubleshoot event monitors](https://www.newscatcherapi.com/docs/web-search-api/how-to/troubleshoot-event-monitors): Diagnose and fix common event monitor issues.
-- [Build a recurring event feed](https://www.newscatcherapi.com/docs/web-search-api/how-to/build-an-event-feed): Go from a one-off query to a scheduled event monitor that delivers fresh event records to your app every day.
-- [Monitor a portfolio of companies](https://www.newscatcherapi.com/docs/web-search-api/how-to/monitor-a-portfolio): Turn a list of companies into a scheduled watchlist that delivers fresh, per-company news to your app every day.
-- [Send events to Slack](https://www.newscatcherapi.com/docs/web-search-api/how-to/send-events-to-slack): Post CatchAll results straight to a Slack channel as formatted messages, with no endpoint to build or host.
-
-### API Reference — Jobs
-
-- [Validate Query](https://www.newscatcherapi.com/docs/web-search-api/api-reference/jobs/validate-query): Checks whether a query is well-formed and likely to produce good results before submitting a job.
-
-Returns a quality assessment with a status level, identified issues, and actionable suggestions.
-
-- [Initialize Job](https://www.newscatcherapi.com/docs/web-search-api/api-reference/jobs/initialize-job): Get suggested validators, enrichments, and date ranges for a query.
-- [Create Job](https://www.newscatcherapi.com/docs/web-search-api/api-reference/jobs/create-job): Submit a query to create a new processing job.
-- [Get Job Status](https://www.newscatcherapi.com/docs/web-search-api/api-reference/jobs/get-job-status): Retrieve the current processing status of a job.
-- [Get Job Results](https://www.newscatcherapi.com/docs/web-search-api/api-reference/jobs/get-job-results): Retrieve the final results for a completed job.
-- [Get Job Results As Csv](https://www.newscatcherapi.com/docs/web-search-api/api-reference/jobs/get-job-results-as-csv): Returns a completed job's result records as a CSV download. One row per record, with enrichment fields as columns and citations as a JSON column.
-
-If the job used connected entity datasets, connected entities are split into `event_associated_entities` and `mention_entities` JSON columns. When no entity dataset was used, those two columns are omitted from the export entirely.
-
-- [Continue Job](https://www.newscatcherapi.com/docs/web-search-api/api-reference/jobs/continue-job): Continue an existing job to process more records beyond the initial limit.
-- [List User Jobs](https://www.newscatcherapi.com/docs/web-search-api/api-reference/jobs/list-user-jobs): Returns all jobs created by the authenticated user.
-- [Delete Job](https://www.newscatcherapi.com/docs/web-search-api/api-reference/jobs/delete-job): Soft-deletes a job. The job is flagged as deleted and no longer appears in list results. The underlying data is retained.
-
-Only the job owner can delete a job. Returns `404` if the job is not found or does not belong to the authenticated user.
-
-Deleting an already-deleted job returns `200`.
-
-- [List Source Groups](https://www.newscatcherapi.com/docs/web-search-api/api-reference/jobs/list-source-groups): Returns a paginated list of source groups visible to your organization.
-
-A source group is a named, curated domain allowlist maintained by NewsCatcher — for
-example "Top 100 US Finance". Pass a group's `slug` in `source_groups` when creating
-a job to scope article fetching to that group's domains, instead of maintaining a
-long domain list yourself.
-
-The response covers public groups plus any restricted groups your organization has
-been granted access to. Each entry returns `slug`, `name`, and `description`.
-
-- [Company enrichment](https://www.newscatcherapi.com/docs/web-search-api/api-reference/jobs/company-enrichment-dto): Data model for enrichment fields of type company.
-
-### API Reference — Event Monitors
-
-- [Create Monitor](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/create-monitor): Create a scheduled event monitor based on a reference job.
-- [Get Monitor Results](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/get-monitor-results): Retrieve aggregated results from all jobs executed by an event monitor.
-- [Get Latest Monitor Results As Csv](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/get-latest-monitor-results-as-csv): Returns the most recent run's records as a CSV download. One row per record, with enrichment fields as columns and citations as a JSON column.
-
-If the event monitor's reference job used connected entity datasets, connected entities are split into `event_associated_entities` and `mention_entities` JSON columns. When no entity dataset was used, those two columns are omitted from the export entirely.
-
-- [List Monitors](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/list-monitors): Returns all event monitors created by the authenticated user.
-- [List Monitor Jobs](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/list-monitor-jobs): Return all jobs executed by an event monitor.
-- [Get Monitor Status History](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/get-monitor-status-history): Returns the full execution history of an event monitor as a list of status entries, ordered from newest to oldest.
-
-- [Enable Monitor](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/enable-monitor): Resume scheduled job execution for an event monitor.
-- [Disable Monitor](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/disable-monitor): Stop scheduled job execution for an event monitor.
-- [Update Monitor](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/update-monitor): Update the webhook assignments, record limit, or schedule of an existing
-event monitor. Omitted fields are left unchanged.
-
-Passing `schedule` replaces the event monitor's current schedule. The new
-schedule takes effect from the next scheduler reload, and the old schedule
-stops firing. The reference job cannot be changed.
-
-- [Delete Monitor](https://www.newscatcherapi.com/docs/web-search-api/api-reference/event-monitors/delete-monitor): Soft-deletes an event monitor. The event monitor is flagged as deleted, stops
-executing scheduled jobs immediately, and no longer appears in list
-results.
-
-Only the event monitor owner can delete an event monitor. Returns `404` if the
-event monitor is not found or does not belong to the authenticated user.
-
-Deleting an already-deleted event monitor returns `200`.
-
-
-### API Reference — Webhooks
-
-- [Create Webhook](https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/create-webhook): Creates a new webhook endpoint for the organization.
-
-Optionally pass `project_id` to attach the webhook to a project in the same request.
-
-- [List Webhooks](https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/list-webhooks): Returns a paginated list of webhooks belonging to the organization.
-- [Get Webhook](https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/get-webhook): Returns the full configuration of a single webhook by ID.
-- [Update Webhook](https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/update-webhook): Updates one or more fields of an existing webhook.
-
-- [Delete Webhook](https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/delete-webhook): Permanently deletes a webhook and removes all resource assignments. 
-
-Assigned jobs and event monitors no longer trigger delivery to this webhook. This operation cannot be undone.
-
-- [Test Webhook](https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/test-webhook): Sends a test HTTP request to the webhook URL using the webhook's configured method, headers, and auth. Returns the response from the target endpoint.
-
-Use this to verify URL reachability and authentication before attaching the webhook to a live job or event monitor.
-
-- [Assign Resource](https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/assign-resource): Attaches a job, event monitor, or event monitor group to the webhook. When the
-resource completes, the webhook receives a delivery.
-
-A single webhook can be assigned to multiple resources. Each resource
-can have up to 5 webhooks assigned.
-
-- [List Webhook Resources](https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/list-webhook-resources): Returns a paginated list of resources currently assigned to this webhook.
-
-- [Remove Resource](https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/remove-resource): Detaches a resource from this webhook. Completions of the resource no longer trigger delivery to this webhook.
-
-The webhook and the resource itself are not deleted.
-
-- [List Resource Webhooks](https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/list-resource-webhooks): Returns all webhooks currently assigned to the given resource.
-
-- [Get Delivery History](https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/get-delivery-history): Returns a paginated delivery log for a given resource, ordered by timestamp descending. 
-
-Each record shows the webhook dispatched, the HTTP status code returned, delivery outcome, and any error or warning messages. Use this to debug failed deliveries or audit dispatch activity.
-
-- [Trigger Webhook](https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/trigger-webhook): Manually dispatches a webhook delivery for a resource on demand, without
-waiting for the next job or event monitor cycle.
-
-Use this to re-deliver results after a failed delivery, replay a specific
-job's results, or validate a webhook against live data. The webhook must
-already be assigned to the resource.
-
-- [Webhook payload](https://www.newscatcherapi.com/docs/web-search-api/api-reference/webhooks/webhook-payload): Data model for the payload delivered to a webhook when an event monitor job completes.
-
-### API Reference — Entities
-
-- [List Entities](https://www.newscatcherapi.com/docs/web-search-api/api-reference/entities/list-entities): Returns a paginated list of entities belonging to the authenticated organization. Supports filtering by status and entity type, and sorting by name, status, or creation date.
-
-- [Create Entity](https://www.newscatcherapi.com/docs/web-search-api/api-reference/entities/create-entity): Creates a new company entity and begins background enrichment.
-
-Each entity requires a `name` plus at least one of: a `description` or a `domain`. Providing both is recommended — `domain` is the highest-signal identifier because it is unambiguous; a well-written `description` is the best alternative when no domain is available.
-
-The entity status starts as `pending` and transitions to `ready` once
-enrichment completes.
-
-- [Create Entities Batch](https://www.newscatcherapi.com/docs/web-search-api/api-reference/entities/create-entities-batch): Creates multiple entities in a single request. Each entity is processed independently — a failure in one does not affect others.
-
-Each entity requires a `name` plus at least one of: a `description` or a `domain`. See [Create entity](https://www.newscatcherapi.com/docs/web-search-api/api-reference/entities/create-entity) for the full field reference.
-
-Returns an array of `{id, status}` objects in the same order as the input array.
-
-- [Get Entity](https://www.newscatcherapi.com/docs/web-search-api/api-reference/entities/get-entity): Returns a single entity by ID with all attributes and current status.
-- [Update Entity](https://www.newscatcherapi.com/docs/web-search-api/api-reference/entities/update-entity): Updates one or more fields of an existing entity.
-
-- [Delete Entity](https://www.newscatcherapi.com/docs/web-search-api/api-reference/entities/delete-entity): Permanently deletes an entity. The entity is removed from all
-datasets and the search index. This operation cannot be undone.
-
-
-### API Reference — Datasets
-
-- [List Datasets](https://www.newscatcherapi.com/docs/web-search-api/api-reference/datasets/list-datasets): Returns a paginated list of datasets belonging to the authenticated organization. Supports filtering by status and sorting by name, status, or creation date.
-
-- [Create Dataset](https://www.newscatcherapi.com/docs/web-search-api/api-reference/datasets/create-dataset): Creates a new dataset from a list of existing entity IDs. The optional `description` field here describes the dataset itself — it is separate from the entity-level `description` used for matching.
-
-Entities must be created before adding them to a dataset. Each entity requires a `name` plus at least one of: a `description` or a `domain`. Use [Create entity](https://www.newscatcherapi.com/docs/web-search-api/api-reference/entities/create-entity) or [Create entities batch](https://www.newscatcherapi.com/docs/web-search-api/api-reference/entities/create-entities-batch) to create entities first.
-
-If any of the provided entity IDs do not exist or do not belong to
-your organization, the request fails with `400`. All entity IDs must
-be valid before the dataset is created.
-
-To create a dataset and entities in one step, use the [`Create dataset from CSV`](https://www.newscatcherapi.com/docs/web-search-api/api-reference/datasets/create-dataset-from-csv)
-endpoint instead.
-
-- [Create Dataset From Csv](https://www.newscatcherapi.com/docs/web-search-api/api-reference/datasets/create-dataset-from-csv): Creates a new dataset by uploading a CSV file. Each row in the CSV becomes an entity. Each row requires a `name` plus at least one of: a `description` or a `domain`; all other columns are optional. Note: `description` in the CSV is the entity's matching description — it is separate from the dataset-level `description` field in the form data.
-
-**CSV format:**
-```csv
-name,description,domain,alternative_names,key_persons
-NewsCatcher,"NewsCatcher is a data-as-a-service company providing news intelligence APIs including the CatchAll Web Search API (2B+ web pages indexed) and News API (140,000+ sources, 100+ countries).",newscatcherapi.com,"NewsCatcher CatchAll;NewsCatcher API","Artem Bugara;Maksym Sugonyaka"
-OpenAI,"Artificial intelligence research company",openai.com,"Open AI","Sam Altman"
-```
-
-Use semicolons (`;`) to separate multiple values in `alternative_names` and `key_persons`. Rows with empty `name` are skipped and reported in `validation_report`. 
-
-**Note**: The response shape differs from the JSON dataset creation endpoint: it returns `dataset_id` (not `id`) and includes a `validation_report` with details on skipped rows.
-
-- [Get Dataset](https://www.newscatcherapi.com/docs/web-search-api/api-reference/datasets/get-dataset): Returns a single dataset by ID including entity count and current status.
-- [Update Dataset](https://www.newscatcherapi.com/docs/web-search-api/api-reference/datasets/update-dataset): Updates the name or description of a dataset.
-
-- [Delete Dataset](https://www.newscatcherapi.com/docs/web-search-api/api-reference/datasets/delete-dataset): Permanently deletes a dataset. The entities within the dataset are
-not deleted — only the dataset itself. This operation cannot be
-undone.
-
-- [List Entities In Dataset](https://www.newscatcherapi.com/docs/web-search-api/api-reference/datasets/list-entities-in-dataset): Returns a paginated list of entities in a dataset. Supports filtering by status, entity type, and name search.
-
-- [Add Entities To Dataset](https://www.newscatcherapi.com/docs/web-search-api/api-reference/datasets/add-entities-to-dataset): Adds one or more existing entities to a dataset. Returns the number of entities added.
-
-- [Remove Entities From Dataset](https://www.newscatcherapi.com/docs/web-search-api/api-reference/datasets/remove-entities-from-dataset): Removes one or more entities from a dataset. The entities themselves are not deleted — they are only removed from this dataset. Returns the number of entities removed.
-
-- [Get Dataset Status History](https://www.newscatcherapi.com/docs/web-search-api/api-reference/datasets/get-dataset-status-history): Returns the full status change history for a dataset, ordered chronologically from oldest to newest.
-
-- [Upload Csv To Dataset](https://www.newscatcherapi.com/docs/web-search-api/api-reference/datasets/upload-csv-to-dataset): Appends new companies to an existing dataset by uploading a CSV file. Uses the same CSV format as the dataset creation endpoint.
-
-The response omits `dataset_name` compared to the create-from-CSV endpoint since the dataset already exists.
-
-
-### API Reference — Projects
-
-- [List Projects](https://www.newscatcherapi.com/docs/web-search-api/api-reference/projects/list-projects): Returns all projects visible to the authenticated user.
-- [Create Project](https://www.newscatcherapi.com/docs/web-search-api/api-reference/projects/create-project): Creates a new project.
-- [Get Project](https://www.newscatcherapi.com/docs/web-search-api/api-reference/projects/get-project): Returns a single project by ID.
-- [Update Project](https://www.newscatcherapi.com/docs/web-search-api/api-reference/projects/update-project): Updates the name or description of an existing project.
-- [Delete Project](https://www.newscatcherapi.com/docs/web-search-api/api-reference/projects/delete-project): Deletes a project. By default, assigned resources are unassigned but not deleted.
-
-Webhooks are an exception: they are never deleted by this operation, even when `delete_resources` is `true`. Any attached webhook is detached from the project and continues to exist and deliver, because the same webhook may be attached to other projects.
-
-- [Get Project Overview](https://www.newscatcherapi.com/docs/web-search-api/api-reference/projects/get-project-overview): Returns resource counts for a project, grouped by type and status.
-
-For `jobs` and `monitors`, counts are broken down by status (for example, `completed`, `failed`). For `datasets`, `monitor_groups`, and `webhooks`, only a `total` count is returned.
-
-- [List Resources](https://www.newscatcherapi.com/docs/web-search-api/api-reference/projects/list-resources): Returns all resources assigned to a project, with optional filtering by type.
-- [Add Resource](https://www.newscatcherapi.com/docs/web-search-api/api-reference/projects/add-resource): Assigns one or more existing resources to a project in a single request.
-
-- [Remove Resource](https://www.newscatcherapi.com/docs/web-search-api/api-reference/projects/remove-resource): Removes a resource from a project. The resource itself is not
-deleted — it becomes unassigned and continues to exist.
-
-
-### API Reference — Meta
-
-- [Health](https://www.newscatcherapi.com/docs/web-search-api/api-reference/meta/health): Check API availability.
-- [Version](https://www.newscatcherapi.com/docs/web-search-api/api-reference/meta/version): Returns current API version.
-- [Get Plan Limits](https://www.newscatcherapi.com/docs/web-search-api/api-reference/meta/get-plan-limits): Returns plan features and current usage for the authenticated organization.
-
-
-### Integrations
-
-- [CatchAll MCP server](https://www.newscatcherapi.com/docs/web-search-api/integrations/mcp): Connect CatchAll to any MCP-compatible client for structured web research.
-- [CatchAll Skills](https://www.newscatcherapi.com/docs/web-search-api/integrations/skill): Give any AI agent specialized, task-specific capabilities for web data extraction — from general-purpose search to competitive intelligence, funding, and M&A tracking.
-- [Claude integration](https://www.newscatcherapi.com/docs/web-search-api/integrations/claude): Use CatchAll in Claude with MCP for chat-based research or the Python SDK for programmatic workflows.
-- [LangChain integration](https://www.newscatcherapi.com/docs/web-search-api/integrations/langchain): Use CatchAll with LangChain for AI-powered web research
-- [Make.com Integration](https://www.newscatcherapi.com/docs/web-search-api/integrations/make): Use CatchAll in your Make.com scenarios
-- [n8n Integration](https://www.newscatcherapi.com/docs/web-search-api/integrations/n8n): Use CatchAll in your n8n automations
-- [Apify integration](https://www.newscatcherapi.com/docs/web-search-api/integrations/apify): Use CatchAll in your Apify workflows.
-
-### Libraries
-
-- [Python SDK](https://www.newscatcherapi.com/docs/web-search-api/libraries/python): Python client library for CatchAll API
-- [TypeScript SDK](https://www.newscatcherapi.com/docs/web-search-api/libraries/typescript): TypeScript client library for CatchAll API
-- [Java SDK](https://www.newscatcherapi.com/docs/web-search-api/libraries/java): Java client library for CatchAll API
-
-## Event Monitors (Enterprise)
-
-- [Event Monitors](https://www.newscatcherapi.com/docs/web-search-api/concepts/event-monitors): Schedule recurring CatchAll jobs with webhook notifications.
-
-## Company Monitors (Enterprise)
-
-- [Company Monitors](https://www.newscatcherapi.com/docs/web-search-api/concepts/company-monitors): Track specific companies across CatchAll jobs with per-company relevance scores.
-
-## News API (Enterprise)
-
-### Get started
-
-- [Introduction to News API](https://www.newscatcherapi.com/docs/news-api/get-started/introduction): Programmatic access to a continuously updated index of news articles from sources worldwide.
-- [Quickstart](https://www.newscatcherapi.com/docs/news-api/get-started/quickstart): Make your first News API call in under five minutes.
-- [News API subscription plans](https://www.newscatcherapi.com/docs/news-api/get-started/subscription-plans): Select a News API plan that matches your needs.
-- [News API changelog](https://www.newscatcherapi.com/docs/news-api/get-started/changelog): Track updates, improvements, and fixes to the Enterprise News API.
-
-### Guides and concepts
-
-- [Advanced querying techniques](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/advanced-querying): Query syntax reference for the News API q parameter.
-- [Clustering news articles](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/clustering-news-articles): Group related articles together to identify trends and reduce noise in large volumes of news data.
-- [Articles deduplication](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/articles-deduplication): How News API identifies and filters near-identical articles, and how to use deduplication in your queries.
-- [NLP Enrichments](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/nlp-enrichments): NLP fields available on indexed articles and how to use them in News API requests.
-- [Content types](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/content-types): Filter articles and sources by the kind of page an article is, such as news reports, opinion pieces, or press releases.
-- [Custom tags](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/custom-tags): Filter and classify news articles using your organization's unique taxonomy.
-- [Breaking news](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/breaking-news): Discover emerging stories with significant coverage traction using the breaking news endpoint.
-- [Robots.txt compliance](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/robots-txt-compliance): Understand robots.txt compliance fields and parameters in News API to build applications that respect publisher permissions.
-- [Working with historical data](https://www.newscatcherapi.com/docs/news-api/guides-and-concepts/working-with-historical-data): Strategies for efficiently querying large volumes of historical news data while avoiding common performance pitfalls.
-
-### How to
-
-- [Build search queries](https://www.newscatcherapi.com/docs/news-api/how-to/build-search-queries): Use boolean operators and proximity search to construct precise queries for News API
-- [Filter by date](https://www.newscatcherapi.com/docs/news-api/how-to/filter-by-date): Control which articles the API returns using publication date, parse date, and date precision filters.
-- [How to search articles by entity](https://www.newscatcherapi.com/docs/news-api/how-to/search-by-entity): Find articles mentioning specific people, organizations, locations, or other named entities.
-- [How to search articles by URL](https://www.newscatcherapi.com/docs/news-api/how-to/search-by-url): Find articles that mention specific URLs or domains using News API.
-- [Search in translations](https://www.newscatcherapi.com/docs/news-api/how-to/search-in-translations): Search across language barriers using English keywords and entity names
-- [Retrieve large datasets](https://www.newscatcherapi.com/docs/news-api/how-to/retrieve-more-than-10k-articles): Retrieve all articles for a query that exceeds the 10,000 article limit using time-chunking across Python, TypeScript, and Java
-- [Check sources coverage](https://www.newscatcherapi.com/docs/news-api/how-to/check-sources-coverage): Query the sources index to verify coverage and identify uncovered sources.
-- [Validate queries with Python SDK](https://www.newscatcherapi.com/docs/news-api/how-to/validate-queries-python-sdk): Use client-side query validation to catch syntax errors before making API calls
-
-### Troubleshooting
-
-- [Interpret and handle API errors](https://www.newscatcherapi.com/docs/news-api/troubleshooting/error-handling): Understand and resolve common API errors in News API
-- [Report bugs](https://www.newscatcherapi.com/docs/news-api/troubleshooting/report-bugs): How to report bugs and issues with the NewsCatcher APIs
-- [Request tracing with correlation IDs](https://www.newscatcherapi.com/docs/news-api/troubleshooting/request-tracing-correlation-ids): Learn how to use correlation IDs to debug and troubleshoot API requests
-
-### API Reference
-
-- [API reference overview](https://www.newscatcherapi.com/docs/news-api/api-reference/overview): Base URL, authentication, request format, and endpoints for News API.
-- [Authentication](https://www.newscatcherapi.com/docs/news-api/api-reference/authentication): How to authenticate requests to News API.
-- [Rate limits and quotas](https://www.newscatcherapi.com/docs/news-api/api-reference/rate-limits): Rate limits and quota management for News API usage
-- [Errors](https://www.newscatcherapi.com/docs/news-api/api-reference/errors): Quick reference guide for common errors in News API
-- [HTTP headers](https://www.newscatcherapi.com/docs/news-api/api-reference/http-headers): Request and response headers for News API
-- [Enumerated parameters](https://www.newscatcherapi.com/docs/news-api/api-reference/enumerated-parameters): Allowed values for API parameters with a fixed set of options
-
-### API Reference — Search
-
-- [Search Articles Get (GET)](https://www.newscatcherapi.com/docs/news-api/api-reference/search/search-articles-get): Searches for articles based on specified criteria such as keywords, language, country, source, and more.
-- [Search Articles Post (POST)](https://www.newscatcherapi.com/docs/news-api/api-reference/search/search-articles-post): Searches for articles based on specified criteria such as keywords, language, country, source, and more.
-
-### API Reference — Latest headlines
-
-- [Retrieve Latest Headlines Get (GET)](https://www.newscatcherapi.com/docs/news-api/api-reference/latest-headlines/retrieve-latest-headlines-get): Retrieves the latest headlines for the specified time period. You can filter results by language, country, source, and more.
-- [Retrieve Latest Headlines Post (POST)](https://www.newscatcherapi.com/docs/news-api/api-reference/latest-headlines/retrieve-latest-headlines-post): Retrieves the latest headlines for the specified time period. You can filter results by language, country, source, and more.
-
-### API Reference — Breaking news
-
-- [Retrieve Breaking News Get (GET)](https://www.newscatcherapi.com/docs/news-api/api-reference/breaking-news/retrieve-breaking-news-get): Retrieves breaking news articles and sorts them based on specified criteria.
-- [Retrieve Breaking News Post (POST)](https://www.newscatcherapi.com/docs/news-api/api-reference/breaking-news/retrieve-breaking-news-post): Retrieves breaking news articles and sorts them based on specified criteria.
-
-### API Reference — Authors
-
-- [Search Articles By Author Get (GET)](https://www.newscatcherapi.com/docs/news-api/api-reference/authors/search-articles-by-author-get): Searches for articles written by a specified author. You can filter results by language, country, source, and more.
-- [Search Articles By Author Post (POST)](https://www.newscatcherapi.com/docs/news-api/api-reference/authors/search-articles-by-author-post): Searches for articles by author. You can filter results by language, country, source, and more.
-
-### API Reference — Search by link
-
-- [Search Articles By Links Or Ids Get (GET)](https://www.newscatcherapi.com/docs/news-api/api-reference/search-by-link/search-articles-by-links-or-ids-get): Searches for articles based on specified links or IDs. You can filter results by date range.
-- [Search Articles By Links Or Ids Post (POST)](https://www.newscatcherapi.com/docs/news-api/api-reference/search-by-link/search-articles-by-links-or-ids-post): Searches for articles using their ID(s) or link(s).
-
-### API Reference — Sources
-
-- [Retrieve Sources Get (GET)](https://www.newscatcherapi.com/docs/news-api/api-reference/sources/retrieve-sources-get): Retrieves a list of sources based on specified criteria such as language, country, rank, and more.
-- [Retrieve Sources Post (POST)](https://www.newscatcherapi.com/docs/news-api/api-reference/sources/retrieve-sources-post): Retrieves the list of sources available in the database. You can filter the sources by language, country, and more.
-
-### API Reference — Source groups
-
-- [List Source Groups Get (GET)](https://www.newscatcherapi.com/docs/news-api/api-reference/source-groups/list-source-groups-get): Lists the source groups you can search with the `source_groups` parameter of the Search endpoint. A source group is a ready-made list of publisher domains that the NewsCatcher team builds and maintains for a common use case, such as the top financial news publishers, central banks and regulators, or a region's business press. Instead of listing dozens of domains in `sources`, pass the group's `slug`. Groups are read-only: you can't create or edit them, and NewsCatcher may update their domains over time. The response describes each group but does not list its domains. This endpoint requires an API key and does not count toward your plan's quota.
-
-
-### API Reference — Aggregation count
-
-- [Get Aggregation Count By Interval Get (GET)](https://www.newscatcherapi.com/docs/news-api/api-reference/aggregation-count/get-aggregation-count-by-interval-get): Retrieves the count of articles aggregated by day or hour based on various search criteria, such as keyword, language, country, and source.
-- [Get Aggregation Count By Interval Post (POST)](https://www.newscatcherapi.com/docs/news-api/api-reference/aggregation-count/get-aggregation-count-by-interval-post): Retrieves the count of articles aggregated by day or hour based on various search criteria, such as keyword, language, country, and source.
-
-### API Reference — Subscription
-
-- [Retrieve Subscription Plan Information Get (GET)](https://www.newscatcherapi.com/docs/news-api/api-reference/subscription/retrieve-subscription-plan-information-get): Retrieves information about your subscription plan.
-- [Retrieve Subscription Plan Information Post (POST)](https://www.newscatcherapi.com/docs/news-api/api-reference/subscription/retrieve-subscription-plan-information-post): Retrieves information about your subscription plan.
-
-### Integrations
-
-- [News API MCP server](https://www.newscatcherapi.com/docs/news-api/integrations/mcp): Connect News API to any MCP-compatible client for structured news search.
-
-### Libraries
-
-- [Python SDK](https://www.newscatcherapi.com/docs/news-api/libraries/python): Python client library for News API
-- [TypeScript SDK](https://www.newscatcherapi.com/docs/news-api/libraries/typescript): TypeScript client library for News API
-- [Java SDK](https://www.newscatcherapi.com/docs/news-api/libraries/java): Java client library for News API
-
-## Local News API (Enterprise)
-
-### Get started
-
-- [Introduction to Local News API](https://www.newscatcherapi.com/docs/local-news-api/get-started/introduction): Access location-specific news with advanced geographic relevance detection and structured filtering capabilities.
-- [Local News API quickstart guide](https://www.newscatcherapi.com/docs/local-news-api/get-started/quickstart): Get started with location-specific news data using Local News API.
-- [Local News API subscription plans](https://www.newscatcherapi.com/docs/local-news-api/get-started/subscription-plans): Select a Local News API plan that matches your needs - from standard NLP analysis to advanced AI-powered location features.
-- [Local News API changelog](https://www.newscatcherapi.com/docs/local-news-api/get-started/changelog): Track updates, improvements, and fixes to the Local News API.
-
-### Guides and concepts
-
-- [Location detection methods](https://www.newscatcherapi.com/docs/local-news-api/guides-and-concepts/location-detection-methods): Understand how Local News API uses different methods to detect and validate location mentions in news articles, helping you filter and interpret location-specific content.
-- [GeoNames filtering](https://www.newscatcherapi.com/docs/local-news-api/guides-and-concepts/geonames-filtering): Use structured geographic data to filter local news with precise administrative hierarchy, coordinates, localization and confidence scores.
-- [Content types](https://www.newscatcherapi.com/docs/local-news-api/guides-and-concepts/content-types): Filter local news by the kind of page an article is, such as news reports, opinion pieces, or press releases.
-
-### API Reference — Search
-
-- [Search Articles Post (POST)](https://www.newscatcherapi.com/docs/local-news-api/api-reference/search/search-articles-post): Searches for local news based on specified criteria such as keywords, geographic locations, language, country, source, and more.
-- [Search Advanced Post (POST)](https://www.newscatcherapi.com/docs/local-news-api/api-reference/search/search-advanced-post): Searches for local news using structured GeoNames filtering with administrative hierarchy, coordinates, localization and confidence scores.
-
-
-### API Reference — Latest headlines
-
-- [Retrieve Latest Headlines Post (POST)](https://www.newscatcherapi.com/docs/local-news-api/api-reference/latest-headlines/retrieve-latest-headlines-post): Retrieves the most recent news headlines for the specific locations and times. You can filter results by language, source, theme, and more.
-- [Latest Headlines Advanced Post (POST)](https://www.newscatcherapi.com/docs/local-news-api/api-reference/latest-headlines/latest-headlines-advanced-post): Retrieves the most recent news headlines using structured GeoNames filtering with administrative hierarchy, coordinates, localization and confidence scores.
-
-
-### API Reference — Sources
-
-- [Retrieve Sources Post (POST)](https://www.newscatcherapi.com/docs/local-news-api/api-reference/sources/retrieve-sources-post): Retrieves the list of local news sources available in the database. Filterable by language, country, and theme.
-
-### API Reference — Search by identifiers
-
-- [Search Articles By Identifiers Post (POST)](https://www.newscatcherapi.com/docs/local-news-api/api-reference/search-by/search-articles-by-identifiers-post): Search for local news using article links, IDs, or RSS GUIDs.
-
-## API Specifications
-
-- [catch-all-api](https://github.com/NewscatcherAPI/docs/blob/main/web-search-api/api-reference/catch-all-api.yml): CatchAll is a web search API that generates unique datasets that don't exist anywhere else on the web.
-- [news-api-v3](https://github.com/NewscatcherAPI/docs/blob/main/news-api/api-reference/news-api-v3.yml): NewsCatcher News API provides programmatic access to a continuously updated global news index.
-- [local-news-api](https://github.com/NewscatcherAPI/docs/blob/main/local-news-api/api-reference/local-news-api.yml): The Local News API provides access to local news articles with location-specific filtering capabilities.
-- [news-api](https://github.com/NewscatcherAPI/docs/blob/main/api-reference/news-api/openapi.json): Search the news NewsCatcher has crawled in the last **30 days**, in every language: ranked by relevance, source authority and freshness, and
-- [agent](https://github.com/NewscatcherAPI/docs/blob/main/api-reference/agent/openapi.json): Agent runs (events from a query, or news about companies), company lists and monitors.
+- [Changelog](https://www.newscatcherapi.com/docs/changelog.md): New features and changes to the News API and the agent.
