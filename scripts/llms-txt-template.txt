@@ -1,0 +1,63 @@
+# NewsCatcher
+
+> NewsCatcher is news search and news research for applications and AI agents, in every language. The News API answers in seconds: ranked articles grouped into stories for the last 30 days (`/search`), or every article that matches a boolean query over the last 12 months (`/articles`). The Agent does research that takes minutes and returns a table: every event of a kind (deals, layoffs, recalls, funding rounds) checked against its sources, or the news stories of each company in a list. Monitors repeat agent research on a schedule and deliver only what is new.
+
+**Important notes:**
+
+- One account, one API key and one balance of NCC credits pay for both products. Only successful work is charged.
+- News API: `https://api.newscatcherapi.com/news-api`. Agent API: `https://api.newscatcherapi.com/agent`. Send the key in the `x-api-key` header.
+- `/search` returns the best articles, not every match. For every match, an exact count or news older than 30 days, use `/articles`.
+- Agent runs are asynchronous: `POST /runs` answers `202` with a `run_id`; poll `GET /runs/{run_id}` until `status` is `succeeded`, `failed` or `cancelled`.
+- `GET /subscription` is free and returns your plan, limits and credit balance.
+
+## Which route to use
+
+- **An agent setting NewsCatcher up for a person:** read and follow [Onboarding for AI agents]({BASE_URL}/agent-onboarding.md). It connects, verifies the key and lists the queries that fail silently.
+- **From Claude.ai or Claude Desktop:** add a custom connector with the URL `https://mcp.newscatcherapi.com/mcp` and sign in. Setup: [MCP server]({BASE_URL}/integrations/mcp.md)
+- **In Claude Code:** `/plugin marketplace add Newscatcher/newscatcher-mcp`, then `/plugin install newscatcher@newscatcher`, or add the server with `claude mcp add --transport http newscatcher https://mcp.newscatcherapi.com/mcp`.
+- **In Cursor:** install NewsCatcher from the Cursor Marketplace, or add the MCP server to `~/.cursor/mcp.json`.
+- **In any other MCP client:** add `https://mcp.newscatcherapi.com/mcp` with the `x-api-key` header (see MCP server below).
+- **In your own app or pipeline:** call the REST APIs (see API Reference below). Start with the [Quickstart]({BASE_URL}/get-started/quickstart.md).
+- **To choose between a search, an agent run and a monitor:** [Choose an API]({BASE_URL}/get-started/choose-an-api.md).
+- **To check prices or limits:** [Credits and pricing]({BASE_URL}/get-started/credits-and-pricing.md) and [Rate limits]({BASE_URL}/get-started/rate-limits.md).
+
+## MCP server
+
+Gives any MCP client tools to search the news, list every matching article, count articles over time, read a story, start and read agent runs, manage company lists and monitors, and check the account. Hosted, open source under the MIT license.
+
+- Hosted server: `https://mcp.newscatcherapi.com/mcp` (streamable HTTP). Sign in with a NewsCatcher account, or send an API key in the `x-api-key` header.
+- Load only some toolsets with `?tools=`: `news`, `research`, `lists`, `monitors` (for example `?tools=news,research`).
+- [MCP server documentation]({BASE_URL}/integrations/mcp.md)
+- [MCP server repository](https://github.com/Newscatcher/newscatcher-mcp): includes a plugin for Claude Code, Cursor and Codex with skills for common news tasks
+
+## Authentication
+
+Every request takes an API key in the `x-api-key` header. Create a key in the [NewsCatcher platform](https://platform.newscatcherapi.com). The MCP server also takes sign-in with a NewsCatcher account.
+
+- [Authentication]({BASE_URL}/get-started/authentication.md)
+- [Errors]({BASE_URL}/get-started/errors.md)
+
+## API Reference
+
+Parameters and response schema of every endpoint, as Markdown.
+
+{API_REFERENCE}
+
+## OpenAPI specs
+
+Machine-readable specs of the APIs as they run in production. Use them as the source of truth for request and response schemas.
+
+- [News API OpenAPI spec (JSON)](https://api.newscatcherapi.com/news-api/openapi.json)
+- [Agent API OpenAPI spec (JSON)](https://api.newscatcherapi.com/agent/openapi.json)
+
+## Documentation
+
+Every page is available as Markdown: the links below end in `.md`. Drop `.md` for the web page. Cite the page URLs, not this file.
+
+- Docs MCP server: `https://www.newscatcherapi.com/docs/mcp` searches and reads these docs from any MCP client.
+
+{DOCUMENTATION}
+
+## Changelog
+
+{CHANGELOG}
