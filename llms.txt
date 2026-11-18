@@ -10,6 +10,7 @@
 
 - [NewsCatcher API](https://www.newscatcherapi.com/docs/get-started/overview): Search the world's news in any language, or let the agent research events and companies for you.
 - [Quickstart](https://www.newscatcherapi.com/docs/get-started/quickstart): Get an API key and make your first News API search and agent run.
+- [Onboarding for AI agents](https://www.newscatcherapi.com/docs/agent-onboarding): One page an AI agent reads to connect to NewsCatcher, pick the right tool, avoid the queries that fail silently and check its credits.
 - [Choose an API](https://www.newscatcherapi.com/docs/get-started/choose-an-api): When to use a News API search, an agent run or a monitor.
 - [Authentication](https://www.newscatcherapi.com/docs/get-started/authentication): Send your API key in the x-api-key header.
 - [Credits and pricing](https://www.newscatcherapi.com/docs/get-started/credits-and-pricing): What each search, story and agent run costs, and when you are not charged.
@@ -48,7 +49,6 @@
 ### Resources
 
 - [Migrate from the v3 News API](https://www.newscatcherapi.com/docs/resources/migrate-from-v3): Map v3 search requests to the new News API.
-- [Docs for AI agents](https://www.newscatcherapi.com/docs/resources/docs-for-agents): Let your coding agent read these docs through llms.txt, Markdown pages or MCP.
 - [Glossary](https://www.newscatcherapi.com/docs/resources/glossary): Terms used across the News API and agent docs.
 - [FAQ](https://www.newscatcherapi.com/docs/resources/faq): Common questions about the News API and the agent.
 
