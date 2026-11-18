@@ -7,7 +7,7 @@ description: Ask in plain words or keywords, in any language, and exclude terms 
 
 <CodeGroup>
 ```text Plain words
-What did central banks decide about interest rates?
+What did central banks decide about interest rates this week?
 ```
 
 ```text Keywords
@@ -18,13 +18,6 @@ ECB OR "Federal Reserve"
 Apple NOT iPhone
 ```
 </CodeGroup>
-
-<Warning>
-  On `/search`, only an upper-case `NOT` is an operator. `AND`, `OR`, quotes
-  and wildcards are read as words, and the request is read as at most 3
-  topics. `ECB OR "Federal Reserve"` is not a boolean query here, and you get
-  no error. For exact boolean matching, use [`/articles`](/news/articles).
-</Warning>
 
 <Warning>
   Dates in `q` are ignored: "this week" or "since March" does not change the
@@ -100,7 +93,6 @@ characters, searched in the fields of
 
 - Say what happened, not only who: `Nvidia export restrictions China` finds
   more of what you want than `Nvidia`.
-- On `/articles`, use quotes for exact names and phrases:
-  `"Silicon Valley Bank"`.
-- Narrow with [filters](/news/filters) instead of long keyword lists: `/search`
-  reads at most 3 topics from `q`.
+- Use quotes for exact names and phrases: `"Silicon Valley Bank"`.
+- Put the time window in `search_window`, not in `q`.
+- Narrow with [filters](/news/filters) instead of long keyword lists.

@@ -38,7 +38,7 @@ server:
 | The person wants | Use | Takes |
 |---|---|---|
 | What happened, the latest on a topic, company or person, last 30 days | `search_news` | Seconds |
-| Every article that matches, an exact count, exact boolean matching, or news older than 30 days (up to 12 months) | `list_articles` (`count_only=true` for just the number) | Seconds |
+| Every article that matches, an exact count, or news older than 30 days (up to 12 months) | `list_articles` (`count_only=true` for just the number) | Seconds |
 | A trend: article counts per day, week or month, up to 5 queries | `count_articles` | Seconds |
 | All coverage of one story | `get_story`, with a story id from `search_news` | Seconds |
 | A table of events with sources: deals, layoffs, funding rounds, recalls, lawsuits | `start_research` with `query`, then `get_research` | Minutes |
@@ -47,7 +47,7 @@ server:
 | Credits, plan and limits | `get_account` | Free |
 
 Use `search_news` when the top results are enough. Use `list_articles` when you
-need every match or exact query syntax. Use an agent run when the person needs
+need every match. Use an agent run when the person needs
 a list in which every row is checked against its sources.
 
 ## Step 1: connect
@@ -127,47 +127,40 @@ create one in the platform.
 These do not return an error. They return results that look fine and are
 wrong, empty or narrower than asked. Follow them on every call.
 
-1. **`search_news` has no `OR`, no `AND` and no exact phrases.** Its query
-   is read as plain language, up to 3 topics, and quotes only group a `NOT`
-   term (rule 2). `ECB OR "Federal Reserve"` is not a boolean query there. For exact boolean matching use `list_articles`,
-   where `AND`, `OR`, `NOT`, parentheses, quotes and wildcards work, and bare
-   words are all required (`Tesla recall` means Tesla AND recall). In
-   `list_articles`, mixing `AND` and `OR` at the same level needs
-   parentheses.
-2. **In `search_news`, `NOT` takes one word or one quoted phrase, and only in
+1. **In `search_news`, `NOT` takes one word or one quoted phrase, and only in
    upper case.** `NOT Elon Musk` drops only "Elon" and searches for "Musk";
    write `NOT "Elon Musk"`. A lower-case `not` is an ordinary word. `NOT` checks
    the headline, the description and the summary, not the article text, and
    only the first 10 terms count.
-3. **Dates written in the query are ignored.** "This week" or "since March" in
+2. **Dates written in the query are ignored.** "This week" or "since March" in
    the query does not change the time window. Set the window parameter:
    `window` on `search_news` (default 7 days, up to 30), `from` and `to` on
    `list_articles` (default the last 7 days, up to 12 months). A `list_articles`
    count with no `from` covers only 7 days.
-4. **In `search_news`, the default window is cut to the plan's history
+3. **In `search_news`, the default window is cut to the plan's history
    without a flag.** A window you set that is longer than the plan allows is
    cut and marked as clamped; the default 7 days is cut with no mark. Set the
    window yourself when the dates matter.
-5. **Non-news is handled differently by the two search tools.**
+4. **Non-news is handled differently by the two search tools.**
    `search_news` drops press releases, blogs and opinion by default (set
    `include_non_news=true` to keep them). `list_articles` includes them and
    has no filter to drop them.
-6. **Paging stops at 1,000 articles, and a date-only `to` ends at 00:00.**
+5. **Paging stops at 1,000 articles, and a date-only `to` ends at 00:00.**
    `list_articles` pages through the first 1,000 matches only; `total_hits`
    still gives the exact count. `to="2026-10-03"` means 2026-10-03 00:00, so
    that day is left out: send `2026-10-03T23:59:59`.
-7. **A company run ends `succeeded` even when companies failed.** Check the
+6. **A company run ends `succeeded` even when companies failed.** Check the
    coverage status of every company (`news_status`). Only `found` and
    `no_news` mean the company was searched in full. `identity_unknown` means
    it was not searched at all. `incomplete`, `out_of_time`,
    `model_unavailable`, `internal_error`, `failed` and `not_searched` mean the
    search did not finish.
-8. **The Agent REST API drops unknown request fields.** In `POST /runs`, a
+7. **The Agent REST API drops unknown request fields.** In `POST /runs`, a
    misspelled field (say `lookback` for `lookback_days`) is ignored without an
    error, and the run uses the default. `lookback_days` above 365 becomes 365,
    and `0` becomes 30. Check `window_from` and `window_to` of a company run in
    the response.
-9. **A tool call stops after about 4 minutes and returns what it has.** For
+8. **A tool call stops after about 4 minutes and returns what it has.** For
    agent runs, `get_research` returns the partial table; call it again until
    the run's status is `succeeded`, `failed` or `cancelled`. Do not start the
    run again.
