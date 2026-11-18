@@ -3,18 +3,18 @@ title: Writing queries
 description: Ask in plain words or keywords, in any language, and exclude terms with NOT.
 ---
 
-`q` is what you are looking for: a question in plain words, or keywords with
-`AND`, `OR` and `NOT`. It can be in any language and up to 500 characters long.
-For the boolean query of `/articles`, see
+`q` is what you are looking for: a question in plain words, or keywords. It
+can be in any language and up to 500 characters long. For the boolean query of
+`/articles`, see
 [Boolean queries for `/articles`](#boolean-queries-for-articles).
 
 <CodeGroup>
 ```text Plain words
-What did central banks decide about interest rates this week?
+What did central banks decide about interest rates?
 ```
 
 ```text Keywords
-ECB OR "Federal Reserve"
+ECB interest rate decision
 ```
 
 ```text With NOT
@@ -22,14 +22,34 @@ Apple NOT iPhone
 ```
 </CodeGroup>
 
+<Warning>
+  On `/search`, only an upper-case `NOT` is an operator. `AND`, `OR`, quotes
+  and wildcards are read as words, and the request is read as at most 3
+  topics. `ECB OR "Federal Reserve"` is not a boolean query here, and you get
+  no error. For exact boolean matching, use [`/articles`](/news/articles).
+</Warning>
+
+<Warning>
+  Dates in `q` are ignored: "this week" or "since March" does not change the
+  window. Set it with [`search_window`](/news/filters) (7 days by default).
+</Warning>
+
 ## Excluding terms with NOT
 
 Put an upper-case `NOT` before a term or a quoted phrase to drop the articles
 that mention it: `Tesla recall NOT Cybertruck`, `NOT "model y"`.
 
-- `NOT` checks the headline, the description and the summary.
+<Warning>
+  `NOT` takes one word or one quoted phrase. `NOT Elon Musk` drops only
+  "Elon" and searches for "Musk": write `NOT "Elon Musk"`. A lower-case `not`
+  is searched as an ordinary word.
+</Warning>
+
+- `NOT` checks the headline, the description and the summary, not the article
+  text: an article that names the term only in its text is kept.
+- Up to 10 `NOT` terms count; more are dropped.
+- A `q` with only `NOT` terms is refused with `422`.
 - The response lists the excluded terms in `excluded`.
-- `NOT` must be upper-case.
 
 To leave out whole languages, countries or publishers, use `not_languages`,
 `not_countries` and `not_sources`. See [Filters](/news/filters).
@@ -67,12 +87,23 @@ characters, searched in the fields of
 | Wildcards | `regulat*` | `regulator`, `regulation`, `regulatory` |
 | `NEAR` | `NEAR("rate", "decision", 5)` | The words within 5 words of each other |
 
-A query that is only a wildcard, such as `*`, is refused with `422`.
+- Words with no operator between them are all required: `Tesla recall` is
+  `Tesla AND recall`.
+- Mixing `AND` and `OR` at the same level needs parentheses:
+  `Tesla AND (recall OR lawsuit)`. Without them the query is refused with
+  `422`.
+- A query that is only a wildcard, such as `*`, is refused with `422`.
+
+<Warning>
+  A query that is only `NOT` something, such as `NOT Tesla`, is accepted and
+  matches almost every article in the window.
+</Warning>
 
 ## Tips
 
 - Say what happened, not only who: `Nvidia export restrictions China` finds
   more of what you want than `Nvidia`.
-- Use quotes for exact names and phrases: `"Silicon Valley Bank"`.
-- Put the time window in `search_window`, not in `q`.
-- Narrow with [filters](/news/filters) instead of long keyword lists.
+- On `/articles`, use quotes for exact names and phrases:
+  `"Silicon Valley Bank"`.
+- Narrow with [filters](/news/filters) instead of long keyword lists: `/search`
+  reads at most 3 topics from `q`.

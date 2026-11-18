@@ -16,8 +16,13 @@ description: Get better results and spend fewer credits with the News API.
   `sources` and their `not_` versions narrow the search without changing what
   `q` means.
 - **Use a date order for feeds.** `sort_by=published_at` lists the best
-  matches of `q` newest first. It sorts the best matches, not every article of
-  the window.
+  matches of `q` newest first.
+
+<Warning>
+  A date order sorts only the best matches (the top 100, or 5 times `limit`
+  when that is more), not every article of the window. For every article in
+  date order, use [`/articles`](/news/articles).
+</Warning>
 
 ## Cost
 
@@ -32,8 +37,15 @@ description: Get better results and spend fewer credits with the News API.
 
 ## Reliability
 
-- Retry `429` and `503` after the `Retry-After` header, and `500` after a
-  short wait. Do not retry other `4xx` errors unchanged.
+- Retry `429` after the `Retry-After` header; for the daily limit it is the
+  next midnight UTC. Retry `503` after `Retry-After` when it is sent, and
+  `500` after a short wait. Do not retry other `4xx` errors unchanged.
 - Log the `Correlation-ID` header of failed requests and send it to support.
 - Treat `window.clamped: true` as a sign your plan's history is shorter than
   what you asked for.
+
+<Warning>
+  Only a `search_window` you send is marked `clamped` when it is cut. When you
+  send none, the default 7 days is cut to your plan's history with no mark. A
+  `search_window` longer than 30 days is refused with `422`.
+</Warning>

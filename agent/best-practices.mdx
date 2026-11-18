@@ -14,6 +14,23 @@ description: Write better requests, pick the right mode and keep monitors cheap.
 - **Narrow company runs with `query`.** Without it you get every story about
   the companies, including routine ones.
 
+<Warning>
+  Event runs have no time window field: they read it only from the words of
+  `query`. Name the window in every event query.
+</Warning>
+
+<Warning>
+  `POST /runs` ignores fields it does not know, without an error. A misspelled
+  field (say `lookback` for `lookback_days`) leaves the default in place.
+  `lookback_days` above 365 becomes 365, and `0` becomes 30.
+</Warning>
+
+<Warning>
+  A company run ends `succeeded` even when some companies were not searched.
+  Check the [coverage status](/agent/company-research#coverage-per-company) of
+  every company: only `found` and `no_news` mean the company was searched in full.
+</Warning>
+
 ## Modes
 
 - Start with `fast` to check that the request finds the right kind of event,

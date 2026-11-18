@@ -39,6 +39,7 @@
                 "pages": [
                   "get-started/overview",
                   "get-started/quickstart",
+                  "agent-onboarding",
                   "get-started/choose-an-api",
                   "get-started/authentication",
                   "get-started/credits-and-pricing",
@@ -85,7 +86,6 @@
                 "group": "Resources",
                 "pages": [
                   "resources/migrate-from-v3",
-                  "resources/docs-for-agents",
                   "resources/glossary",
                   "resources/faq"
                 ]
