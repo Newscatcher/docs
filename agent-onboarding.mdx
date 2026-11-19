@@ -118,9 +118,10 @@ curl "https://api.newscatcherapi.com/news-api/subscription" \
   -H "x-api-key: $NEWSCATCHER_API_KEY"
 ```
 
-A request with no key and no sign-in gets `401`. If the person signed in but
-their workspace has no API key, every tool returns an error telling them to
-create one in the platform.
+A request with no key and no sign-in gets `401`. If the person signed in,
+every tool returns an error when their workspace has no API key (create one in
+the platform), their account is not set up yet (open the platform once), or the
+platform cannot be reached (try again).
 
 ## Rules that break silently
 
@@ -177,7 +178,11 @@ The server has four toolsets. All load by default.
 
 To load fewer tools and save context, add `?tools=` to the server URL:
 `https://mcp.newscatcherapi.com/mcp?tools=news` or `?tools=news,research`.
-Unknown names are ignored; if none is valid, every toolset loads.
+`?tools=all` loads every toolset, and names are not case-sensitive. Unknown
+names are ignored; if none is valid, every toolset loads.
+
+Tools answer in compact text. Most take `format=json` for machine-readable
+output.
 
 The server also has two guides you can read as resources:
 `newscatcher://guides/query-syntax` and `newscatcher://guides/research-agent`.
@@ -190,12 +195,12 @@ charged, and a search that finds nothing is still a success.
 | Call | Credits |
 |---|---|
 | `search_news` | 1, 5 or 10 by `effort` (`low`, `medium` default, `high`) |
-| `list_articles` | 5 per call; with `tally`, 5 per page read (3 pages by default) |
+| `list_articles` | 5 per call; with `tally`, 5 per page of 100 read: up to `tally_pages` (3 by default, up to 10), so 15 by default and 50 at most |
 | `count_articles` | 5 per query and time bucket, up to 60 calls per request |
 | `get_story` | 1 |
 | Agent events run | 1,000 (`fast`), 3,000 (`standard`) or 6,000 (`max`), 50 rows included; each extra 50 rows adds 500, 1,500 or 3,000 |
 | Agent company run | 500 per company searched (`found` or `no_news`) |
-| `get_account`, `get_research`, `cancel_research`, company lists, `get_monitor`, `get_monitor_updates` | Free |
+| `get_account`, `get_research`, `cancel_research`, company lists, `get_monitor`, `get_monitor_updates`, `start_research(dry_run=true)` | Free |
 
 - **Check before big jobs.** `start_research(dry_run=true)` is free and shows
   the time, the cost and your balance. Confirm `standard` or `max` runs, many

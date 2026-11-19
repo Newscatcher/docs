@@ -20,7 +20,7 @@ source under the MIT license:
 <Note>
   The tools are not a copy of the API. Each one is built for an assistant: it
   may call several endpoints and returns compact text instead of the full
-  JSON. To build an application, call the [News API](/news/quickstart) or the
+  JSON (most tools return JSON with `format=json`). To build an application, call the [News API](/news/quickstart) or the
   [agent](/agent/quickstart) directly.
 </Note>
 
@@ -46,12 +46,19 @@ Connect in one of two ways:
 
 When you sign in, the server uses the **Default API Key** of your default
 workspace in the platform. Your workspace's credit balance pays for the tool
-calls. If you have several workspaces, the default one is the first workspace
-that is not named "Personal".
+calls.
+
+- If you have several workspaces, the default one is the first workspace that
+  is not named "Personal". If every workspace is named "Personal", it is your
+  platform's default workspace.
+- If no enabled key is named "Default API Key", the server uses the oldest
+  enabled key of that workspace.
 
 If your workspace has no API key, the connection still works, but tool calls
 return an error that tells you to create one. Create a key in the
-[platform](https://platform.newscatcherapi.com) and try again.
+[platform](https://platform.newscatcherapi.com) and try again. Tool calls also
+return an error when your account is not set up yet (open the platform once to
+finish it) or when the platform cannot be reached (try again).
 
 To disconnect, remove the connector in your client. To give the MCP server a
 key of its own, which you can revoke without touching your applications,
@@ -68,7 +75,9 @@ Send your key with every request, in one of these ways:
 | `?apiKey=YOUR_API_KEY` on the server URL | Last resort, for clients with no sign-in and no field for headers |
 
 The `x-api-key` header wins over every other way. A request with no key and no
-sign-in gets `401`.
+sign-in gets `401` when it connects. A wrong key is not checked when you
+connect: the connection works, and the first tool call returns an error. Call
+`get_account` (free) to check the key.
 
 <Warning>
   A key in the URL can end up in logs and screenshots. Sign in, or use a
@@ -342,6 +351,13 @@ The server has 15 tools in four toolsets.
 | `lists` | `save_company_list`, `get_company_list`, `edit_company_list` | Reusable lists of companies | [Company lists](/agent/company-lists) |
 | `monitors` | `create_monitor`, `get_monitor`, `get_monitor_updates`, `update_monitor` | Repeat research on a schedule and read only what is new | [Monitors](/agent/monitors) |
 
+Defaults to know:
+
+- `search_news` searches the last 7 days and returns 10 articles. Set
+  `window` (up to 30 days) and `limit` for more.
+- `list_articles` covers the last 7 days unless `from` is set, so a count with
+  no `from` is a 7-day count.
+
 The server also has two guides the assistant can read
 (`newscatcher://guides/query-syntax` and
 `newscatcher://guides/research-agent`) and three prompts: `news_briefing`,
@@ -357,7 +373,9 @@ https://mcp.newscatcherapi.com/mcp?tools=news
 https://mcp.newscatcherapi.com/mcp?tools=news,research
 ```
 
-Without `?tools=`, all four toolsets load.
+Without `?tools=`, or with `?tools=all`, all four toolsets load. Names are not
+case-sensitive. Unknown names are ignored, and if none is valid, all four
+toolsets load.
 
 ## Credits
 
@@ -367,13 +385,18 @@ Tool calls cost the same as the API requests behind them. See
 - `search_news` costs 1, 5 or 10 credits by
   [effort](/news/effort-levels). `get_story` costs 1, `list_articles` costs 5
   per call.
+- `list_articles` with `tally` reads the newest matches in pages of 100, one
+  5-credit call per page: up to `tally_pages` pages (3 by default, up to 10),
+  fewer when there are fewer matches. A tally costs 15 credits by default and
+  50 at most.
 - `count_articles` makes one 5-credit call per time bucket and query, up to 60
   calls. A 30-day daily trend for two queries is 60 calls.
 - Agent runs and monitors are charged like runs started through the API. Ask
   for a dry run first ("how much would this cost?") to get the estimate for
   free.
-- `get_account`, `get_research`, `cancel_research` and the company list tools
-  are free.
+- `get_account`, `get_research`, `cancel_research`, `get_monitor`,
+  `get_monitor_updates`, `start_research` with `dry_run` and the company list
+  tools are free.
 
 <Tip>
   The server tells the assistant to confirm large agent jobs with you before
@@ -422,10 +445,16 @@ Tool calls cost the same as the API requests behind them. See
 
 <AccordionGroup>
   <Accordion title="401 Unauthorized">
-    The request carried no key and no sign-in, or an invalid key. If you use a
-    key, check the header name (`x-api-key`) and the key in the
-    [platform](https://platform.newscatcherapi.com). If your client has a
-    **Connect** or **Authenticate** button, use it to sign in instead.
+    The request carried no key and no sign-in. If you use a key, check the
+    header name (`x-api-key`). If your client has a **Connect** or
+    **Authenticate** button, use it to sign in instead.
+  </Accordion>
+
+  <Accordion title="Connected, but every tool says the key is missing or invalid">
+    The server does not check the key when you connect, so a wrong key fails on
+    the first tool call. Check the key in the
+    [platform](https://platform.newscatcherapi.com) and update it in your
+    client.
   </Accordion>
 
   <Accordion title="Signed in, but the connection stops working">
