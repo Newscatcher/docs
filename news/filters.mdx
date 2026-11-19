@@ -25,7 +25,8 @@ list filters are arrays or comma-separated strings; in the query string of
   1 minute up to your plan's history (30 days on the free plan). The window
   applies to the publication date, or to the crawl date with
   `sort_by=crawled_at`. A window longer than your history is cut to it, and
-  the response says `"clamped": true` in `window`.
+  the response says `"clamped": true` in `window`. A `search_window` longer
+  than 30 days is refused with `422`.
 </ParamField>
 
 ## Languages, countries and publishers
@@ -74,8 +75,13 @@ list filters are arrays or comma-separated strings; in the query string of
 </ParamField>
 
 <ParamField body="content_type" type="string" default="news">
-  `news` keeps real news articles only. `all` returns every article, whatever
-  its type.
+  `news` keeps only articles classified as `news_report`, `analysis` or
+  `interview`. It leaves out `opinion`, `press_release`, `review`, `commerce`,
+  `service`, `listicle`, `seo_spam`, `autogen`, `ugc`, `obituary` and
+  `non_article`, and articles whose headline starts with Commentary, Opinion,
+  Editorial, Watch, Video or Podcast followed by a separator (`Opinion: ...`).
+  `all` applies no type and no headline filter: every content type is
+  returned.
 </ParamField>
 
 ## Order and size of the results
@@ -147,9 +153,19 @@ These parameters work on [`/articles`](/news/articles) only. On `/articles`,
 </ParamField>
 
 <ParamField body="to_date" type="string">
-  End of the window, in the same formats. Defaults to the moment of the
-  request. Send `window.to` back as `to_date` when you
+  End of the window, in the same formats. A date without a time
+  (`2026-10-03`) is the end of that day (23:59:59), so the day is included;
+  a `from_date` without a time is the start of its day (00:00:00). Defaults to
+  the moment of the request. A `to_date` older than your plan's history is
+  refused with `403`. Send `window.to` back as `to_date` when you
   [page through the results](/news/articles#paging-through-the-results).
+</ParamField>
+
+<ParamField body="robots_compliant" type="boolean">
+  Whether the publisher's robots.txt permitted extracting the article: `true`
+  keeps only the articles extracted with permission, `false` all the others
+  (an article with no stored value counts as `false`). Left out, there is no
+  filter. When you use it, each article carries `robots_compliant`.
 </ParamField>
 
 <ParamField body="predefined_sources" type="string | string[]">
@@ -185,9 +201,11 @@ These parameters work on [`/articles`](/news/articles) only. On `/articles`,
 </ParamField>
 
 <ParamField body="page, page_size" type="integer" default="1, 100">
-  The page to return, and up to 100 articles per page. `page` × `page_size`
-  can be at most 1,000. Your plan may allow a smaller page; a larger one gets
-  `403`.
+  The page to return, and up to 100 articles per page (more is `422`).
+  `page` × `page_size` can be at most 1,000: a request past that is refused
+  with `422`. Your plan may allow fewer pages (`max_pages` in
+  `/subscription`) or a smaller page: a request past
+  either limit gets `403`.
 </ParamField>
 
 A blank value, the same value in a filter and its `not_` filter, or

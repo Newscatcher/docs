@@ -35,7 +35,7 @@ curl -X POST "https://api.newscatcherapi.com/news-api/articles" \
 `GET /articles` takes the same parameters in the query string. List parameters
 are comma-separated strings in both; in the JSON body they can also be arrays.
 
-- `q` takes `AND`, `OR`, `NOT`, phrases, wildcards and `NEAR`. See
+- `q` takes `AND`, `OR`, `NOT`, phrases, wildcards, `NEAR` and `MULTIPLE`. See
   [Writing queries](/news/writing-queries#boolean-queries-for-articles).
 - `from_date`, `to_date`, `search_in` and the other filters are in
   [Filters](/news/filters#only-for-articles).
@@ -46,7 +46,8 @@ are comma-separated strings in both; in the JSON body they can also be arrays.
 
 A page holds up to 100 articles (`page_size`, default 100). A query reaches
 its first 1,000 articles: `page` × `page_size` can be at most 1,000. A deeper
-page is refused with `422`. To reach more articles, narrow the query or split
+page is refused with `422`. A plan may allow fewer pages (`max_pages` in
+`GET /subscription`): a page past its limit gets `403`. To reach more articles, narrow the query or split
 the window.
 
 The response returns the end of the window in `window.to`. Send it back as

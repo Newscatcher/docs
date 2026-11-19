@@ -3,14 +3,14 @@
   "info": {
     "title": "NewsCatcher News API",
     "summary": "Ranked, story-aware news search.",
-    "description": "Search the news NewsCatcher has crawled in the last **30 days**, in every language: ranked by relevance, source authority and freshness, and\ngrouped into **stories** (the articles that report the same event), with a one-line summary of each article. To page through every article that matches a boolean query over the last\n**365 days**, use `/articles`.\n\n## Authentication\n\nSend your API key in the `x-api-key` header of every request. Keys are created in the NewsCatcher platform. A missing or invalid key is answered with `401`.\n\n## Endpoints\n\n| Endpoint | What it does | Charged |\n|---|---|---|\n| `GET` or `POST /search` | Ranked articles for a request in plain words or with keywords. | Yes, by effort |\n| `GET` or `POST /articles` | Every article that matches a boolean query, newest first, to page through. | Yes, 5 NCC per successful request |\n| `GET /stories/{story_id}` | Every article of one story. | Yes, 1 NCC per successful request |\n| `GET /subscription` | Your plan, limits and credit balance. | No |\n\n## Effort and credits\n\n`effort` sets how much work goes into the ranking. A search is charged in **NCC** credits, by the effort you ask for, and only when it succeeds (`200`).\n\n| Effort | What it does | Credits |\n|---|---|---|\n| `low` | Ranks by relevance, authority, coverage and freshness. Fastest. | 1 |\n| `medium` (default) | Adds a cross-encoder rerank of the top stories. | 5 |\n| `high` | Adds an LLM judgement of the top stories and merges the stories that report the same event. Slowest, best quality. | 10 |\n\nA search that finds nothing is still charged. A request that is refused or fails (`401`, `402`, `403`, `408`, `422`, `429`, `500`, `503`) is never charged. A call of `/articles` costs 5 NCC when it\nsucceeds, whatever the page size or the number of results.\n\n## Query\n\n`q` is a request in plain words or keywords, in any language, up to 500 characters. Put an upper-case `NOT` before a term to drop the articles that mention it in\ntheir headline, description or summary (`Apple NOT iPhone`). `languages`, `countries` and `sources` narrow the search; the time window is the last 7 days unless you set\n`search_window` (for example `15m`, `2h`, `1d`).\n\n## Limits\n\nYour plan sets the requests per second (per effort level and in all), an optional daily limit, the most results per request (`limit`) and how far back you can search.\n`GET /subscription` returns all of them. Over a limit you get `429` with a `Retry-After` header. A `search_window` longer than your plan's history is cut to it and the response\nsays `window.clamped`.\n\n## Errors\n\nEvery error has the same body: `message` (what went wrong), `status_code` and `status` (a short label). Use the HTTP status to decide what to do:\n\n| Status | Meaning | Retry the same request? |\n|---|---|---|\n| `401` | The API key is missing or invalid. | No |\n| `402` | Your credit balance does not cover the search. | After topping up |\n| `403` | The plan does not include what you asked for (a larger `limit` or `page_size`, an Enterprise field) or the key may not use this API. | No |\n| `404` | Unknown story. | No |\n| `408` | `/articles` only: the search ran out of time and was stopped. | Yes, with a narrower window, a smaller `page_size` or a simpler query |\n| `422` | A parameter is missing, invalid or unknown, or the body is not valid JSON. | No, fix it first |\n| `429` | A rate limit of your plan. | Yes, after `Retry-After` seconds |\n| `500` | Something failed on our side. | Yes, and tell us the `Correlation-ID` |\n| `503` | A part of the service is temporarily unavailable. | Yes, after a short wait |\n\nEvery response carries a `Correlation-ID` header (quote it to support) and an `X-Process-Time` header.\n\n## Enterprise fields\n\n`include` adds heavy fields to every result (`description`, `entities`, `sentiment`, `themes`, `translation`, `embedding`). They are part of the Enterprise plans;\nother plans get `403` with `enterprise_field`.",
+    "description": "Search the news NewsCatcher has crawled in the last **30 days**, in every language: ranked by relevance, source authority and freshness, and\ngrouped into **stories** (the articles that report the same event), with a one-line summary of each article. To page through every article that matches a boolean query over the last\n**365 days**, use `/articles`.\n\n## Authentication\n\nSend your API key in the `x-api-key` header of every request. Keys are created in the NewsCatcher platform. A missing or invalid key is answered with `401`.\n\n## Endpoints\n\n| Endpoint | What it does | Charged |\n|---|---|---|\n| `GET` or `POST /search` | Ranked articles for a request in plain words or with keywords. | Yes, by effort |\n| `GET` or `POST /articles` | Every article that matches a boolean query, newest first, to page through. | Yes, 5 NCC per successful request |\n| `GET /stories/{story_id}` | Every article of one story. | Yes, 1 NCC per successful request |\n| `GET /subscription` | Your plan, limits and credit balance. | No |\n\n## Effort and credits\n\n`effort` sets how much work goes into the ranking. A search is charged in **NCC** credits, by the effort you ask for, and only when it succeeds (`200`).\n\n| Effort | What it does | Credits |\n|---|---|---|\n| `low` | Ranks by relevance, authority, coverage and freshness. Fastest. | 1 |\n| `medium` (default) | Adds a cross-encoder rerank of the top stories. | 5 |\n| `high` | Adds an LLM judgement of the top stories and merges the stories that report the same event. Slowest, best quality. | 10 |\n\nA search that finds nothing is still charged. A request that is refused or fails (`401`, `402`, `403`, `408`, `422`, `429`, `500`, `503`) is never charged. A call of `/articles` costs 5 NCC when it\nsucceeds, whatever the page size or the number of results.\n\n## Query\n\n`q` is a request in plain words or keywords, in any language, up to 500 characters. Put an upper-case `NOT` (or a `-` or `!` in front of a word) before a term to drop the articles that mention it in\ntheir headline, description or summary (`Apple NOT iPhone`, `Apple -iPhone`). `AND`, `OR`, quotes and `*` are read as ordinary words: this search is by meaning, so use `/articles` for an exact boolean query. `languages`, `countries` and `sources` narrow the search; the time window is the last 7 days unless you set\n`search_window` (for example `15m`, `2h`, `1d`).\n\n## Limits\n\nYour plan sets the requests per second (per effort level and in all), an optional daily limit, the most results per request (`limit`) and how far back you can search.\n`GET /subscription` returns all of them. Over a limit you get `429` with a `Retry-After` header. A `search_window` longer than your plan's history is cut to it and the response\nsays `window.clamped`.\n\n## Errors\n\nEvery error has the same body: `message` (what went wrong), `status_code` and `status` (a short label). Use the HTTP status to decide what to do:\n\n| Status | Meaning | Retry the same request? |\n|---|---|---|\n| `401` | The API key is missing or invalid. | No |\n| `402` | Your credit balance does not cover the search. | After topping up |\n| `403` | The plan does not include what you asked for (a larger `limit` or `page_size`, an Enterprise field) or the key may not use this API. | No |\n| `404` | Unknown story. | No |\n| `408` | `/articles` only: the search ran out of time and was stopped. | Yes, with a narrower window, a smaller `page_size` or a simpler query |\n| `422` | A parameter is missing, invalid or unknown, or the body is not valid JSON. | No, fix it first |\n| `429` | A rate limit of your plan. | Yes, after `Retry-After` seconds |\n| `500` | Something failed on our side. | Yes, and tell us the `Correlation-ID` |\n| `503` | A part of the service is temporarily unavailable. | Yes, after a short wait |\n\nEvery response carries a `Correlation-ID` header (quote it to support) and an `X-Process-Time` header.\n\n## Enterprise fields\n\n`include` adds heavy fields to every result (`description`, `content`, `entities`, `sentiment`, `themes`, `translation`, `embedding`). They are part of the Enterprise plans;\nother plans get `403` with `enterprise_field`.",
     "termsOfService": "https://newscatcherapi.com/terms-of-service",
     "contact": {
       "name": "NewsCatcher Support",
       "url": "https://newscatcherapi.com/",
       "email": "support@newscatcherapi.com"
     },
-    "version": "1.3.9"
+    "version": "1.3.12"
   },
   "servers": [
     {
@@ -44,7 +44,7 @@
                 "Tesla recall NOT Cybertruck"
               ]
             },
-            "description": "What to look for: keywords with AND/OR/NOT or a plain-language question, in any language. An upper-case `NOT` (`Apple NOT iPhone`, `NOT \"model y\"`) drops the articles whose headline, description or summary mention the term.",
+            "description": "What to look for: keywords or a plain-language question, in any language. Only a `NOT` excludes: an upper-case `NOT` (`Apple NOT iPhone`, `NOT \"model y\"`) or a `-` or `!` in front of a word (`Apple -iPhone`) drops the articles whose headline, description or summary mention the term; the article text is not checked. `AND`, `OR`, quotes, `*` and parentheses are not operators here: they are read as ordinary words and the search is by meaning, so a quoted phrase is not matched exactly and `*` is not a wildcard. Use `/articles` for an exact boolean query.",
             "example": "Tesla recall NOT Cybertruck"
           },
           {
@@ -137,7 +137,7 @@
               ],
               "description": "A number and a unit: minutes (`m`, `min`, `minute`, `minutes`), hours (`h`, `hr`, `hour`, `hours`), days (`d`, `day`, `days`) or weeks (`w`, `week`, `weeks`)."
             },
-            "description": "How far back to search, counted from now and measured on the publication date: a number and a unit, for example `15m`, `2h`, `1d`, `15 minutes`, `2 hours`, `1 day` or `1w`. From 1 minute up to your plan's history (30 days on the free plan; a longer request is cut to it and the response says `window.clamped`). Default: `7d`.",
+            "description": "How far back to search, counted from now and measured on the publication date: a number and a unit, for example `15m`, `2h`, `1d`, `15 minutes`, `2 hours`, `1 day` or `1w`. From 1 minute up to 30 days: above that the request is refused with 422. A window within 30 days that is longer than your plan's history is cut to it and the response says `window.clamped: true`. Default: `7d`; if your plan has less than 7 days of history it is cut to it without `window.clamped`.",
             "example": "7d"
           },
           {
@@ -367,7 +367,7 @@
               ],
               "default": "news"
             },
-            "description": "`news` (default) keeps real news articles only; `all` returns every article, whatever its type.",
+            "description": "`news` (default) keeps only articles classified as `news_report`, `analysis` or `interview`; it leaves out `opinion`, `press_release`, `review`, `commerce`, `service`, `listicle`, `seo_spam`, `autogen`, `ugc`, `obituary` and `non_article`, and the articles whose headline starts with Commentary, Opinion, Editorial, Watch, Video or Podcast followed by a separator (`Opinion: ...`). `all` applies no type and no headline filter: every content type is returned. Either way only the articles of the news index are searched.",
             "example": "news"
           },
           {
@@ -389,6 +389,7 @@
                     "type": "string",
                     "enum": [
                       "description",
+                      "content",
                       "entities",
                       "sentiment",
                       "themes",
@@ -406,7 +407,7 @@
                 }
               ]
             },
-            "description": "Heavy fields to add to every result, comma-separated or as an array: description, entities, sentiment, themes, translation, embedding. Enterprise accounts only (403 `enterprise_field` otherwise).",
+            "description": "Heavy fields to add to every result, comma-separated or as an array: description, content, entities, sentiment, themes, translation, embedding. Enterprise accounts only (403 `enterprise_field` otherwise).",
             "example": "entities,sentiment"
           }
         ],
@@ -628,7 +629,7 @@
                   "enterprise_field": {
                     "summary": "Enterprise field",
                     "value": {
-                      "message": "enterprise_field: embedding is not included in your plan. Please upgrade to Enterprise.",
+                      "message": "enterprise_field: content is not included in your plan. Please upgrade to Enterprise.",
                       "status_code": 403,
                       "status": "Forbidden"
                     }
@@ -697,6 +698,14 @@
                     "summary": "Invalid country",
                     "value": {
                       "message": "Invalid country code(s): XX. Country codes must be valid ISO 3166-1 alpha-2 codes.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "window_too_long": {
+                    "summary": "Window too long",
+                    "value": {
+                      "message": "The 'search_window' parameter must be between 1 minute and 30 days. Use a number and a unit, for example 15m, 2h, 1d or 1 week (minutes, hours, days or weeks).",
                       "status_code": 422,
                       "status": "Validation error"
                     }
@@ -1126,7 +1135,7 @@
                   "enterprise_field": {
                     "summary": "Enterprise field",
                     "value": {
-                      "message": "enterprise_field: embedding is not included in your plan. Please upgrade to Enterprise.",
+                      "message": "enterprise_field: content is not included in your plan. Please upgrade to Enterprise.",
                       "status_code": 403,
                       "status": "Forbidden"
                     }
@@ -1195,6 +1204,14 @@
                     "summary": "Invalid country",
                     "value": {
                       "message": "Invalid country code(s): XX. Country codes must be valid ISO 3166-1 alpha-2 codes.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "window_too_long": {
+                    "summary": "Window too long",
+                    "value": {
+                      "message": "The 'search_window' parameter must be between 1 minute and 30 days. Use a number and a unit, for example 15m, 2h, 1d or 1 week (minutes, hours, days or weeks).",
                       "status_code": 422,
                       "status": "Validation error"
                     }
@@ -1502,7 +1519,7 @@
                   "enterprise_field": {
                     "summary": "Enterprise field",
                     "value": {
-                      "message": "enterprise_field: embedding is not included in your plan. Please upgrade to Enterprise.",
+                      "message": "enterprise_field: content is not included in your plan. Please upgrade to Enterprise.",
                       "status_code": 403,
                       "status": "Forbidden"
                     }
@@ -1599,6 +1616,14 @@
                     "summary": "Invalid country",
                     "value": {
                       "message": "Invalid country code(s): XX. Country codes must be valid ISO 3166-1 alpha-2 codes.",
+                      "status_code": 422,
+                      "status": "Validation error"
+                    }
+                  },
+                  "window_too_long": {
+                    "summary": "Window too long",
+                    "value": {
+                      "message": "The 'search_window' parameter must be between 1 minute and 30 days. Use a number and a unit, for example 15m, 2h, 1d or 1 week (minutes, hours, days or weeks).",
                       "status_code": 422,
                       "status": "Validation error"
                     }
@@ -1745,7 +1770,7 @@
           "Articles"
         ],
         "summary": "List the articles that match a query",
-        "description": "Every article that matches a boolean query, newest first, for you to page through: the last 12 months, with the publisher, the date, the language, the country and a short snippet of\neach. Use `/search` to find the best articles for a question; use `/articles` to get all the articles that match your query.\n\n**Query.** `q` takes `AND`, `OR`, `NOT`, parentheses, `\"exact phrases\"`, `+must`, `-mustnot`, `wild*cards` and `NEAR(\"a\", \"b\", 5)`. `search_in` chooses where it is searched: the headline, the\nbody, both (default) or the summary, in the original language or in the English translation.\n\n**Window and paging.** `from_date` and `to_date` set the window (the last 7 days by default, up to 365 days back: an earlier `from_date` is cut to it and the response says `window.clamped`).\n`to_date` defaults to the moment of the request and is returned in `window.to`: send it back as `to_date` when you page, so every page covers the same articles. A page holds up to 100\narticles and a query reaches its first 1,000 (`page` x `page_size` is at most 1,000). `total_hits` is the exact number of articles that match in the window.\n\n**Filters.** `languages`, `countries`, `sources`, `predefined_sources` (`top 100 US`), the rank of the publisher (`ranked_only`, `from_rank`, `to_rank`) and the number of words narrow the\nsearch; `not_languages`, `not_countries` and `not_sources` leave articles out. Copies of an article are returned too, unless you ask for `exclude_duplicates`.\n\n**Credits.** A successful call (`200`) costs 5 NCC, whatever the page size or the number of results, also when nothing matches. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /articles` with the parameters in the query string, or `POST /articles` with the same parameters as a JSON body. In both, the list parameters take a\ncomma-separated string; in the JSON body they can also be arrays.",
+        "description": "Every article that matches a boolean query, newest first, for you to page through: the last 12 months, with the publisher, the date, the language, the country and a short snippet of\neach. Use `/search` to find the best articles for a question; use `/articles` to get all the articles that match your query.\n\n**Query.** `q` takes `AND`, `OR` and `NOT` (upper case: lower case is read as ordinary words; `&&`, `||` and `!` mean the same), parentheses, `\"exact phrases\"`, `+must`, `-mustnot`, `wild*cards`, `NEAR(\"a\", \"b\", 5)` (the words within 5 of each other) and `MULTIPLE(term, 2)` (the term at least twice in the article). `search_in` chooses where it is searched: the headline, the\nbody, both (default) or the summary, in the original language or in the English translation.\n\n**Window and paging.** `from_date` and `to_date` set the window (the last 7 days by default, up to 365 days back: an earlier `from_date` is cut to it and the response says `window.clamped`; a window that ends before that limit is refused with 403). A date without a time is the start of the day for `from_date` and the end of the day for `to_date` (`from_date=2026-10-03&to_date=2026-10-03` is that whole day). A date that is not valid ISO 8601 may be read another way instead of refused (`2026-13-01` becomes 2026-01-13): send valid dates.\n`to_date` defaults to the moment of the request and is returned in `window.to`: send it back as `to_date` when you page, so every page covers the same articles. A page holds up to 100\narticles and a query reaches its first 1,000 (`page` x `page_size` is at most 1,000). `total_hits` is the exact number of articles that match in the window.\n\n**Filters.** `languages`, `countries`, `sources`, `predefined_sources` (`top 100 US`), the rank of the publisher (`ranked_only`, `from_rank`, `to_rank`) and the number of words narrow the\nsearch; `not_languages`, `not_countries` and `not_sources` leave articles out. `robots_compliant=true` keeps only the articles that were extracted with the publisher's robots.txt permission, `false` all the others (an article with no stored value counts as `false`); when you use it, each article carries `robots_compliant`. Copies of an article are returned too, unless you ask for `exclude_duplicates`.\n\n**Credits.** A successful call (`200`) costs 5 NCC, whatever the page size or the number of results, also when nothing matches. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /articles` with the parameters in the query string, or `POST /articles` with the same parameters as a JSON body. In both, the list parameters take a\ncomma-separated string; in the JSON body they can also be arrays.",
         "operationId": "articlesGet",
         "security": [
           {
@@ -1765,7 +1790,7 @@
                 "\"interest rate\" AND (cut OR hike) NOT crypto"
               ]
             },
-            "description": "The boolean query: `AND`, `OR`, `NOT`, parentheses, `\"exact phrases\"`, `+must`, `-mustnot`, `wild*cards` and `NEAR(\"a\", \"b\", 5)` (the words within 5 of each other). Terms and phrases are searched in the fields of `search_in`.",
+            "description": "The boolean query: `AND`, `OR` and `NOT` (upper case: lower case is read as ordinary words; `&&`, `||` and `!` mean the same), parentheses, `\"exact phrases\"`, `+must`, `-mustnot`, `wild*cards`, `NEAR(\"a\", \"b\", 5)` (the words within 5 of each other) and `MULTIPLE(term, 2)` (the term at least twice in the article). Terms and phrases are searched in the fields of `search_in`.",
             "example": "\"interest rate\" AND (cut OR hike) NOT crypto"
           },
           {
@@ -1821,7 +1846,7 @@
                 "7 days ago"
               ]
             },
-            "description": "Start of the window: ISO 8601 (`2026-10-03`, `2026-10-03T14:00:00`, with or without an offset; UTC otherwise) or a phrase such as `7 days ago`. Default: midnight 7 days ago. Up to 365 days back (an earlier start is cut to it and the response says `window.clamped`).",
+            "description": "Start of the window: ISO 8601 (`2026-10-03`, `2026-10-03T14:00:00`, with or without an offset; UTC otherwise) or a phrase such as `7 days ago`. Default: midnight 7 days ago. Up to your plan's history (365 days): an earlier start is cut to it and the response says `window.clamped`; a window that ends before that limit is refused with 403. A date that is not valid ISO 8601 is not always refused: it is read another way when it can be (`2026-13-01` becomes 2026-01-13, day and month swapped), and only a value that cannot be read is a 422. Send valid dates.",
             "example": "2026-10-03"
           },
           {
@@ -1836,7 +1861,7 @@
                 "7 days ago"
               ]
             },
-            "description": "End of the window, in the same formats. Default: the moment of the request. The response returns it in `window.to`: send it back when paging, so every page covers the same articles.",
+            "description": "End of the window, in the same formats and read the same way (an invalid date may be read another way). A date without a time (`2026-10-03`) is the end of that day (23:59:59), so the day is included; `from_date` without a time is the start of its day (00:00:00). Default: the moment of the request. A `to_date` older than your plan's history is refused with 403. The response returns it in `window.to`: send it back when paging, so every page covers the same articles.",
             "example": "2026-10-03"
           },
           {
@@ -1868,7 +1893,7 @@
                 }
               ]
             },
-            "description": "Only these publishers: domains, comma-separated or as an array (at most 100). A domain with a subdomain (`news.bbc.co.uk`) matches that subdomain only.",
+            "description": "Only these publishers: domains, comma-separated or as an array (at most 100). A domain with a subdomain (`news.bbc.co.uk`) matches that subdomain only. When `sources` is set, `countries` and `not_countries` are ignored, and combined with `from_rank` or `to_rank` an article that matches either passes (an OR, not an AND).",
             "example": "reuters.com,bbc.co.uk"
           },
           {
@@ -2101,7 +2126,7 @@
               ],
               "default": 1
             },
-            "description": "Page number, from 1. `page` x `page_size` is at most 1,000: a query returns up to its first 1,000 articles.",
+            "description": "Page number, from 1. `page` x `page_size` is at most 1,000: a query returns up to its first 1,000 articles, and a request past that is a 422 (narrow the query or the window to reach the rest). A plan may allow fewer pages (`max_pages` in `GET /subscription`): a page past its limit is refused with 403.",
             "example": 1
           },
           {
@@ -2117,7 +2142,7 @@
               ],
               "default": 100
             },
-            "description": "Articles per page (1 to 100; a plan may allow fewer: the request is refused with 403 above it).",
+            "description": "Articles per page (1 to 100, above that is a 422; a plan may allow fewer: the request is refused with 403 above it).",
             "example": 100
           },
           {
@@ -2135,6 +2160,19 @@
             "example": true
           },
           {
+            "name": "robots_compliant",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "examples": [
+                true
+              ]
+            },
+            "description": "Filter by whether the publisher's robots.txt permitted extracting the article: `true` returns only the articles that were extracted with permission, `false` all the others (an article with no stored value counts as `false`). Left out: no filter. When you use it, each article carries `robots_compliant`.",
+            "example": true
+          },
+          {
             "name": "from_rank",
             "in": "query",
             "required": false,
@@ -2146,7 +2184,7 @@
                 1000
               ]
             },
-            "description": "Only publishers ranked at this position or lower (a larger number): the rank is the publisher's traffic rank, 1 being the best. 1 to 999999. Combined with `sources`, an article that matches either passes.",
+            "description": "Only publishers ranked at this position or lower (a larger number): the rank is the publisher's traffic rank, 1 being the best. 1 to 999999. Combined with `sources` or `predefined_sources`, an article that matches either passes (an OR, not an AND).",
             "example": 1000
           },
           {
@@ -2161,7 +2199,7 @@
                 1000
               ]
             },
-            "description": "Only publishers ranked at this position or better (a smaller number). 1 to 999999.",
+            "description": "Only publishers ranked at this position or better (a smaller number). 1 to 999999. Combined with `sources` or `predefined_sources`, an article that matches either passes (an OR, not an AND).",
             "example": 1000
           },
           {
@@ -2397,7 +2435,7 @@
             }
           },
           "403": {
-            "description": "The request asks for more than your plan includes (a larger page, a field or filter of the Enterprise plans), or the key may not use the News API.",
+            "description": "The request asks for more than your plan includes (a larger or deeper page, a field or filter of the Enterprise plans), or the key may not use the News API.",
             "content": {
               "application/json": {
                 "examples": {
@@ -2524,7 +2562,7 @@
                   "unknown_parameter": {
                     "summary": "Unknown parameter",
                     "value": {
-                      "message": "Invalid Parameter: 'is_headline'. Allowed parameters: q, search_in, from_date, to_date, sources, not_sources, predefined_sources, languages, not_languages, countries, not_countries, sort_by, page, page_size, ranked_only, from_rank, to_rank, word_count_min, word_count_max, exclude_duplicates.",
+                      "message": "Invalid Parameter: 'is_headline'. Allowed parameters: q, search_in, from_date, to_date, sources, not_sources, predefined_sources, languages, not_languages, countries, not_countries, sort_by, page, page_size, ranked_only, robots_compliant, from_rank, to_rank, word_count_min, word_count_max, exclude_duplicates.",
                       "status_code": 422,
                       "status": "Validation error"
                     }
@@ -2669,7 +2707,7 @@
           "Articles"
         ],
         "summary": "List the articles that match a query (JSON body)",
-        "description": "Every article that matches a boolean query, newest first, for you to page through: the last 12 months, with the publisher, the date, the language, the country and a short snippet of\neach. Use `/search` to find the best articles for a question; use `/articles` to get all the articles that match your query.\n\n**Query.** `q` takes `AND`, `OR`, `NOT`, parentheses, `\"exact phrases\"`, `+must`, `-mustnot`, `wild*cards` and `NEAR(\"a\", \"b\", 5)`. `search_in` chooses where it is searched: the headline, the\nbody, both (default) or the summary, in the original language or in the English translation.\n\n**Window and paging.** `from_date` and `to_date` set the window (the last 7 days by default, up to 365 days back: an earlier `from_date` is cut to it and the response says `window.clamped`).\n`to_date` defaults to the moment of the request and is returned in `window.to`: send it back as `to_date` when you page, so every page covers the same articles. A page holds up to 100\narticles and a query reaches its first 1,000 (`page` x `page_size` is at most 1,000). `total_hits` is the exact number of articles that match in the window.\n\n**Filters.** `languages`, `countries`, `sources`, `predefined_sources` (`top 100 US`), the rank of the publisher (`ranked_only`, `from_rank`, `to_rank`) and the number of words narrow the\nsearch; `not_languages`, `not_countries` and `not_sources` leave articles out. Copies of an article are returned too, unless you ask for `exclude_duplicates`.\n\n**Credits.** A successful call (`200`) costs 5 NCC, whatever the page size or the number of results, also when nothing matches. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /articles` with the parameters in the query string, or `POST /articles` with the same parameters as a JSON body. In both, the list parameters take a\ncomma-separated string; in the JSON body they can also be arrays.",
+        "description": "Every article that matches a boolean query, newest first, for you to page through: the last 12 months, with the publisher, the date, the language, the country and a short snippet of\neach. Use `/search` to find the best articles for a question; use `/articles` to get all the articles that match your query.\n\n**Query.** `q` takes `AND`, `OR` and `NOT` (upper case: lower case is read as ordinary words; `&&`, `||` and `!` mean the same), parentheses, `\"exact phrases\"`, `+must`, `-mustnot`, `wild*cards`, `NEAR(\"a\", \"b\", 5)` (the words within 5 of each other) and `MULTIPLE(term, 2)` (the term at least twice in the article). `search_in` chooses where it is searched: the headline, the\nbody, both (default) or the summary, in the original language or in the English translation.\n\n**Window and paging.** `from_date` and `to_date` set the window (the last 7 days by default, up to 365 days back: an earlier `from_date` is cut to it and the response says `window.clamped`; a window that ends before that limit is refused with 403). A date without a time is the start of the day for `from_date` and the end of the day for `to_date` (`from_date=2026-10-03&to_date=2026-10-03` is that whole day). A date that is not valid ISO 8601 may be read another way instead of refused (`2026-13-01` becomes 2026-01-13): send valid dates.\n`to_date` defaults to the moment of the request and is returned in `window.to`: send it back as `to_date` when you page, so every page covers the same articles. A page holds up to 100\narticles and a query reaches its first 1,000 (`page` x `page_size` is at most 1,000). `total_hits` is the exact number of articles that match in the window.\n\n**Filters.** `languages`, `countries`, `sources`, `predefined_sources` (`top 100 US`), the rank of the publisher (`ranked_only`, `from_rank`, `to_rank`) and the number of words narrow the\nsearch; `not_languages`, `not_countries` and `not_sources` leave articles out. `robots_compliant=true` keeps only the articles that were extracted with the publisher's robots.txt permission, `false` all the others (an article with no stored value counts as `false`); when you use it, each article carries `robots_compliant`. Copies of an article are returned too, unless you ask for `exclude_duplicates`.\n\n**Credits.** A successful call (`200`) costs 5 NCC, whatever the page size or the number of results, also when nothing matches. A refused or failed request is not charged.\nYour balance and limits are in `GET /subscription`.\n\n**Two ways to call it.** `GET /articles` with the parameters in the query string, or `POST /articles` with the same parameters as a JSON body. In both, the list parameters take a\ncomma-separated string; in the JSON body they can also be arrays.",
         "operationId": "articlesPost",
         "security": [
           {
@@ -2911,7 +2949,7 @@
             }
           },
           "403": {
-            "description": "The request asks for more than your plan includes (a larger page, a field or filter of the Enterprise plans), or the key may not use the News API.",
+            "description": "The request asks for more than your plan includes (a larger or deeper page, a field or filter of the Enterprise plans), or the key may not use the News API.",
             "content": {
               "application/json": {
                 "examples": {
@@ -3038,7 +3076,7 @@
                   "unknown_parameter": {
                     "summary": "Unknown parameter",
                     "value": {
-                      "message": "Invalid Parameter: 'is_headline'. Allowed parameters: q, search_in, from_date, to_date, sources, not_sources, predefined_sources, languages, not_languages, countries, not_countries, sort_by, page, page_size, ranked_only, from_rank, to_rank, word_count_min, word_count_max, exclude_duplicates.",
+                      "message": "Invalid Parameter: 'is_headline'. Allowed parameters: q, search_in, from_date, to_date, sources, not_sources, predefined_sources, languages, not_languages, countries, not_countries, sort_by, page, page_size, ranked_only, robots_compliant, from_rank, to_rank, word_count_min, word_count_max, exclude_duplicates.",
                       "status_code": 422,
                       "status": "Validation error"
                     }
@@ -3433,7 +3471,7 @@
             "type": "string",
             "maxLength": 1000,
             "minLength": 1,
-            "description": "The boolean query: `AND`, `OR`, `NOT`, parentheses, `\"exact phrases\"`, `+must`, `-mustnot`, `wild*cards` and `NEAR(\"a\", \"b\", 5)` (the words within 5 of each other). Terms and phrases are searched in the fields of `search_in`.",
+            "description": "The boolean query: `AND`, `OR` and `NOT` (upper case: lower case is read as ordinary words; `&&`, `||` and `!` mean the same), parentheses, `\"exact phrases\"`, `+must`, `-mustnot`, `wild*cards`, `NEAR(\"a\", \"b\", 5)` (the words within 5 of each other) and `MULTIPLE(term, 2)` (the term at least twice in the article). Terms and phrases are searched in the fields of `search_in`.",
             "examples": [
               "\"interest rate\" AND (cut OR hike) NOT crypto"
             ]
@@ -3475,7 +3513,7 @@
           },
           "from_date": {
             "type": "string",
-            "description": "Start of the window: ISO 8601 (`2026-10-03`, `2026-10-03T14:00:00`, with or without an offset; UTC otherwise) or a phrase such as `7 days ago`. Default: midnight 7 days ago. Up to 365 days back (an earlier start is cut to it and the response says `window.clamped`).",
+            "description": "Start of the window: ISO 8601 (`2026-10-03`, `2026-10-03T14:00:00`, with or without an offset; UTC otherwise) or a phrase such as `7 days ago`. Default: midnight 7 days ago. Up to your plan's history (365 days): an earlier start is cut to it and the response says `window.clamped`; a window that ends before that limit is refused with 403. A date that is not valid ISO 8601 is not always refused: it is read another way when it can be (`2026-13-01` becomes 2026-01-13, day and month swapped), and only a value that cannot be read is a 422. Send valid dates.",
             "examples": [
               "2026-10-03",
               "2026-10-03 14:00:00",
@@ -3484,7 +3522,7 @@
           },
           "to_date": {
             "type": "string",
-            "description": "End of the window, in the same formats. Default: the moment of the request. The response returns it in `window.to`: send it back when paging, so every page covers the same articles.",
+            "description": "End of the window, in the same formats and read the same way (an invalid date may be read another way). A date without a time (`2026-10-03`) is the end of that day (23:59:59), so the day is included; `from_date` without a time is the start of its day (00:00:00). Default: the moment of the request. A `to_date` older than your plan's history is refused with 403. The response returns it in `window.to`: send it back when paging, so every page covers the same articles.",
             "examples": [
               "2026-10-03",
               "2026-10-03 14:00:00",
@@ -3515,7 +3553,7 @@
                 ]
               }
             ],
-            "description": "Only these publishers: domains, comma-separated or as an array (at most 100). A domain with a subdomain (`news.bbc.co.uk`) matches that subdomain only."
+            "description": "Only these publishers: domains, comma-separated or as an array (at most 100). A domain with a subdomain (`news.bbc.co.uk`) matches that subdomain only. When `sources` is set, `countries` and `not_countries` are ignored, and combined with `from_rank` or `to_rank` an article that matches either passes (an OR, not an AND)."
           },
           "not_sources": {
             "anyOf": [
@@ -3696,7 +3734,7 @@
             "type": "integer",
             "maximum": 1000.0,
             "minimum": 1.0,
-            "description": "Page number, from 1. `page` x `page_size` is at most 1,000: a query returns up to its first 1,000 articles.",
+            "description": "Page number, from 1. `page` x `page_size` is at most 1,000: a query returns up to its first 1,000 articles, and a request past that is a 422 (narrow the query or the window to reach the rest). A plan may allow fewer pages (`max_pages` in `GET /subscription`): a page past its limit is refused with 403.",
             "default": 1,
             "examples": [
               1
@@ -3706,7 +3744,7 @@
             "type": "integer",
             "maximum": 100.0,
             "minimum": 1.0,
-            "description": "Articles per page (1 to 100; a plan may allow fewer: the request is refused with 403 above it).",
+            "description": "Articles per page (1 to 100, above that is a 422; a plan may allow fewer: the request is refused with 403 above it).",
             "default": 100,
             "examples": [
               100
@@ -3720,11 +3758,18 @@
               true
             ]
           },
+          "robots_compliant": {
+            "type": "boolean",
+            "description": "Filter by whether the publisher's robots.txt permitted extracting the article: `true` returns only the articles that were extracted with permission, `false` all the others (an article with no stored value counts as `false`). Left out: no filter. When you use it, each article carries `robots_compliant`.",
+            "examples": [
+              true
+            ]
+          },
           "from_rank": {
             "type": "integer",
             "maximum": 999999.0,
             "minimum": 1.0,
-            "description": "Only publishers ranked at this position or lower (a larger number): the rank is the publisher's traffic rank, 1 being the best. 1 to 999999. Combined with `sources`, an article that matches either passes.",
+            "description": "Only publishers ranked at this position or lower (a larger number): the rank is the publisher's traffic rank, 1 being the best. 1 to 999999. Combined with `sources` or `predefined_sources`, an article that matches either passes (an OR, not an AND).",
             "examples": [
               1000
             ]
@@ -3733,7 +3778,7 @@
             "type": "integer",
             "maximum": 999999.0,
             "minimum": 1.0,
-            "description": "Only publishers ranked at this position or better (a smaller number). 1 to 999999.",
+            "description": "Only publishers ranked at this position or better (a smaller number). 1 to 999999. Combined with `sources` or `predefined_sources`, an article that matches either passes (an OR, not an AND).",
             "examples": [
               1000
             ]
@@ -4085,6 +4130,20 @@
             "description": "Number of words of the article.",
             "examples": [
               812
+            ]
+          },
+          "robots_compliant": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Whether the publisher's robots.txt permitted extracting the article. Present only when the request used `robots_compliant`; an article with no stored value is `false`.",
+            "examples": [
+              true
             ]
           },
           "score": {
@@ -4623,6 +4682,20 @@
               "President Donald J. Trump approved a Major Disaster Declaration for Florida on Tuesday."
             ]
           },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Full article text (`include=content`; Enterprise).",
+            "examples": [
+              "TALLAHASSEE, Fla. — President Donald J. Trump approved a Major Disaster Declaration for Florida on Tuesday…"
+            ]
+          },
           "entities": {
             "anyOf": [
               {
@@ -4716,7 +4789,7 @@
             "type": "string",
             "maxLength": 500,
             "minLength": 1,
-            "description": "What to look for: keywords with AND/OR/NOT or a plain-language question, in any language. An upper-case `NOT` (`Apple NOT iPhone`, `NOT \"model y\"`) drops the articles whose headline, description or summary mention the term.",
+            "description": "What to look for: keywords or a plain-language question, in any language. Only a `NOT` excludes: an upper-case `NOT` (`Apple NOT iPhone`, `NOT \"model y\"`) or a `-` or `!` in front of a word (`Apple -iPhone`) drops the articles whose headline, description or summary mention the term; the article text is not checked. `AND`, `OR`, quotes, `*` and parentheses are not operators here: they are read as ordinary words and the search is by meaning, so a quoted phrase is not matched exactly and `*` is not a wildcard. Use `/articles` for an exact boolean query.",
             "examples": [
               "Tesla recall NOT Cybertruck"
             ]
@@ -4773,7 +4846,7 @@
           "search_window": {
             "type": "string",
             "pattern": "^\\s*\\d+(\\.\\d+)?\\s*[a-zA-Z]+\\s*$",
-            "description": "How far back to search, counted from now and measured on the publication date: a number and a unit, for example `15m`, `2h`, `1d`, `15 minutes`, `2 hours`, `1 day` or `1w`. From 1 minute up to your plan's history (30 days on the free plan; a longer request is cut to it and the response says `window.clamped`). Default: `7d`.",
+            "description": "How far back to search, counted from now and measured on the publication date: a number and a unit, for example `15m`, `2h`, `1d`, `15 minutes`, `2 hours`, `1 day` or `1w`. From 1 minute up to 30 days: above that the request is refused with 422. A window within 30 days that is longer than your plan's history is cut to it and the response says `window.clamped: true`. Default: `7d`; if your plan has less than 7 days of history it is cut to it without `window.clamped`.",
             "examples": [
               "7d",
               "2h",
@@ -4959,7 +5032,7 @@
               "news",
               "all"
             ],
-            "description": "`news` (default) keeps real news articles only; `all` returns every article, whatever its type.",
+            "description": "`news` (default) keeps only articles classified as `news_report`, `analysis` or `interview`; it leaves out `opinion`, `press_release`, `review`, `commerce`, `service`, `listicle`, `seo_spam`, `autogen`, `ugc`, `obituary` and `non_article`, and the articles whose headline starts with Commentary, Opinion, Editorial, Watch, Video or Podcast followed by a separator (`Opinion: ...`). `all` applies no type and no headline filter: every content type is returned. Either way only the articles of the news index are searched.",
             "default": "news",
             "examples": [
               "news"
@@ -4979,6 +5052,7 @@
                   "type": "string",
                   "enum": [
                     "description",
+                    "content",
                     "entities",
                     "sentiment",
                     "themes",
@@ -4996,7 +5070,7 @@
                 ]
               }
             ],
-            "description": "Heavy fields to add to every result, comma-separated or as an array: description, entities, sentiment, themes, translation, embedding. Enterprise accounts only (403 `enterprise_field` otherwise)."
+            "description": "Heavy fields to add to every result, comma-separated or as an array: description, content, entities, sentiment, themes, translation, embedding. Enterprise accounts only (403 `enterprise_field` otherwise)."
           }
         },
         "type": "object",
@@ -5162,7 +5236,7 @@
                 "type": "null"
               }
             ],
-            "description": "Sentiment of the article.",
+            "description": "Sentiment of the article text.",
             "examples": [
               0.1
             ]
@@ -5415,6 +5489,20 @@
               "He searched for the right word and found it."
             ]
           },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "English article text.",
+            "examples": [
+              "Add us to your preferred sources so that our news always appears at the top of your Google results…"
+            ]
+          },
           "summary": {
             "anyOf": [
               {
@@ -5476,7 +5564,7 @@
                 "type": "null"
               }
             ],
-            "description": "True when the requested window was longer than your plan allows and was cut to it. Absent otherwise.",
+            "description": "True when the `search_window` you sent was longer than your plan allows and was cut to it. Absent otherwise, also when the default window was cut.",
             "examples": [
               true
             ]
@@ -5571,6 +5659,7 @@
               "type": "string",
               "enum": [
                 "description",
+                "content",
                 "entities",
                 "sentiment",
                 "themes",
