@@ -49,7 +49,8 @@ hospital breaches
 
 <ParamField body="max_rows" type="integer" default="50">
   The most rows to return: 50 or 100. More is refused with `too_many_rows`.
-  A run is charged per 50 rows delivered past the first 50.
+  A run is charged per 50 rows delivered past the first 50. A started block
+  counts in full: 51 rows cost the same as 100.
 </ParamField>
 
 <ParamField body="keep_updated" type="object">
