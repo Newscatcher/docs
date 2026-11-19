@@ -3428,9 +3428,8 @@ components:
 
     RankedOnly:
       type: boolean
-      default: true
       description: |
-        If true, limits the search to sources ranked in the top 1 million online websites. If false, includes unranked sources which are assigned a rank of 999999.
+        If true, limits the search to sources ranked in the top 1 million online websites. If false, includes unranked sources which are assigned a rank of 999999. Not set by default, which works like false: unranked sources are included.
       example: true
 
     FromRank:
