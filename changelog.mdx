@@ -24,8 +24,8 @@ description: New features and changes to the News API and the agent.
   - **Company monitors**: if a run is still going when the next scheduled time
     comes, the monitor skips that time instead of starting a second run.
   - **Fixed**: a company that runs out of time no longer fails the whole
-    company run. It shows `incomplete` with the stories found so far, and the
-    run goes on with the other companies. See
+    company run. It shows `out_of_time`, and the run goes on with the other
+    companies. See
     [Coverage per company](/agent/company-research#coverage-per-company).
   - **Fixed**: companies with a very large amount of news, such as Apple or
     Microsoft, no longer run out of time before any news is found.

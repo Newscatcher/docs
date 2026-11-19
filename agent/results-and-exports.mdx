@@ -20,10 +20,15 @@ description: Read a run's table, and download it as CSV or Excel.
   [coverage status](/agent/company-research#coverage-per-company).
 </ResponseField>
 <ResponseField name="window_from / window_to" type="string">
-  The time window the run covered.
+  Companies runs: the time window the run covered. Empty for events runs.
 </ResponseField>
 <ResponseField name="report" type="string">
   The cited briefing that `standard` and `max` runs write with the table.
+</ResponseField>
+<ResponseField name="evidence" type="object[]">
+  `standard` and `max` runs: the sources behind each row, in the order of
+  `rows`. Each item has `outlets`, the number of outlets that reported the
+  event, and `sources`, each with `url`, `source`, `published` and `quote`.
 </ResponseField>
 
 ## Downloads

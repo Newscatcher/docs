@@ -18,9 +18,12 @@ Events:
 | Event | When |
 |---|---|
 | `run_status` | The run's status changed. |
-| `run_event` | The agent took a step. |
+| `run_step` | The agent took a step. |
+| `run_preview` | Part of the result is ready: first rows, candidate events, or a company's stories. |
 | `run_result` | The run finished with its result. |
 | `run_error` | The run failed. |
+
+When nothing happens for 15 seconds, the stream sends a keep-alive comment.
 
 ```bash
 curl -N "https://api.newscatcherapi.com/agent/runs/RUN_ID/progress" \
@@ -41,7 +44,7 @@ If the connection drops, reconnect with the `Last-Event-ID` header (or
 
 | To | Call | Notes |
 |---|---|---|
-| Cancel | `POST /runs/{run_id}/cancel` | A queued run stops at once; a running one before its next step. |
+| Cancel | `POST /runs/{run_id}/cancel` | A queued run stops at once; a running one within seconds. |
 | Rename | `PATCH /runs/{run_id}` | Send `title`, 1 to 200 characters. |
 | Delete | `DELETE /runs/{run_id}` | Finished runs only. The run leaves your history and its results are erased. |
 
