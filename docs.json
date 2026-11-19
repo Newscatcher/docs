@@ -585,6 +585,12 @@
     "dark": "/logos/full_white.png"
   },
   "navbar": {
+    "links": [
+      {
+        "label": "Website",
+        "href": "https://www.newscatcherapi.com"
+      }
+    ],
     "primary": {
       "type": "button",
       "label": "Get API key",
