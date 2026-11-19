@@ -69,13 +69,15 @@ description: Start a run, follow it, and download the result.
   </Step>
 
   <Step title="Keep it updated (optional)">
-    Turn the succeeded run into a monitor that delivers new deals every week:
+    Turn the succeeded run into a monitor that delivers new deals every Monday:
 
     ```bash
     curl -X POST "https://api.newscatcherapi.com/agent/monitors" \
       -H "x-api-key: $NEWSCATCHER_API_KEY" \
       -H "Content-Type: application/json" \
-      -d '{"kind": "dataset", "from_run_id": "RUN_ID", "schedule": {"every": "week"}}'
+      -d '{"kind": "dataset", "from_run_id": "RUN_ID", "schedule": {"every": "week", "weekday": 0}}'
     ```
+
+    A weekly schedule needs `weekday`: `0` is Monday, `6` is Sunday.
   </Step>
 </Steps>

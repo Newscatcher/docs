@@ -35,7 +35,7 @@ in the window you set, optionally only the ones about a topic.
 </ParamField>
 
 <ParamField body="lookback_days" type="integer" default="30">
-  How many days back from today: 1 to 365.
+  How many days back from today: 1 to 365. `0` becomes 30.
 </ParamField>
 
 <ParamField body="include_market_activity" type="boolean" default="true">
@@ -56,7 +56,8 @@ in the window you set, optionally only the ones about a topic.
   [Monitors](/agent/monitors).
 </ParamField>
 
-Company runs always use the `standard` mode.
+Company runs always use the `standard` mode. A company run with another `mode`,
+or with `max_rows`, is refused with `invalid_options` (`422`).
 
 ## Large lists
 
@@ -98,14 +99,19 @@ Besides the stories, a companies run returns one row per company in
 |---|---|
 | `found` | Stories were found. |
 | `no_news` | The company was searched and has no stories in the window. |
-| `incomplete` | The search for the company did not finish. |
-| `identity_unknown` | The agent could not tell which company the domain is. |
+| `incomplete` | The search for the company did not finish; the stories found so far are kept. |
+| `identity_unknown` | The agent could not tell which company the domain is. The company was not searched and has no stories. |
+| `out_of_time` | The company reached its time limit. It has no stories. |
+| `model_unavailable` | The AI model did not respond. The company has no stories. |
+| `internal_error`, `failed` | The search for the company failed. It has no stories. |
 | `pending` | Not reached yet; the run is still going. |
 | `not_searched` | The run ended before reaching the company. |
 
-Each company has up to 20 minutes. A company that reaches that limit keeps the
-stories found so far and shows `incomplete`, and the run goes on with the other
-companies.
+Each company has up to 20 minutes. A company that reaches that limit shows
+`out_of_time`, and the run goes on with the other companies.
+
+The run still ends `succeeded` when some companies were not searched in full:
+see [Best practices](/agent/best-practices#requests).
 
 Download it with `GET /runs/{run_id}/companies.csv` or `companies.xlsx`.
 

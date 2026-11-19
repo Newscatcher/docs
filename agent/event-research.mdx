@@ -69,6 +69,9 @@ hospital breaches
 `GET /runs/{run_id}` returns, once the run has finished:
 
 - `columns` and `rows`: the table;
-- `window_from` and `window_to`: the time window the agent read from your
-  query;
-- `report`: the cited briefing that `standard` and `max` runs write.
+- `report`: the cited briefing that `standard` and `max` runs write;
+- `evidence`: for `standard` and `max` runs, the sources behind each row. See
+  [Results and exports](/agent/results-and-exports#the-table).
+
+`window_from` and `window_to` are empty for events runs. The agent reads the
+window from your query, so check the rows' dates.

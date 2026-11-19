@@ -56,6 +56,10 @@ its last run.
 
     Use `companies` instead of `list_id` to type them in. A monitor that
     follows a list monitors the companies added to it from the next run on.
+
+    `include_market_activity` defaults to `false` for company monitors (it is
+    `true` for company runs), so stock moves and analyst ratings are left out
+    unless you set it.
   </Tab>
 </Tabs>
 
@@ -79,7 +83,8 @@ next one.
   IANA timezone, for example `Europe/Berlin`.
 </ParamField>
 <ParamField body="schedule.weekday" type="integer">
-  Weekly only: `0` is Monday, `6` is Sunday.
+  Required with `every: week`: `0` is Monday, `6` is Sunday. A weekly
+  schedule without it is refused with `invalid_schedule`.
 </ParamField>
 <ParamField body="schedule.hours" type="integer">
   With `every: hours`: hours between runs, counted from `at` each day. Below
@@ -107,6 +112,10 @@ are. Each company has its own time limit, as in
 
 Each delivered row has a `change`: `new`, or `update` for a story that grew
 materially since it was last delivered (its `version` rises).
+
+A new company monitor's first delivery covers only the last 7 days; older
+stories count as already delivered. Each run delivers at most 100 stories; the
+rest come in the next run.
 
 ## Pause, resume and change
 
