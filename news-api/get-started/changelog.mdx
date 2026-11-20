@@ -5,6 +5,28 @@ description: Track updates, improvements, and fixes to the Enterprise News API.
 rss: true
 ---
 
+<Update label="3.27.1" description="2026-11-20">
+## Robots.txt compliance on articles
+
+- **Compliance on articles**: set `robots_compliant` to `true`, `false`, or the
+  new value `all` to get a `robots_compliant` field on each article. `true` and
+  `false` filter as before; `all` returns every article without filtering. The
+  field is `null` when an article has no compliance status. Requests without
+  the parameter return the same fields as before. See
+  [Robots.txt compliance](/news-api/guides-and-concepts/robots-txt-compliance).
+- **Source compliance coverage**: with `include_additional_info=true`,
+  [Sources](/news-api/api-reference/sources/retrieve-sources-get) returns
+  `additional_info.robots_compliant_checked`. It is `true` only when every
+  article from the source in the last 7 days has a compliance status, so you
+  can tell a low `robots_compliant` percentage from a source that was never
+  fully checked.
+- **Error message**: an invalid `robots_compliant` value returns a `422` error
+  that lists the accepted values: `true`, `false`, `all`.
+- **Fixed**: [Search by link](/news-api/api-reference/search-by-link/search-articles-by-links-or-ids-get)
+  and [Breaking news](/news-api/api-reference/breaking-news/retrieve-breaking-news-get)
+  now accept `robots_compliant`. They returned a `403` error for it before.
+</Update>
+
 <Update label="3.26.0" description="2026-11-13">
 ## Content types
 

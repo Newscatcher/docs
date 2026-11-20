@@ -17,7 +17,7 @@ info:
   contact:
     name: Maksym Sugonyaka
     email: maksym@newscatcherapi.com
-  version: 3.26.0
+  version: 3.27.1
 externalDocs:
   description: Find out more about NewsCatcher News API
   url: https://www.newscatcherapi.com/docs
@@ -2588,8 +2588,10 @@ components:
         robots_compliant:
           title: Robots Compliant
           description: |
-            True if the article content can be safely accessed according to the publisher's robots.txt rules; false otherwise.
-          type: boolean
+            True if the article content can be safely accessed according to the publisher's robots.txt rules; false otherwise. Only present when the request sets the `robots_compliant` parameter (`true`, `false`, or `all`). `null` when the article has no compliance status, which only `all` can return.
+          anyOf:
+            - type: boolean
+            - type: "null"
           example: true
         custom_tags:
           title: Custom Tags
@@ -3041,6 +3043,14 @@ components:
           title: Score
           description: The relevance score of the article.
           type: number
+        robots_compliant:
+          title: Robots Compliant
+          description: |
+            True if the article content can be safely accessed according to the publisher's robots.txt rules; false otherwise. Only present when the request sets the `robots_compliant` parameter (`true`, `false`, or `all`). `null` when the article has no compliance status, which only `all` can return.
+          anyOf:
+            - type: boolean
+            - type: "null"
+          example: true
 
     SourcesResponseDto:
       title: Sources Response
@@ -3186,9 +3196,15 @@ components:
         robots_compliant:
           title: Robots Compliant
           description: |
-            Percentage of domain articles that comply with robots.txt scraping rules (0-100%).
+            Percentage of domain articles that comply with robots.txt scraping rules (0-100%). Articles without a compliance status count as non-compliant. Use `robots_compliant_checked` to tell whether the percentage covers every article.
           type: string
           example: "100%"
+        robots_compliant_checked:
+          title: Robots Compliant Checked
+          description: |
+            True only when every article from the source in the last 7 days has a robots.txt compliance status. False when some or all articles were never checked, so a low `robots_compliant` percentage may not mean the source blocks crawling.
+          type: boolean
+          example: true
       example:
         nb_articles_for_7d: 153
         country: "US"
@@ -3197,6 +3213,7 @@ components:
         news_domain_type: "Original Content"
         news_type: "General News Outlets"
         robots_compliant: "100%"
+        robots_compliant_checked: true
 
     SubscriptionResponseDto:
       title: Subscription Response
@@ -4011,6 +4028,7 @@ components:
         - `news_domain_type`: Type of news domain (e.g., "Original Content").
         - `news_type`: Category of news (e.g., "General News Outlets").
         - `robots_compliant`: Percentage of domain articles that comply with robots.txt scraping rules (0-100%).
+        - `robots_compliant_checked`: Boolean indicating if every article from the source in the last 7 days has a robots.txt compliance status.
 
       example: true
 
@@ -4104,9 +4122,18 @@ components:
       example: 5
 
     RobotsCompliant:
-      type: boolean
+      oneOf:
+        - type: boolean
+        - type: string
+          enum:
+            - all
       description: |
-        If true, returns only articles that comply with the publisher's robots.txt rules. If false, returns only articles that do not comply with robots.txt rules. If omitted, returns all articles regardless of compliance status.
+        Filters articles by robots.txt compliance and adds the `robots_compliant` field to each returned article. Accepted values:
+        - `true`: Returns only articles that comply with the publisher's robots.txt rules.
+        - `false`: Returns only articles that do not comply with robots.txt rules.
+        - `all`: Applies no filter and returns all articles with their `robots_compliant` value.
+
+        If omitted, returns all articles regardless of compliance status, without the `robots_compliant` field. Any other value returns a `422` error.
       example: true
 
   securitySchemes:
