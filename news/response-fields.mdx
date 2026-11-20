@@ -111,6 +111,11 @@ The response of [`/articles`](/news/articles).
 <ResponseField name="published_at" type="string">When the article was published (UTC, ISO 8601).</ResponseField>
 <ResponseField name="crawled_at" type="string">When NewsCatcher crawled it (UTC, ISO 8601).</ResponseField>
 <ResponseField name="content_type" type="string">The type of content the article was classified as, for example `news_report`.</ResponseField>
+<ResponseField name="robots_compliant" type="boolean">
+  Whether the publisher's robots.txt permitted extracting the article. Only
+  `/articles` returns it, and only when the request used `robots_compliant`; an
+  article with no stored value is `false`.
+</ResponseField>
 <ResponseField name="story" type="object">
   The [story](/news/stories) it belongs to: `id` and `newsrooms`.
 </ResponseField>

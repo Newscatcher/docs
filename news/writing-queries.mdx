@@ -3,7 +3,7 @@ title: Writing queries
 description: Ask in plain words or keywords, in any language, and exclude terms with NOT.
 ---
 
-`q` is what you are looking for: a question in plain words, or keywords with `AND`, `OR` and `NOT`. It can be in any language and up to 500 characters long. For the boolean query of `/articles`, see [Boolean queries for `/articles`](#boolean-queries-for-articles).
+`q` is what you are looking for: a question in plain words, or keywords, with `NOT` to leave a term out. It can be in any language and up to 500 characters long. `AND`, `OR`, quotes, `*` and parentheses are not operators in `/search`: they are read as ordinary words and the search is by meaning. For an exact boolean query, use [`/articles`](#boolean-queries-for-articles).
 
 <CodeGroup>
 ```text Plain words
@@ -11,7 +11,7 @@ What did central banks decide about interest rates this week?
 ```
 
 ```text Keywords
-ECB OR "Federal Reserve"
+ECB Federal Reserve interest rate decision
 ```
 
 ```text With NOT
@@ -22,7 +22,8 @@ Apple NOT iPhone
 ## Excluding terms with NOT
 
 Put an upper-case `NOT` before a term or a quoted phrase to drop the articles
-that mention it: `Tesla recall NOT Cybertruck`, `NOT "model y"`.
+that mention it: `Tesla recall NOT Cybertruck`, `NOT "model y"`. A `-` or `!`
+in front of a word does the same: `Tesla recall -Cybertruck`.
 
 <Warning>
   `NOT` takes one word or one quoted phrase. `NOT Elon Musk` drops only
@@ -65,12 +66,13 @@ characters, searched in the fields of
 
 | Syntax | Example | Matches |
 |---|---|---|
-| `AND`, `OR`, `NOT` | `Tesla AND recall NOT Cybertruck` | Articles with both words, without the third |
+| `AND`, `OR`, `NOT` | `Tesla AND recall NOT Cybertruck` | Articles with both words, without the third. Upper case only: a lower-case `and` is an ordinary word. `&&`, `||` and `!` mean the same |
 | Parentheses | `"interest rate" AND (cut OR hike)` | Groups of terms |
 | `"exact phrase"` | `"Silicon Valley Bank"` | The words in this order |
 | `+must`, `-mustnot` | `+Tesla -Musk` | Articles that must have, or must not have, a word |
 | Wildcards | `regulat*` | `regulator`, `regulation`, `regulatory` |
 | `NEAR` | `NEAR("rate", "decision", 5)` | The words within 5 words of each other |
+| `MULTIPLE` | `MULTIPLE(Tesla, 3)` | Articles that have the term at least 3 times |
 
 - Words with no operator between them are all required: `Tesla recall` is
   `Tesla AND recall`.
