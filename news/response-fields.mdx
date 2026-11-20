@@ -102,7 +102,11 @@ The response of [`/articles`](/news/articles).
 </ResponseField>
 <ResponseField name="url" type="string">Link to the article.</ResponseField>
 <ResponseField name="source" type="object">
-  The publisher: `domain` (without `www.`) and `name`.
+  The publisher: `domain` (without `www.`) and `name`. In `/search`, when the
+  same article was found on several sites, the result shows the original
+  publisher's copy. Without one, it shows the copy on the site with the best
+  traffic rank, and an aggregator's or republisher's copy only when there is
+  no other. `source` and `url` always come from the same site.
 </ResponseField>
 <ResponseField name="language" type="string">
   ISO 639-1 code. Chinese is `cn` (simplified) or `tw` (traditional).
@@ -112,9 +116,10 @@ The response of [`/articles`](/news/articles).
 <ResponseField name="crawled_at" type="string">When NewsCatcher crawled it (UTC, ISO 8601).</ResponseField>
 <ResponseField name="content_type" type="string">The type of content the article was classified as, for example `news_report`.</ResponseField>
 <ResponseField name="robots_compliant" type="boolean">
-  Whether the publisher's robots.txt permitted extracting the article. Only
-  `/articles` returns it, and only when the request used `robots_compliant`; an
-  article with no stored value is `false`.
+  Whether the article complies with the publisher's robots.txt rules, as
+  checked when it was collected. Only `/articles` returns it, and only when the
+  request used `robots_compliant`; an article with no compliance status is
+  `false`.
 </ResponseField>
 <ResponseField name="story" type="object">
   The [story](/news/stories) it belongs to: `id` and `newsrooms`.

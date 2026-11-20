@@ -3,6 +3,27 @@ title: Changelog
 description: New features and changes to the News API and the agent.
 ---
 
+<Update label="November 20, 2026" description="News API 1.3.12">
+  ## Whole-day dates, robots.txt filter and better publishers
+
+  - **Breaking**: on `/articles`, a `to_date` without a time now means the end
+    of that day (23:59:59), so `from_date=2026-10-03&to_date=2026-10-03`
+    returns that whole day. If you sent a date-only `to_date` to leave that
+    day out, send the day before. See
+    [Filters](/news/filters#only-for-articles).
+  - **`robots_compliant`**: filter `/articles` by whether articles comply with
+    the publisher's robots.txt rules. When you use it, each article carries
+    `robots_compliant`. See [Filters](/news/filters#only-for-articles).
+  - **NOT in `/search`**: `-word` and `!word` now leave a word out, as `NOT`
+    does. Before, `-word` had no effect and `!word` searched for the word. See
+    [Writing queries](/news/writing-queries#excluding-terms-with-not).
+  - **Original publishers in `/search`**: when an article was found on several
+    sites, the result now shows the original publisher's copy instead of an
+    aggregator's. See [Response fields](/news/response-fields#article).
+  - **Fixed**: `/search` answers with `503` less often. When part of the
+    search is briefly unavailable, it now returns results from the rest.
+</Update>
+
 <Update label="November 16, 2026" description="Agent 1.8.3">
   ## Fixes for long windows and failed searches
 
