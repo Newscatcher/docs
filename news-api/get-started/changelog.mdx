@@ -11,7 +11,7 @@ rss: true
 - **Compliance on articles**: set `robots_compliant` to `true`, `false`, or the
   new value `all` to get a `robots_compliant` field on each article. `true` and
   `false` filter as before; `all` returns every article without filtering. The
-  field is `null` when an article has no compliance status. Requests without
+  field is `null` when the publisher's robots.txt could not be read. Requests without
   the parameter return the same fields as before. See
   [Robots.txt compliance](/news-api/guides-and-concepts/robots-txt-compliance).
 - **Source compliance coverage**: with `include_additional_info=true`,

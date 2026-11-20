@@ -22,13 +22,35 @@ marking each article with its compliance status.
   and reflects the publisher's guidelines at that moment.
 </Note>
 
+## How compliance is decided
+
+For each publisher, News API reads its robots.txt file and checks each article's
+own link against it:
+
+- **Only rules for all crawlers count.** News API uses the rules listed under
+  `User-agent: *`. Rules written for a named bot, such as Googlebot, are not
+  used.
+- **The most specific rule wins.** A rule matches a link when the link's path
+  starts with it. When an allowed path and a disallowed path both match, the
+  longer one decides. If `/fr/` is disallowed and `/fr/sitemaps` is allowed,
+  links under `/fr/sitemaps` are compliant and other `/fr/` links are not.
+- **No rule means allowed.** An article is compliant when the publisher has no
+  robots.txt file, or when no rule matches its link.
+- **Unknown when the file can't be read.** When the robots.txt file can't be
+  read (a timeout or an error from the site), or the article has no link, the
+  article has no compliance status.
+
+The publisher's homepage being open does not make every article compliant: the
+check is made on each article's link.
+
 ## Article-level compliance
 
 When your request sets the `robots_compliant` parameter, each article in the
 response includes a `robots_compliant` boolean field. It indicates if content can
-be safely accessed according to the publisher's guidelines. If true, automated
-access is allowed; if false, it is restricted. If you don't set the parameter,
-articles don't include the field.
+be safely accessed according to the publisher's guidelines. If true, the
+publisher's robots.txt allows automated access to the article's link; if false,
+it blocks it. If the article has no compliance status, the field is `null`. If
+you don't set the parameter, articles don't include the field.
 
 ```json {6}
 {
@@ -57,8 +79,9 @@ add the `robots_compliant` field to each article. The parameter accepts `true`,
       "robots_compliant": "all"
     }
     ```
-    Returns all articles, each with its `robots_compliant` field. If the article
-    has no compliance status, the field is `null`. If you omit the parameter,
+    Returns all articles, each with its `robots_compliant` field. If the
+    publisher's robots.txt could not be read, or the article has no link, the
+    field is `null`. If you omit the parameter,
     the API also returns all articles, but without the field (default
     behavior).
   </Tab>

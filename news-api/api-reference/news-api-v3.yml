@@ -2588,7 +2588,7 @@ components:
         robots_compliant:
           title: Robots Compliant
           description: |
-            True if the article content can be safely accessed according to the publisher's robots.txt rules; false otherwise. Only present when the request sets the `robots_compliant` parameter (`true`, `false`, or `all`). `null` when the article has no compliance status, which only `all` can return.
+            True if the article content can be safely accessed according to the publisher's robots.txt rules; false otherwise. Only present when the request sets the `robots_compliant` parameter (`true`, `false`, or `all`). `null` when the publisher's robots.txt could not be read or the article has no link, which only `all` can return.
           anyOf:
             - type: boolean
             - type: "null"
@@ -3046,7 +3046,7 @@ components:
         robots_compliant:
           title: Robots Compliant
           description: |
-            True if the article content can be safely accessed according to the publisher's robots.txt rules; false otherwise. Only present when the request sets the `robots_compliant` parameter (`true`, `false`, or `all`). `null` when the article has no compliance status, which only `all` can return.
+            True if the article content can be safely accessed according to the publisher's robots.txt rules; false otherwise. Only present when the request sets the `robots_compliant` parameter (`true`, `false`, or `all`). `null` when the publisher's robots.txt could not be read or the article has no link, which only `all` can return.
           anyOf:
             - type: boolean
             - type: "null"
