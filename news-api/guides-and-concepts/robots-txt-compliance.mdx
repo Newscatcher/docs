@@ -43,12 +43,7 @@ check is made on each article's link.
 
 ## Article-level compliance
 
-When your request sets the `robots_compliant` parameter, each article in the
-response includes a `robots_compliant` boolean field. It indicates if content can
-be safely accessed according to the publisher's guidelines. If true, the
-publisher's robots.txt allows automated access to the article's link; if false,
-it blocks it. If the article has no compliance status, the field is `null`. If
-you don't set the parameter, articles don't include the field.
+When your request sets the `robots_compliant` parameter, each article in the response includes a `robots_compliant` boolean field. It indicates if content can be safely accessed according to the publisher's guidelines. If `true`, the publisher's robots.txt allows automated access to the article's link; if `false`, it blocks it. If the article has no compliance status, the field is `null`. If you don't set the parameter, articles don't include the field.
 
 ```json {6}
 {
