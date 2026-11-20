@@ -6,7 +6,7 @@ description:
   applications that respect publisher permissions.
 ---
 
-News API includes robots.txt compliance information with every article,
+News API can include robots.txt compliance information with every article,
 helping you build applications that respect publisher permissions. This feature
 provides transparency about whether content adheres to the source website's
 automated access guidelines.
@@ -22,11 +22,28 @@ marking each article with its compliance status.
   and reflects the publisher's guidelines at that moment.
 </Note>
 
+## How compliance is decided
+
+For each publisher, NewsCatcher reads its robots.txt file and checks each article's
+own link against it:
+
+- **Only rules for all crawlers count.** NewsCatcher uses the rules listed under `User-agent: *`. 
+- **The most specific rule wins.** A rule matches a link when the link's path
+  starts with it. When an allowed path and a disallowed path both match, the
+  longer one decides. If `/fr/` is disallowed and `/fr/sitemaps` is allowed,
+  links under `/fr/sitemaps` are compliant and other `/fr/` links are not.
+- **No rule means allowed.** An article is compliant when the publisher has no
+  robots.txt file, or when no rule matches its link.
+- **Unknown when the file can't be read.** When the robots.txt file can't be
+  read (a timeout or an error from the site), the
+  article has no compliance status.
+
+The publisher's homepage being open does not make every article compliant: the
+check is made on each article's link.
+
 ## Article-level compliance
 
-Each API response includes a `robots_compliant` boolean field indicating if
-content can be safely accessed according to the publisher's guidelines. If true,
-automated access is allowed; if false, it is restricted.
+When your request sets the `robots_compliant` parameter, each article in the response includes a `robots_compliant` boolean field. It indicates if content can be safely accessed according to the publisher's guidelines. If `true`, the publisher's robots.txt allows automated access to the article's link; if `false`, it blocks it. If the article has no compliance status, the field is `null`. If you don't set the parameter, articles don't include the field.
 
 ```json {6}
 {
@@ -41,18 +58,25 @@ automated access is allowed; if false, it is restricted.
 
 ### Filtering by compliance
 
-Use the optional `robots_compliant` parameter to filter your API requests. 
-This parameter is available for all endpoints that return articles.
+Use the optional `robots_compliant` parameter to filter your API requests and
+add the `robots_compliant` field to each article. The parameter accepts `true`,
+`false`, or `all`. Any other value returns a `422` error. It is available on
+`/api/search`, `/api/latest_headlines`, `/api/breaking_news`, `/api/authors`,
+`/api/search_by_link`, and `/api/aggregation_count`.
 
 <Tabs>
   <Tab title="All articles">
     ```json
     {
-      "q": "artificial intelligence"
+      "q": "artificial intelligence",
+      "robots_compliant": "all"
     }
     ```
-    If the parameter is omitted, the API returns all articles with compliance 
-    status indicated (default behavior).
+    Returns all articles, each with its `robots_compliant` field. If the
+    publisher's robots.txt could not be read, or the article has no link, the
+    field is `null`. If you omit the parameter,
+    the API also returns all articles, but without the field (default
+    behavior).
   </Tab>
   <Tab title="Compliant only">
     ```json
@@ -88,10 +112,10 @@ To view compliance metrics, set `include_additional_info` to `true`:
 }
 ```
 
-The response includes `robots_compliant` as a percentage in the `additional_info` 
-field:
+The response includes `robots_compliant` as a percentage and
+`robots_compliant_checked` as a boolean in the `additional_info` field:
 
-```json {15}
+```json {15-16}
 {
   "message": "Maximum sources displayed according to your plan is set to 1000",
   "sources": [
@@ -106,14 +130,21 @@ field:
         "is_news_domain": true,
         "news_domain_type": "Original Content",
         "news_type": "General News Outlets",
-        "robots_compliant": "100%"
+        "robots_compliant": "100%",
+        "robots_compliant_checked": true
       }
     }
   ]
 }
 ```
 
-This metric helps you evaluate the reliability and compliance trends of sources 
+The `robots_compliant` percentage counts articles without a compliance status
+as non-compliant. `robots_compliant_checked` is `true` only when every article
+from the source in the last 7 days has a compliance status. If it is `false`, a
+low percentage can mean that some articles were never checked, not that the
+source blocks automated access.
+
+These metrics help you evaluate the reliability and compliance trends of sources
 when selecting them for your application.
 
 ## Benefits
@@ -140,21 +171,23 @@ when selecting them for your application.
 ## Implementation considerations
 
 <AccordionGroup>
-  <Accordion title="Always present in article responses">
-    The `robots_compliant` field is included in every article object, ensuring
-    consistent access to compliance information regardless of filtering.
+  <Accordion title="Returned only when requested">
+    The `robots_compliant` field is included in every article object when the
+    request sets the `robots_compliant` parameter to `true`, `false`, or `all`.
+    Use `all` to get compliance information without filtering.
   </Accordion>
   <Accordion title="Optional parameter for filtering">
-    You can include the `robots_compliant` parameter in requests to filter
-    results, or omit it to receive all content with compliance flags.
+    Set the `robots_compliant` parameter to `true` or `false` to filter results,
+    or to `all` to receive all content with compliance flags.
   </Accordion>
   <Accordion title="Server-side filtering">
     When you use the parameter, filtering happens at the API level, improving
     performance by reducing unnecessary data transfer.
   </Accordion>
   <Accordion title="Source metrics require additional_info">
-    To view source-level compliance percentages, include `include_additional_info: true` 
-    in your `/sources` endpoint requests.
+    To view source-level compliance percentages and the
+    `robots_compliant_checked` flag, include `include_additional_info: true` in
+    your `/sources` endpoint requests.
   </Accordion>
 </AccordionGroup>
 
