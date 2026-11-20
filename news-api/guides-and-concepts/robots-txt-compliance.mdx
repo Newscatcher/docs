@@ -24,12 +24,10 @@ marking each article with its compliance status.
 
 ## How compliance is decided
 
-For each publisher, News API reads its robots.txt file and checks each article's
+For each publisher, NewsCatcher reads its robots.txt file and checks each article's
 own link against it:
 
-- **Only rules for all crawlers count.** News API uses the rules listed under
-  `User-agent: *`. Rules written for a named bot, such as Googlebot, are not
-  used.
+- **Only rules for all crawlers count.** NewsCatcher uses the rules listed under `User-agent: *`. 
 - **The most specific rule wins.** A rule matches a link when the link's path
   starts with it. When an allowed path and a disallowed path both match, the
   longer one decides. If `/fr/` is disallowed and `/fr/sitemaps` is allowed,
