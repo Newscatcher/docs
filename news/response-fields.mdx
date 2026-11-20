@@ -102,7 +102,11 @@ The response of [`/articles`](/news/articles).
 </ResponseField>
 <ResponseField name="url" type="string">Link to the article.</ResponseField>
 <ResponseField name="source" type="object">
-  The publisher: `domain` (without `www.`) and `name`.
+  The publisher: `domain` (without `www.`) and `name`. In `/search`, when the
+  same article was found on several sites, the result shows the original
+  publisher's copy. Without one, it shows the copy on the site with the best
+  traffic rank, and an aggregator's or republisher's copy only when there is
+  no other. `source` and `url` always come from the same site.
 </ResponseField>
 <ResponseField name="language" type="string">
   ISO 639-1 code. Chinese is `cn` (simplified) or `tw` (traditional).

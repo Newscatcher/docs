@@ -130,9 +130,9 @@ wrong, empty or narrower than asked. Follow them on every call.
 
 1. **In `search_news`, `NOT` takes one word or one quoted phrase, and only in
    upper case.** `NOT Elon Musk` drops only "Elon" and searches for "Musk";
-   write `NOT "Elon Musk"`. A lower-case `not` is an ordinary word. `NOT` checks
-   the headline, the description and the summary, not the article text, and
-   only the first 10 terms count.
+   write `NOT "Elon Musk"`. A lower-case `not` is an ordinary word; `-word`
+   and `!word` mean `NOT word`. `NOT` checks the headline, the description
+   and the summary, not the article text, and only the first 10 terms count.
 2. **`list_articles` covers only the last 7 days unless you set `from`.** A
    count of "every article that mentions X" with no `from` is a 7-day count.
    Set `from` and `to` (up to 12 months back). On `search_news`, the window
@@ -145,10 +145,10 @@ wrong, empty or narrower than asked. Follow them on every call.
    `search_news` drops press releases, blogs and opinion by default (set
    `include_non_news=true` to keep them). `list_articles` includes them and
    has no filter to drop them.
-5. **Paging stops at 1,000 articles, and a date-only `to` ends at 00:00.**
-   `list_articles` pages through the first 1,000 matches only; `total_hits`
-   still gives the exact count. `to="2026-10-03"` means 2026-10-03 00:00, so
-   that day is left out: send `2026-10-03T23:59:59`.
+5. **Paging stops at 1,000 articles.** `list_articles` pages through the
+   first 1,000 matches only; `total_hits` still gives the exact count. A
+   date-only `to` includes that whole day: `to="2026-10-03"` means
+   2026-10-03 23:59:59.
 6. **A company run ends `succeeded` even when companies failed.** Check the
    coverage status of every company (`news_status`). Only `found` and
    `no_news` mean the company was searched in full. `identity_unknown` means
