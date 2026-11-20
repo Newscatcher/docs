@@ -389,7 +389,6 @@
                     "type": "string",
                     "enum": [
                       "description",
-                      "content",
                       "entities",
                       "sentiment",
                       "themes",
@@ -407,7 +406,7 @@
                 }
               ]
             },
-            "description": "Heavy fields to add to every result, comma-separated or as an array: description, content, entities, sentiment, themes, translation, embedding. Enterprise accounts only (403 `enterprise_field` otherwise).",
+            "description": "Heavy fields to add to every result, comma-separated or as an array: description, entities, sentiment, themes, translation, embedding. Enterprise accounts only (403 `enterprise_field` otherwise).",
             "example": "entities,sentiment"
           }
         ],
@@ -629,7 +628,7 @@
                   "enterprise_field": {
                     "summary": "Enterprise field",
                     "value": {
-                      "message": "enterprise_field: content is not included in your plan. Please upgrade to Enterprise.",
+                      "message": "enterprise_field: embedding is not included in your plan. Please upgrade to Enterprise.",
                       "status_code": 403,
                       "status": "Forbidden"
                     }
@@ -1135,7 +1134,7 @@
                   "enterprise_field": {
                     "summary": "Enterprise field",
                     "value": {
-                      "message": "enterprise_field: content is not included in your plan. Please upgrade to Enterprise.",
+                      "message": "enterprise_field: embedding is not included in your plan. Please upgrade to Enterprise.",
                       "status_code": 403,
                       "status": "Forbidden"
                     }
@@ -1519,7 +1518,7 @@
                   "enterprise_field": {
                     "summary": "Enterprise field",
                     "value": {
-                      "message": "enterprise_field: content is not included in your plan. Please upgrade to Enterprise.",
+                      "message": "enterprise_field: embedding is not included in your plan. Please upgrade to Enterprise.",
                       "status_code": 403,
                       "status": "Forbidden"
                     }
@@ -4682,20 +4681,6 @@
               "President Donald J. Trump approved a Major Disaster Declaration for Florida on Tuesday."
             ]
           },
-          "content": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Full article text (`include=content`; Enterprise).",
-            "examples": [
-              "TALLAHASSEE, Fla. — President Donald J. Trump approved a Major Disaster Declaration for Florida on Tuesday…"
-            ]
-          },
           "entities": {
             "anyOf": [
               {
@@ -5052,7 +5037,6 @@
                   "type": "string",
                   "enum": [
                     "description",
-                    "content",
                     "entities",
                     "sentiment",
                     "themes",
@@ -5070,7 +5054,7 @@
                 ]
               }
             ],
-            "description": "Heavy fields to add to every result, comma-separated or as an array: description, content, entities, sentiment, themes, translation, embedding. Enterprise accounts only (403 `enterprise_field` otherwise)."
+            "description": "Heavy fields to add to every result, comma-separated or as an array: description, entities, sentiment, themes, translation, embedding. Enterprise accounts only (403 `enterprise_field` otherwise)."
           }
         },
         "type": "object",
@@ -5236,7 +5220,7 @@
                 "type": "null"
               }
             ],
-            "description": "Sentiment of the article text.",
+            "description": "Sentiment of the article.",
             "examples": [
               0.1
             ]
@@ -5489,20 +5473,6 @@
               "He searched for the right word and found it."
             ]
           },
-          "content": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "English article text.",
-            "examples": [
-              "Add us to your preferred sources so that our news always appears at the top of your Google results…"
-            ]
-          },
           "summary": {
             "anyOf": [
               {
@@ -5659,7 +5629,6 @@
               "type": "string",
               "enum": [
                 "description",
-                "content",
                 "entities",
                 "sentiment",
                 "themes",
