@@ -11,9 +11,9 @@ description: New features and changes to the News API and the agent.
     returns that whole day. If you sent a date-only `to_date` to leave that
     day out, send the day before. See
     [Filters](/news/filters#only-for-articles).
-  - **`robots_compliant`**: filter `/articles` by whether the publisher's
-    robots.txt permitted extracting the article. When you use it, each article
-    carries `robots_compliant`. See [Filters](/news/filters#only-for-articles).
+  - **`robots_compliant`**: filter `/articles` by whether articles comply with
+    the publisher's robots.txt rules. When you use it, each article carries
+    `robots_compliant`. See [Filters](/news/filters#only-for-articles).
   - **NOT in `/search`**: `-word` and `!word` now leave a word out, as `NOT`
     does. Before, `-word` had no effect and `!word` searched for the word. See
     [Writing queries](/news/writing-queries#excluding-terms-with-not).

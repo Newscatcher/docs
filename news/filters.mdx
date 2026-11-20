@@ -162,10 +162,11 @@ These parameters work on [`/articles`](/news/articles) only. On `/articles`,
 </ParamField>
 
 <ParamField body="robots_compliant" type="boolean">
-  Whether the publisher's robots.txt permitted extracting the article: `true`
-  keeps only the articles extracted with permission, `false` all the others
-  (an article with no stored value counts as `false`). Left out, there is no
-  filter. When you use it, each article carries `robots_compliant`.
+  Filter by whether the article complies with the publisher's robots.txt
+  rules, as checked when it was collected. `true` keeps only the articles that
+  comply; `false` keeps the others, including those with no compliance status.
+  Left out, there is no filter. When you use it, each article carries
+  `robots_compliant`.
 </ParamField>
 
 <ParamField body="predefined_sources" type="string | string[]">
