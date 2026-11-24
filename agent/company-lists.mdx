@@ -41,6 +41,21 @@ curl -X POST "https://api.newscatcherapi.com/agent/companies/lists/from-run/RUN_
 - When you create a list from JSON, send your own `list_id` (a UUID) to make
   the request safe to retry: the same id returns the same list.
 
+## List your lists
+
+`GET /companies/lists` returns every list you have, as an array. To search
+and page:
+
+| Parameter | What it does |
+|---|---|
+| `q` | Only lists whose name, or a company's name or domain, contains this text, in any case: `stripe` finds every list with Stripe in it. Up to 200 characters. |
+| `limit` | Page size, 1 to 100. |
+| `cursor` | The `next_cursor` of the previous page. |
+
+With `limit`, the answer is a page instead of an array: `lists`,
+`next_cursor` (`null` on the last page) and `total`, the number of lists that
+match over all pages.
+
 ## Resolution
 
 New companies are resolved in the background: the agent works out which

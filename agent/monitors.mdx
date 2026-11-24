@@ -67,6 +67,9 @@ A new monitor first runs at its next scheduled time. `POST
 /monitors/{monitor_id}/run` runs it at the scheduler's next tick, within 5
 minutes; its schedule then continues as before.
 
+Add `webhook_ids` to get each run's new results at your endpoint. See
+[Webhooks](/agent/runs#webhooks).
+
 A monitor never runs twice at once. If its last run is still queued or running
 at a scheduled time, that time is skipped and the monitor runs again at the
 next one.
@@ -99,6 +102,19 @@ daily too.
 A company monitor's run refreshes every company it follows, however many there
 are. Each company has its own time limit, as in
 [company runs](/agent/company-research#coverage-per-company).
+
+## List your monitors
+
+`GET /monitors` returns every monitor you have. To search and page:
+
+| Parameter | What it does |
+|---|---|
+| `q` | Only monitors whose name, story filter (`query`) or event topic contains this text, in any case. Up to 200 characters. |
+| `limit` | Page size, 1 to 100. Without it, you get every monitor. |
+| `cursor` | The `next_cursor` of the previous page. |
+
+The answer has `monitors`, `next_cursor` (`null` on the last page) and
+`total`, the number of monitors that match over all pages.
 
 ## Get what a monitor delivered
 

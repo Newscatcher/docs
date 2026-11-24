@@ -19,6 +19,19 @@ description: Read a run's table, and download it as CSV or Excel.
   Companies runs: one row per company asked for, with its
   [coverage status](/agent/company-research#coverage-per-company).
 </ResponseField>
+<ResponseField name="outcome" type="string">
+  A finished companies run or batch: `partial` when at least one company
+  failed, else `complete`. The run's `status` stays `succeeded` either way.
+  `null` while it runs and for events runs.
+</ResponseField>
+<ResponseField name="company_counts" type="object">
+  Companies runs: how many companies ended with each coverage status, for
+  example `{"found": 30, "no_news": 12, "out_of_time": 1}`.
+</ResponseField>
+<ResponseField name="companies_failed" type="integer">
+  Companies runs: how many companies failed (`out_of_time`,
+  `internal_error`, `model_unavailable` or `failed`). They are not charged.
+</ResponseField>
 <ResponseField name="window_from / window_to" type="string">
   Companies runs: the time window the run covered. Empty for events runs.
 </ResponseField>

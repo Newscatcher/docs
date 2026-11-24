@@ -40,6 +40,23 @@ If the connection drops, reconnect with the `Last-Event-ID` header (or
 `kind` and cap with `limit`. Scheduled monitor runs are listed under
 [monitors](/agent/monitors#get-what-a-monitor-delivered).
 
+## Shared runs, monitors and lists
+
+In the Platform, you can share runs, monitors and company lists with others
+and put them in projects. These work only when you are signed in to the
+Platform. A request with an API key sees only your own items.
+
+- `shared=true` on `GET /runs`, `GET /monitors` and `GET /companies/lists`
+  returns what others shared with you instead of your own.
+- Each run, monitor and list has `shared`: `null` on your own, else your
+  `permission` (`view`, `edit` or `manage`) and who shared it, and when.
+  Actions that spend credits, such as running a monitor, stay the owner's: for
+  anyone else they get `403` `not_allowed`.
+- `project_id` on `POST /runs`, `POST /monitors` and `POST /companies/lists`
+  puts the new item in a Platform project. On `GET /monitors` and
+  `GET /companies/lists`, it lists only that project's items. A request with
+  an API key gets `403` `project_not_allowed`.
+
 ## Cancel, rename, delete
 
 | To | Call | Notes |
@@ -47,6 +64,51 @@ If the connection drops, reconnect with the `Last-Event-ID` header (or
 | Cancel | `POST /runs/{run_id}/cancel` | A queued run stops at once; a running one within seconds. |
 | Rename | `PATCH /runs/{run_id}` | Send `title`, 1 to 200 characters. |
 | Delete | `DELETE /runs/{run_id}` | Finished runs only. The run leaves your history and its results are erased. |
+| Copy | `POST /runs/{run_id}/copy` | Signed in to the Platform: a finished run someone shared publicly. You get your own copy with its results; nothing runs again and nothing is charged. A batch is copied whole. |
+
+## Webhooks
+
+A webhook sends a run's results to your endpoint when the run succeeds. Create
+webhooks in the Platform, then attach them by id with `webhook_ids` (up to 20)
+on `POST /runs` or `POST /monitors`:
+
+```json POST /runs
+{
+  "query": "Product recalls announced by US food companies",
+  "mode": "fast",
+  "webhook_ids": ["WEBHOOK_ID"]
+}
+```
+
+The webhooks are attached before the run starts. Each must be an active
+webhook of your workspace: an unknown id gets `webhook_not_found` (`422`), and
+another workspace's or an inactive one gets `webhook_not_allowed` (`403`).
+
+| Event | Sent when |
+|---|---|
+| `agent_run_completed` | A run succeeded. A batch sends once, after its last part. |
+| `agent_monitor_results_ready` | A monitor run delivered something new. |
+
+Failed and cancelled runs, and monitor runs with nothing new, send nothing.
+The body has `event`, `run_id` or `monitor_id`, `title`, `query`, `kind`,
+`records_count`, `updated_at` and `records`: the same rows as the run's table,
+or the monitor run's new stories or rows with their `change`.
+
+With `keep_updated`, the monitor gets the run's `webhook_ids` too. Set
+`keep_updated.webhook_ids` to give it others, or `[]` for none.
+
+To send results again, for example to a webhook you attached after the run
+ended:
+
+| To | Call |
+|---|---|
+| Resend a finished run | `POST /runs/{run_id}/webhooks/deliver` |
+| Resend a monitor run's delivery | `POST /monitors/{monitor_id}/webhooks/deliver` |
+
+Send `webhook_id` for one webhook, or nothing for all of them. For a monitor,
+`run_id` picks the run; the default is its latest run that delivered
+something. The answer is `202` with the `webhook_ids` it sends to. Each
+webhook can be resent once a minute; sooner gets `429` `resend_too_soon`.
 
 ## Batches
 
@@ -69,6 +131,8 @@ Work with the batch as one run:
 | Delete every part of a finished batch | `DELETE /batches/{batch_id}` |
 | Download | `GET /batches/{batch_id}/export.csv`, `companies.csv` and the `.xlsx` versions |
 
-`progress` counts the parts and companies done out of the total. In the batch
+`progress` counts the parts and companies done out of the total. Once every
+part has ended, `outcome` says whether any company failed; see
+[Results and exports](/agent/results-and-exports#the-table). In the batch
 stream each event's data has its part's `run_id`, and the stream ends with
 `batch_status`.
