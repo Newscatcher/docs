@@ -141,7 +141,9 @@
                       "GET /runs/{run_id}/export.csv",
                       "GET /runs/{run_id}/export.xlsx",
                       "GET /runs/{run_id}/companies.csv",
-                      "GET /runs/{run_id}/companies.xlsx"
+                      "GET /runs/{run_id}/companies.xlsx",
+                      "POST /runs/{run_id}/webhooks/deliver",
+                      "POST /runs/{run_id}/copy"
                     ]
                   },
                   {
@@ -191,7 +193,8 @@
                       "GET /monitors/{monitor_id}/stories",
                       "GET /monitors/{monitor_id}/rows",
                       "GET /monitors/runs/{run_id}/export.csv",
-                      "GET /monitors/runs/{run_id}/export.xlsx"
+                      "GET /monitors/runs/{run_id}/export.xlsx",
+                      "POST /monitors/{monitor_id}/webhooks/deliver"
                     ]
                   }
                 ]

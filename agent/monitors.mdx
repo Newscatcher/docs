@@ -30,7 +30,8 @@ its last run.
     ```
 
     The run's `keep_updated.status` goes from `pending` to `created` (with the
-    `monitor_id`), `failed` or `not_created`.
+    `monitor_id`), `failed` or `not_created`. The monitor gets the run's
+    `webhook_ids` unless you set `keep_updated.webhook_ids`.
   </Tab>
   <Tab title="From a finished run">
     ```json POST /monitors
@@ -62,6 +63,9 @@ its last run.
     unless you set it.
   </Tab>
 </Tabs>
+
+Add `webhook_ids` to get each new delivery at your webhooks. See
+[Webhooks](/agent/results-and-exports#webhooks).
 
 A new monitor first runs at its next scheduled time. `POST
 /monitors/{monitor_id}/run` runs it at the scheduler's next tick, within 5
@@ -99,6 +103,20 @@ daily too.
 A company monitor's run refreshes every company it follows, however many there
 are. Each company has its own time limit, as in
 [company runs](/agent/company-research#coverage-per-company).
+
+## List your monitors
+
+`GET /monitors` returns your monitors, most recently changed first. Without
+`limit` it returns all of them. To search and page:
+
+| Parameter | Meaning |
+|---|---|
+| `q` | Only monitors whose name, story filter (`query`) or event topic contains this text, in any case. Up to 200 characters. |
+| `limit` | Page size, 1 to 100. |
+| `cursor` | The `next_cursor` of the previous page. `next_cursor` is `null` on the last page. |
+
+The response has `monitors`, `next_cursor` and `total`, the number of monitors
+that match over all pages.
 
 ## Get what a monitor delivered
 

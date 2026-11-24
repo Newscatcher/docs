@@ -48,6 +48,26 @@ If the connection drops, reconnect with the `Last-Event-ID` header (or
 | Rename | `PATCH /runs/{run_id}` | Send `title`, 1 to 200 characters. |
 | Delete | `DELETE /runs/{run_id}` | Finished runs only. The run leaves your history and its results are erased. |
 
+## Shared runs
+
+In the [NewsCatcher platform](https://platform.newscatcherapi.com), you can
+share runs, monitors and company lists with your team, with a `view`, `edit`
+or `manage` permission. Runs, monitors and lists in responses carry `shared`:
+`null` on your own, else the `permission`, `shared_at`, `shared_by_user_id`
+and `via_project`. `shared=true` on `GET /runs`, `GET /monitors` and
+`GET /companies/lists` returns what others shared with you instead of your own.
+An action your permission does not allow is refused with `not_allowed`
+(`403`). Only the owner can do what spends credits, such as running a monitor
+or changing its schedule.
+
+Shares, projects (`project_id`) and copies are for people signed in to the
+platform. With an API key you see only your own runs, monitors and lists.
+
+`POST /runs/{run_id}/copy` copies a run shared publicly into your account, with
+its results, and answers `201` with the copy. Nothing runs again and nothing is
+charged. A batch is copied whole. A run that has not finished is refused with
+`run_in_progress` (`409`).
+
 ## Batches
 
 A run of more than 50 companies is split into runs of up to 50 companies: a

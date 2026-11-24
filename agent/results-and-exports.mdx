@@ -1,6 +1,6 @@
 ---
 title: Results and exports
-description: Read a run's table, and download it as CSV or Excel.
+description: Read a run's table, download it as CSV or Excel, and send it to a webhook.
 ---
 
 ## The table
@@ -19,6 +19,21 @@ description: Read a run's table, and download it as CSV or Excel.
   Companies runs: one row per company asked for, with its
   [coverage status](/agent/company-research#coverage-per-company).
 </ResponseField>
+<ResponseField name="outcome" type="string">
+  Finished companies runs: `complete` when every company was searched, or
+  `partial` when the search failed for some companies. The run's `status`
+  stays `succeeded` in both cases. Empty while the run is going and for events
+  runs.
+</ResponseField>
+<ResponseField name="companies_failed" type="integer">
+  Companies runs: how many companies the search failed for (`out_of_time`,
+  `model_unavailable`, `internal_error` or `failed`). They are not charged.
+</ResponseField>
+<ResponseField name="company_counts" type="object">
+  Companies runs: how many companies ended with each
+  [coverage status](/agent/company-research#coverage-per-company), for example
+  `{"found": 30, "no_news": 12, "out_of_time": 1}`.
+</ResponseField>
 <ResponseField name="window_from / window_to" type="string">
   Companies runs: the time window the run covered. Empty for events runs.
 </ResponseField>
@@ -30,6 +45,9 @@ description: Read a run's table, and download it as CSV or Excel.
   `rows`. Each item has `outlets`, the number of outlets that reported the
   event, and `sources`, each with `url`, `source`, `published` and `quote`.
 </ResponseField>
+
+`GET /batches/{batch_id}` returns `outcome`, `companies_failed` and
+`company_counts` for the whole [batch](/agent/runs#batches).
 
 ## Downloads
 
@@ -47,3 +65,44 @@ the stories' or rows' columns.
 curl -o result.xlsx "https://api.newscatcherapi.com/agent/runs/RUN_ID/export.xlsx" \
   -H "x-api-key: $NEWSCATCHER_API_KEY"
 ```
+
+## Webhooks
+
+Send results to webhooks you set up in the
+[NewsCatcher platform](https://platform.newscatcherapi.com). Pass their
+ids in `webhook_ids` (up to 20) when you create the run or the monitor:
+
+| Request | Event sent | When |
+|---|---|---|
+| `POST /runs` | `agent_run_completed` | The run succeeded. A batch sends once, after its last part. |
+| `POST /monitors`, or `keep_updated.webhook_ids` on `POST /runs` | `agent_monitor_results_ready` | A monitor run delivered something new. |
+
+Failed and cancelled runs, and monitor runs with nothing new, send nothing.
+`keep_updated.webhook_ids` defaults to the run's `webhook_ids`; send `[]` for
+none.
+
+The webhooks must be active and belong to your workspace. An unknown id is
+refused with `webhook_not_found` (`422`), a webhook of another workspace or an
+inactive one with `webhook_not_allowed` (`403`), and more than 20 with
+`too_many_webhooks` (`422`). The webhooks are attached before the run starts,
+so a run never ends without them. If the monitor that `keep_updated` makes
+cannot get its webhooks, the run's `keep_updated.webhooks_error` says why.
+
+A generic webhook receives a JSON body with `event`, `run_id` or `monitor_id`,
+`title`, `query`, `kind`, `records_count`, `updated_at` and `records`: the
+same rows as the run's table, or a monitor run's new stories or rows, each with
+its `change`. Slack and Microsoft Teams webhooks receive a message.
+
+### Send results again
+
+To send results again, or to send them to a webhook attached after the run
+ended, call:
+
+| For | Call | Body |
+|---|---|---|
+| A finished run | `POST /runs/{run_id}/webhooks/deliver` | Optional `webhook_id`; default: all of the run's webhooks |
+| A monitor run | `POST /monitors/{monitor_id}/webhooks/deliver` | Optional `webhook_id`, and `run_id` of a monitor run; default: its latest run that delivered something new |
+
+Both answer `202` with the `webhook_ids` they send to. Only the owner of the
+run or the monitor can send again, once a minute per webhook. For a batch, any
+part's `run_id` sends the whole batch.

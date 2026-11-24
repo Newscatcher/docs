@@ -3,6 +3,39 @@ title: Changelog
 description: New features and changes to the News API and the agent.
 ---
 
+<Update label="November 24, 2026" description="Agent 1.18.1">
+  ## Webhooks, partial company runs and shared runs
+
+  - **Webhooks**: send a run's results, or each new monitor delivery, to your
+    webhooks with `webhook_ids` on `POST /runs` and `POST /monitors`. Send
+    them again with `POST /runs/{run_id}/webhooks/deliver` or
+    `POST /monitors/{monitor_id}/webhooks/deliver`. See
+    [Webhooks](/agent/results-and-exports#webhooks).
+  - **Partial company runs**: `GET /runs/{run_id}` and
+    `GET /batches/{batch_id}` now return `outcome` (`complete` or `partial`),
+    `companies_failed` and `company_counts` for companies runs. See
+    [Results and exports](/agent/results-and-exports#the-table).
+  - **Search and paging**: `GET /monitors` and `GET /companies/lists` take `q`,
+    `limit` and `cursor`, and return `next_cursor` and `total`. Without
+    `limit`, both return everything as before. See
+    [Monitors](/agent/monitors#list-your-monitors) and
+    [Company lists](/agent/company-lists#list-your-lists).
+  - **Shared runs**: runs, monitors and lists shared in the platform carry
+    `shared`, and `shared=true` lists what others shared with you.
+    `POST /runs/{run_id}/copy` copies a public run into your account for free.
+    See [Shared runs](/agent/runs#shared-runs).
+  - **Large company runs finish**: your companies take turns across your
+    runs and monitors, and a company's 20 minutes start when its search
+    starts. Before, companies of large runs often ended `out_of_time`. See
+    [Coverage per company](/agent/company-research#coverage-per-company).
+  - **Fixed**: monitor refreshes of companies with a lot of news no longer end
+    `incomplete` every time and search the same days again on each run.
+  - **Fixed**: a company step that ran twice no longer fails a whole monitor
+    run, or replaces a company's result with `internal_error`.
+  - **Fixed**: a company that fails in the middle of its search now shows
+    `out_of_time` or `model_unavailable` instead of `internal_error`.
+</Update>
+
 <Update label="November 20, 2026" description="News API 1.3.12">
   ## Whole-day dates, robots.txt filter and better publishers
 

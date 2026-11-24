@@ -56,6 +56,11 @@ in the window you set, optionally only the ones about a topic.
   [Monitors](/agent/monitors).
 </ParamField>
 
+<ParamField body="webhook_ids" type="string[]">
+  Webhooks to send the results to when the run succeeds, up to 20. See
+  [Webhooks](/agent/results-and-exports#webhooks).
+</ParamField>
+
 Company runs always use the `standard` mode. A company run with another `mode`,
 or with `max_rows`, is refused with `invalid_options` (`422`).
 
@@ -107,11 +112,21 @@ Besides the stories, a companies run returns one row per company in
 | `pending` | Not reached yet; the run is still going. |
 | `not_searched` | The run ended before reaching the company. |
 
-Each company has up to 20 minutes. A company that reaches that limit shows
-`out_of_time`, and the run goes on with the other companies.
+Your companies take turns. Across all your company runs and company
+monitors, only a few companies are searched at once; the others wait their
+turn, first come, first served. A small run still moves while a large one
+runs.
 
-The run still ends `succeeded` when some companies were not searched in full:
-see [Best practices](/agent/best-practices#requests).
+Each company has up to 20 minutes, counted from when its search starts. Time
+spent waiting for its turn or for news searches does not count. A company that
+reaches that limit shows `out_of_time`, and the run goes on with the other
+companies.
+
+The run still ends `succeeded` when some companies were not searched in full.
+`outcome` is then `partial`, `companies_failed` says how many failed, and
+`company_counts` gives the number of companies per status: see
+[Results and exports](/agent/results-and-exports#the-table) and
+[Best practices](/agent/best-practices#requests).
 
 Download it with `GET /runs/{run_id}/companies.csv` or `companies.xlsx`.
 

@@ -149,8 +149,9 @@ wrong, empty or narrower than asked. Follow them on every call.
    first 1,000 matches only; `total_hits` still gives the exact count. A
    date-only `to` includes that whole day: `to="2026-10-03"` means
    2026-10-03 23:59:59.
-6. **A company run ends `succeeded` even when companies failed.** Check the
-   coverage status of every company (`news_status`). Only `found` and
+6. **A company run ends `succeeded` even when companies failed.** Over REST,
+   `outcome` is then `partial` and `companies_failed` counts the failed
+   companies. Still check the coverage status of every company (`news_status`). Only `found` and
    `no_news` mean the company was searched in full. `identity_unknown` means
    it was not searched at all. `incomplete`, `out_of_time`,
    `model_unavailable`, `internal_error`, `failed` and `not_searched` mean the

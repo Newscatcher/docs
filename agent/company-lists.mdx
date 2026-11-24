@@ -41,6 +41,18 @@ curl -X POST "https://api.newscatcherapi.com/agent/companies/lists/from-run/RUN_
 - When you create a list from JSON, send your own `list_id` (a UUID) to make
   the request safe to retry: the same id returns the same list.
 
+## List your lists
+
+`GET /companies/lists` returns your lists, most recently changed first,
+without their companies. `q` keeps only the lists whose name, or a company's
+name or domain, contains the text, in any case: `q=stripe` finds every list
+with Stripe in it.
+
+Without `limit`, the response is an array of every list. With `limit` (1 to
+100), it is one page: `{"lists": [...], "next_cursor": "...", "total": 12}`.
+Pass `next_cursor` as `cursor` for the next page; it is `null` on the last
+page. `total` counts the matching lists over all pages.
+
 ## Resolution
 
 New companies are resolved in the background: the agent works out which

@@ -63,6 +63,8 @@ Parameters and response schema of every endpoint, as Markdown.
 - [Export Run Xlsx](https://www.newscatcherapi.com/docs/api-reference/runs/export-run-xlsx.md): `GET /runs/{run_id}/export.xlsx`
 - [Export Companies Csv](https://www.newscatcherapi.com/docs/api-reference/runs/export-companies-csv.md): `GET /runs/{run_id}/companies.csv`
 - [Export Companies Xlsx](https://www.newscatcherapi.com/docs/api-reference/runs/export-companies-xlsx.md): `GET /runs/{run_id}/companies.xlsx`
+- [Deliver Run Webhooks](https://www.newscatcherapi.com/docs/api-reference/runs/deliver-run-webhooks.md): `POST /runs/{run_id}/webhooks/deliver`
+- [Copy Run](https://www.newscatcherapi.com/docs/api-reference/runs/copy-run.md): `POST /runs/{run_id}/copy`
 - [Get Batch](https://www.newscatcherapi.com/docs/api-reference/runs/get-batch.md): `GET /batches/{batch_id}`
 - [Stream Batch](https://www.newscatcherapi.com/docs/api-reference/runs/stream-batch.md): `GET /batches/{batch_id}/progress`
 - [Cancel Batch](https://www.newscatcherapi.com/docs/api-reference/runs/cancel-batch.md): `POST /batches/{batch_id}/cancel`
@@ -95,6 +97,7 @@ Parameters and response schema of every endpoint, as Markdown.
 - [Monitor Rows](https://www.newscatcherapi.com/docs/api-reference/monitors/monitor-rows.md): `GET /monitors/{monitor_id}/rows`
 - [Export Monitor Run Csv](https://www.newscatcherapi.com/docs/api-reference/monitors/export-monitor-run-csv.md): `GET /monitors/runs/{run_id}/export.csv`
 - [Export Monitor Run Xlsx](https://www.newscatcherapi.com/docs/api-reference/monitors/export-monitor-run-xlsx.md): `GET /monitors/runs/{run_id}/export.xlsx`
+- [Deliver Monitor Webhooks](https://www.newscatcherapi.com/docs/api-reference/monitors/deliver-monitor-webhooks.md): `POST /monitors/{monitor_id}/webhooks/deliver`
 
 ## OpenAPI specs
 
@@ -142,7 +145,7 @@ Every page is available as Markdown: the links below end in `.md`. Drop `.md` fo
 - [Company lists](https://www.newscatcherapi.com/docs/agent/company-lists.md): Save the companies you follow, fix how they resolve, and reuse them in runs and monitors.
 - [Monitors](https://www.newscatcherapi.com/docs/agent/monitors.md): Repeat research on a schedule and get only what is new.
 - [Runs](https://www.newscatcherapi.com/docs/agent/runs.md): Follow, cancel, rename and delete runs, and work with batches.
-- [Results and exports](https://www.newscatcherapi.com/docs/agent/results-and-exports.md): Read a run's table, and download it as CSV or Excel.
+- [Results and exports](https://www.newscatcherapi.com/docs/agent/results-and-exports.md): Read a run's table, download it as CSV or Excel, and send it to a webhook.
 - [Best practices](https://www.newscatcherapi.com/docs/agent/best-practices.md): Write better requests, pick the right mode and keep monitors cheap.
 
 ### Integrations

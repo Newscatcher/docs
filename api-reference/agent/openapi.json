@@ -3,7 +3,7 @@
   "info": {
     "title": "NewsCatcher Agent API",
     "description": "Agent runs (events from a query, or news about companies), company lists and monitors. Authenticate with your API key in the x-api-key header.",
-    "version": "1.9.0"
+    "version": "1.18.1"
   },
   "servers": [
     {
@@ -62,7 +62,7 @@
           "runs"
         ],
         "summary": "Create Run",
-        "description": "Start a run. Without `companies`: events from the question (Fast, Standard or Max). With `companies`:\neach company's news (`kind: companies`). It runs in the background; follow it with `GET /runs/{run_id}/progress`.",
+        "description": "Start a run. Without `companies`: events from the question (Fast, Standard or Max). With `companies`:\neach company's news (`kind: companies`). It runs in the background; follow it with `/runs/{run_id}/progress`.",
         "operationId": "create_run_runs_post",
         "requestBody": {
           "required": true,
@@ -177,7 +177,7 @@
           "runs"
         ],
         "summary": "List Runs",
-        "description": "The caller's runs (events and companies; scheduled monitor runs are under /monitors), newest first.",
+        "description": "The caller's runs (events and companies; scheduled monitor runs are under /monitors), newest first. With\n`shared=true`: the runs others shared with them instead, each with `shared` set.",
         "operationId": "list_runs_runs_get",
         "parameters": [
           {
@@ -213,6 +213,18 @@
               "title": "Kind"
             },
             "description": "Only runs of this kind (default: both)."
+          },
+          {
+            "name": "shared",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Only what others shared with the caller (signed-in platform users).",
+              "default": false,
+              "title": "Shared"
+            },
+            "description": "Only what others shared with the caller (signed-in platform users)."
           }
         ],
         "responses": {
@@ -320,7 +332,7 @@
           "runs"
         ],
         "summary": "Get Run",
-        "description": "One of the caller's runs, with its rows when finished.",
+        "description": "One of the caller's runs (or one shared with them: `shared` set), with its rows when finished.",
         "operationId": "get_run_runs__run_id__get",
         "parameters": [
           {
@@ -676,7 +688,7 @@
           "runs"
         ],
         "summary": "Stream Run Events",
-        "description": "Live progress as Server-Sent Events: run_status, run_event, run_result, run_error.\n\nReconnect with `Last-Event-ID` (or `?after=`) to resume without missing events.",
+        "description": "Live progress as Server-Sent Events: run_status, run_phases, run_step, run_preview, run_result, run_error.\n\nA keep-alive comment is sent when nothing happened for 15 seconds.\n\nReconnect with `Last-Event-ID` (or `?after=`) to resume without missing events.",
         "operationId": "stream_run_events_runs__run_id__progress_get",
         "parameters": [
           {
@@ -828,7 +840,7 @@
           "runs"
         ],
         "summary": "Cancel Run",
-        "description": "Cancel a run. A queued run stops at once; a running one before its next step.",
+        "description": "Cancel a run. A queued run stops at once; a running one within seconds.",
         "operationId": "cancel_run_runs__run_id__cancel_post",
         "parameters": [
           {
@@ -844,6 +856,125 @@
         ],
         "responses": {
           "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunSummary"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/runs/{run_id}/copy": {
+      "post": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Copy Run",
+        "description": "Copy a public run into the caller's account with its results (\"Copy to my account\"). Nothing runs again and\nnothing is charged; a big run is copied whole (open the copy with `GET /batches/{batch_id}`).",
+        "operationId": "copy_run_runs__run_id__copy_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
             "description": "Successful Response",
             "content": {
               "application/json": {
@@ -1417,13 +1548,149 @@
         ]
       }
     },
+    "/runs/{run_id}/webhooks/deliver": {
+      "post": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Deliver Run Webhooks",
+        "description": "Send a finished run's results (`agent_run_completed`) again: to one of its webhooks, or all of them. A big\nrun: any part's id sends the whole big run, to its first part's webhooks. Also how a webhook attached after the\nrun ended gets its results. The run's owner only; once a minute per webhook.",
+        "operationId": "deliver_run_webhooks_runs__run_id__webhooks_deliver_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/DeliverWebhooksRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookDeliveryStarted"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
     "/batches/{batch_id}": {
       "get": {
         "tags": [
           "runs"
         ],
         "summary": "Get Batch",
-        "description": "A batch as one run: status, progress, every finished part's stories and companies, and its parts.",
+        "description": "A batch as one run: status, progress, every finished part's stories and companies, and its parts\n(or one shared with the caller: `shared` set, as on `GET /runs/{id}`).",
         "operationId": "get_batch_batches__batch_id__get",
         "parameters": [
           {
@@ -2521,115 +2788,6 @@
       }
     },
     "/companies/lists": {
-      "get": {
-        "tags": [
-          "company lists"
-        ],
-        "summary": "List Lists",
-        "description": "The caller's lists in the organization they act for, most recently changed first (without companies).",
-        "operationId": "list_lists_companies_lists_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/CompanyListView"
-                  },
-                  "type": "array",
-                  "title": "Response List Lists Companies Lists Get"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Unprocessable Entity",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Too Many Requests",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "Service Unavailable",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ]
-      },
       "post": {
         "tags": [
           "company lists"
@@ -2638,14 +2796,14 @@
         "description": "Create a list from companies sent as JSON; new companies are resolved in the background.",
         "operationId": "create_list_companies_lists_post",
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateCompanyListRequest"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -2659,94 +2817,300 @@
             }
           },
           "400": {
-            "description": "Bad Request",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Bad Request"
           },
           "401": {
-            "description": "Unauthorized",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Unauthorized"
           },
           "403": {
-            "description": "Forbidden",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Forbidden"
           },
           "404": {
-            "description": "Not Found",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Not Found"
           },
           "409": {
-            "description": "Conflict",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Conflict"
           },
           "422": {
-            "description": "Unprocessable Entity",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Unprocessable Entity"
           },
           "429": {
-            "description": "Too Many Requests",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Too Many Requests"
           },
           "503": {
-            "description": "Service Unavailable",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "company lists"
+        ],
+        "summary": "List Lists",
+        "description": "The caller's lists in the organization they act for, most recently changed first (without companies); with\n`shared=true`, the lists others shared with them. Filters combine.",
+        "operationId": "list_lists_companies_lists_get",
+        "parameters": [
+          {
+            "name": "shared",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Only the lists others shared with the caller (signed-in platform users).",
+              "default": false,
+              "title": "Shared"
+            },
+            "description": "Only the lists others shared with the caller (signed-in platform users)."
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only lists whose name, or a company's name or domain, contains this text (any case).",
+              "title": "Q"
+            },
+            "description": "Only lists whose name, or a company's name or domain, contains this text (any case)."
+          },
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only the lists in this platform project (signed-in platform users).",
+              "title": "Project Id"
+            },
+            "description": "Only the lists in this platform project (signed-in platform users)."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 100,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Page size. With it the answer is a page, {lists, next_cursor, total}; without it, a plain array of every list, as before 1.17.0.",
+              "title": "Limit"
+            },
+            "description": "Page size. With it the answer is a page, {lists, next_cursor, total}; without it, a plain array of every list, as before 1.17.0."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor of the previous page.",
+              "title": "Cursor"
+            },
+            "description": "next_cursor of the previous page."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CompanyListView"
+                      }
+                    },
+                    {
+                      "$ref": "#/components/schemas/CompanyListPage"
+                    }
+                  ],
+                  "title": "Response List Lists Companies Lists Get"
                 }
               }
             }
           },
-          "413": {
-            "description": "Request Entity Too Large",
+          "400": {
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
           }
         },
         "security": [
@@ -3921,127 +4285,22 @@
       }
     },
     "/monitors": {
-      "get": {
-        "tags": [
-          "monitors"
-        ],
-        "summary": "List Monitors",
-        "description": "The caller's monitors in the current organization.",
-        "operationId": "list_monitors_monitors_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MonitorListResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Unprocessable Entity",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Too Many Requests",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "Service Unavailable",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ]
-      },
       "post": {
         "tags": [
           "monitors"
         ],
         "summary": "Create Monitor",
-        "description": "Create a monitor; it first runs at its next scheduled time (`POST /{id}/run` runs it now).",
+        "description": "Create a monitor; it first runs at its next scheduled time (`POST /{id}/run` runs it now). With\n`webhook_ids`, they are checked first and attached as it is made; with `project_id`, the project is checked\nfirst and the monitor goes into it as it is made.",
         "operationId": "create_monitor_monitors_post",
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateMonitorRequest"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -4055,84 +4314,279 @@
             }
           },
           "400": {
-            "description": "Bad Request",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Bad Request"
           },
           "401": {
-            "description": "Unauthorized",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Unauthorized"
           },
           "403": {
-            "description": "Forbidden",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Forbidden"
           },
           "404": {
-            "description": "Not Found",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Not Found"
           },
           "409": {
-            "description": "Conflict",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Conflict"
           },
           "422": {
-            "description": "Unprocessable Entity",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Unprocessable Entity"
           },
           "429": {
-            "description": "Too Many Requests",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "monitors"
+        ],
+        "summary": "List Monitors",
+        "description": "The caller's monitors in the current organization, most recently changed first; with `shared=true`, the\nones others shared with them. Filters combine; `total` counts every match.",
+        "operationId": "list_monitors_monitors_get",
+        "parameters": [
+          {
+            "name": "shared",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Only the monitors others shared with the caller (signed-in platform users).",
+              "default": false,
+              "title": "Shared"
+            },
+            "description": "Only the monitors others shared with the caller (signed-in platform users)."
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only monitors whose name, story filter (query) or dataset topic contains this text (any case).",
+              "title": "Q"
+            },
+            "description": "Only monitors whose name, story filter (query) or dataset topic contains this text (any case)."
+          },
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only the monitors in this platform project (signed-in platform users).",
+              "title": "Project Id"
+            },
+            "description": "Only the monitors in this platform project (signed-in platform users)."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 100,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Page size; leave it out for every monitor.",
+              "title": "Limit"
+            },
+            "description": "Page size; leave it out for every monitor."
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor of the previous page.",
+              "title": "Cursor"
+            },
+            "description": "next_cursor of the previous page."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonitorListResponse"
                 }
               }
             }
           },
-          "503": {
-            "description": "Service Unavailable",
+          "400": {
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
           }
         },
         "security": [
@@ -5378,6 +5832,142 @@
           }
         ]
       }
+    },
+    "/monitors/{monitor_id}/webhooks/deliver": {
+      "post": {
+        "tags": [
+          "monitors"
+        ],
+        "summary": "Deliver Monitor Webhooks",
+        "description": "Send a monitor run's new results (`agent_monitor_results_ready`) again: its latest run that delivered\nsomething, or `run_id`; to one of the monitor's webhooks, or all of them. The monitor's owner only; once a\nminute per webhook.",
+        "operationId": "deliver_monitor_webhooks_monitors__monitor_id__webhooks_deliver_post",
+        "parameters": [
+          {
+            "name": "monitor_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Monitor Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/DeliverMonitorWebhooksRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookDeliveryStarted"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -5467,6 +6057,32 @@
             "title": "Companies",
             "default": []
           },
+          "company_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Company Counts",
+            "description": "How many companies (of every part) ended with each news_status, pending ones included."
+          },
+          "companies_failed": {
+            "type": "integer",
+            "title": "Companies Failed",
+            "description": "Companies whose search failed (out_of_time, internal_error, model_unavailable, failed); not charged.",
+            "default": 0
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome",
+            "description": "Once every part ended and at least one succeeded: complete (every company searched) or partial (some failed). Null before."
+          },
           "window_from": {
             "anyOf": [
               {
@@ -5545,6 +6161,17 @@
               }
             ],
             "title": "Finished At"
+          },
+          "shared": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SharedInfo"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Set when someone shared it with the caller (a share of any part; null on their own): their permission and who shared it."
           }
         },
         "type": "object",
@@ -5634,6 +6261,19 @@
             ],
             "title": "List Id",
             "description": "Your own id for the list (a UUID); left out, one is generated."
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id",
+            "description": "A platform project the list goes into the moment it exists (edit access to the project needed)."
           }
         },
         "type": "object",
@@ -5778,6 +6418,41 @@
         "title": "CompanyListItemView",
         "description": "A company in a list, with what the user sees."
       },
+      "CompanyListPage": {
+        "properties": {
+          "lists": {
+            "items": {
+              "$ref": "#/components/schemas/CompanyListView"
+            },
+            "type": "array",
+            "title": "Lists"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor",
+            "description": "Pass as cursor for the next page (null: the last page)."
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "Lists matching the filters (q, shared, project_id), over all pages.",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "lists"
+        ],
+        "title": "CompanyListPage",
+        "description": "One page of lists (`GET /companies/lists` with `limit`, 1.17.0); without `limit` the answer stays a plain\narray of every list."
+      },
       "CompanyListView": {
         "properties": {
           "list_id": {
@@ -5868,6 +6543,17 @@
             "type": "integer",
             "title": "Skipped Count",
             "default": 0
+          },
+          "shared": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SharedInfo"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Set when someone shared it with the caller (null on their own): their permission and who shared it."
           }
         },
         "type": "object",
@@ -5975,6 +6661,19 @@
             "minItems": 1,
             "title": "Companies",
             "description": "Companies by domain; repeats are dropped."
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id",
+            "description": "A platform project the list goes into the moment it exists (signed-in platform users with edit access to the project)."
           }
         },
         "type": "object",
@@ -6081,6 +6780,36 @@
           },
           "settings": {
             "$ref": "#/components/schemas/SettingsIn"
+          },
+          "webhook_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Webhook Ids",
+            "description": "Webhooks to send its new results to (agent_monitor_results_ready): your workspace's active webhooks, attached when it is made."
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id",
+            "description": "A platform project the monitor goes into the moment it exists (signed-in platform users with edit access to the project)."
           }
         },
         "type": "object",
@@ -6199,6 +6928,36 @@
               }
             ],
             "description": "Keep it updated: once the run succeeds, the agent makes a monitor of it (a companies run -> a company monitor, following its company list if any; an events run -> a dataset monitor). The run is the monitor's first run; the monitor then delivers only what is new. Its state is the run's keep_updated."
+          },
+          "webhook_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Webhook Ids",
+            "description": "Webhooks to send the results to when the run succeeds (agent_run_completed): your workspace's active webhooks, attached before the run starts. A big run sends once, after its last part."
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id",
+            "description": "A platform project to put the run in the moment it exists (signed-in platform users; you need edit access to the project). A big run goes in as its first part; a list saved with save_as_list and the monitor Keep updated makes go in too."
           }
         },
         "type": "object",
@@ -6279,6 +7038,59 @@
         "title": "CreateRunResponse",
         "description": "A queued run."
       },
+      "DeliverMonitorWebhooksRequest": {
+        "properties": {
+          "webhook_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Webhook Id",
+            "description": "One of the run's webhooks (default: all of them)."
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id",
+            "description": "One of the monitor's runs (default: its latest run that delivered something new)."
+          }
+        },
+        "type": "object",
+        "title": "DeliverMonitorWebhooksRequest",
+        "description": "POST /monitors/{id}/webhooks/deliver: send a monitor run's delivery again."
+      },
+      "DeliverWebhooksRequest": {
+        "properties": {
+          "webhook_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Webhook Id",
+            "description": "One of the run's webhooks (default: all of them)."
+          }
+        },
+        "type": "object",
+        "title": "DeliverWebhooksRequest",
+        "description": "POST /runs/{id}/webhooks/deliver: send a finished run's results again."
+      },
       "ErrorResponse": {
         "properties": {
           "code": {
@@ -6337,6 +7149,23 @@
             ],
             "title": "Name",
             "description": "The monitor's name (default: the run's name)."
+          },
+          "webhook_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "type": "array",
+                "maxItems": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Webhook Ids",
+            "description": "Webhooks the monitor gets when it is made (your workspace's, active). Default: the run's webhook_ids; [] for none."
           }
         },
         "type": "object",
@@ -6389,6 +7218,28 @@
               }
             ],
             "title": "Schedule"
+          },
+          "webhooks_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Webhooks Error"
+          },
+          "project_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Error"
           }
         },
         "type": "object",
@@ -6423,6 +7274,19 @@
             ],
             "title": "List Id",
             "description": "Your own id for the list (a UUID); left out, one is generated."
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id",
+            "description": "A platform project the list goes into the moment it exists (signed-in platform users with edit access to the project)."
           }
         },
         "type": "object",
@@ -6464,6 +7328,22 @@
             },
             "type": "array",
             "title": "Monitors"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "default": 0
           }
         },
         "type": "object",
@@ -6471,7 +7351,7 @@
           "monitors"
         ],
         "title": "MonitorListResponse",
-        "description": "The caller's monitors."
+        "description": "The caller's monitors: one page when `limit` was given, else all of them."
       },
       "MonitorOut": {
         "properties": {
@@ -6646,6 +7526,17 @@
               }
             ],
             "title": "Updated At"
+          },
+          "shared": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SharedInfo"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Set when someone shared it with the caller (null on their own): their permission and who shared it."
           }
         },
         "type": "object",
@@ -7122,6 +8013,17 @@
             ],
             "title": "Batch Id"
           },
+          "shared": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SharedInfo"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Set when someone shared it with the caller (null on their own): their permission and who shared it."
+          },
           "columns": {
             "anyOf": [
               {
@@ -7159,6 +8061,45 @@
               }
             ],
             "title": "Companies"
+          },
+          "company_counts": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "integer"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Counts",
+            "description": "Companies runs: how many companies ended with each news_status, e.g. {\"found\": 30, \"no_news\": 12, \"out_of_time\": 1}."
+          },
+          "companies_failed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Companies Failed",
+            "description": "Companies runs: companies whose search failed (out_of_time, internal_error, model_unavailable, failed). They are not charged."
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome",
+            "description": "A finished companies run: complete (every company searched) or partial (some failed; status stays succeeded). Null while it runs and for other kinds."
           },
           "window_from": {
             "anyOf": [
@@ -7376,6 +8317,17 @@
               }
             ],
             "title": "Batch Id"
+          },
+          "shared": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SharedInfo"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Set when someone shared it with the caller (null on their own): their permission and who shared it."
           }
         },
         "type": "object",
@@ -7457,6 +8409,50 @@
         "type": "object",
         "title": "SettingsIn",
         "description": "What the monitor delivers."
+      },
+      "SharedInfo": {
+        "properties": {
+          "permission": {
+            "type": "string",
+            "title": "Permission",
+            "description": "view (open it), edit (also change it) or manage (also delete it). Actions that spend credits stay the owner's."
+          },
+          "shared_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shared At"
+          },
+          "shared_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shared By User Id"
+          },
+          "via_project": {
+            "type": "boolean",
+            "title": "Via Project",
+            "description": "Visible because it is in a project the caller can see.",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "permission"
+        ],
+        "title": "SharedInfo",
+        "description": "Set only on resources shared with the caller (null on their own)."
       },
       "SkippedLine": {
         "properties": {
@@ -7670,6 +8666,23 @@
         ],
         "title": "VersionResponse",
         "description": "Deployed service version."
+      },
+      "WebhookDeliveryStarted": {
+        "properties": {
+          "webhook_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Webhook Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "webhook_ids"
+        ],
+        "title": "WebhookDeliveryStarted",
+        "description": "A delivery sent again (1.15.0): it runs in the background; each outcome shows in the webhook history."
       }
     },
     "securitySchemes": {
