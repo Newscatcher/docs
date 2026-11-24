@@ -154,7 +154,9 @@ wrong, empty or narrower than asked. Follow them on every call.
    `no_news` mean the company was searched in full. `identity_unknown` means
    it was not searched at all. `incomplete`, `out_of_time`,
    `model_unavailable`, `internal_error`, `failed` and `not_searched` mean the
-   search did not finish.
+   search did not finish. With REST, the run's `outcome` is `partial` when a
+   company failed, but `complete` does not rule out `identity_unknown` or
+   `incomplete` companies.
 7. **The Agent REST API drops unknown request fields.** In `POST /runs`, a
    misspelled field (say `lookback` for `lookback_days`) is ignored without an
    error, and the run uses the default. `lookback_days` above 365 becomes 365,

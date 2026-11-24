@@ -3,6 +3,41 @@ title: Changelog
 description: New features and changes to the News API and the agent.
 ---
 
+<Update label="November 24, 2026" description="Agent 1.18.0">
+  ## Webhooks, search and paging, and company run outcome
+
+  - **Webhooks**: send a run's or a monitor's new results to your endpoint.
+    Attach webhooks you made in the Platform with `webhook_ids` on
+    `POST /runs` and `POST /monitors`, and send results again with
+    `POST /runs/{run_id}/webhooks/deliver` or
+    `POST /monitors/{monitor_id}/webhooks/deliver`. See
+    [Webhooks](/agent/runs#webhooks).
+  - **Search and paging**: `GET /monitors` and `GET /companies/lists` take
+    `q`, `limit` and `cursor`, and return `next_cursor` and `total`. Without
+    `limit`, both answer as before. See
+    [List your monitors](/agent/monitors#list-your-monitors) and
+    [List your lists](/agent/company-lists#list-your-lists).
+  - **Company run outcome**: `GET /runs/{run_id}` and `GET /batches/{batch_id}`
+    return `outcome` (`complete` or `partial`), `company_counts` and
+    `companies_failed`, so you can tell when companies failed in a run that
+    succeeded. See
+    [Coverage per company](/agent/company-research#coverage-per-company).
+  - **Large company runs**: your companies now take turns, so a company's time
+    limit starts when its search starts. Large runs take longer, and fewer
+    companies end `out_of_time`.
+  - **Sharing and projects in the Platform**: runs, monitors and company lists
+    shared with you open for you, `shared=true` lists them, and
+    `POST /runs/{run_id}/copy` copies a public run with its results into your
+    account for free. See
+    [Shared runs, monitors and lists](/agent/runs#shared-runs-monitors-and-lists).
+  - **Fixed**: company monitors no longer search the same 30 days again on
+    every run for busy companies, which used to end `incomplete`.
+  - **Fixed**: a company that failed midway now shows `out_of_time` or
+    `model_unavailable` instead of `internal_error`. Company runs and monitor
+    runs no longer replace a finished company's result with `internal_error`
+    or fail as a whole because of it.
+</Update>
+
 <Update label="November 20, 2026" description="News API 1.3.12">
   ## Whole-day dates, robots.txt filter and better publishers
 

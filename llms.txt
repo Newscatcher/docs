@@ -59,6 +59,8 @@ Parameters and response schema of every endpoint, as Markdown.
 - [Cancel Run](https://www.newscatcherapi.com/docs/api-reference/runs/cancel-run.md): `POST /runs/{run_id}/cancel`
 - [Rename Run](https://www.newscatcherapi.com/docs/api-reference/runs/rename-run.md): `PATCH /runs/{run_id}`
 - [Delete Run](https://www.newscatcherapi.com/docs/api-reference/runs/delete-run.md): `DELETE /runs/{run_id}`
+- [Copy Run](https://www.newscatcherapi.com/docs/api-reference/runs/copy-run.md): `POST /runs/{run_id}/copy`
+- [Deliver Run Webhooks](https://www.newscatcherapi.com/docs/api-reference/runs/deliver-run-webhooks.md): `POST /runs/{run_id}/webhooks/deliver`
 - [Export Run Csv](https://www.newscatcherapi.com/docs/api-reference/runs/export-run-csv.md): `GET /runs/{run_id}/export.csv`
 - [Export Run Xlsx](https://www.newscatcherapi.com/docs/api-reference/runs/export-run-xlsx.md): `GET /runs/{run_id}/export.xlsx`
 - [Export Companies Csv](https://www.newscatcherapi.com/docs/api-reference/runs/export-companies-csv.md): `GET /runs/{run_id}/companies.csv`
@@ -89,6 +91,7 @@ Parameters and response schema of every endpoint, as Markdown.
 - [Update Monitor](https://www.newscatcherapi.com/docs/api-reference/monitors/update-monitor.md): `PATCH /monitors/{monitor_id}`
 - [Delete Monitor](https://www.newscatcherapi.com/docs/api-reference/monitors/delete-monitor.md): `DELETE /monitors/{monitor_id}`
 - [Run Monitor Now](https://www.newscatcherapi.com/docs/api-reference/monitors/run-monitor-now.md): `POST /monitors/{monitor_id}/run`
+- [Deliver Monitor Webhooks](https://www.newscatcherapi.com/docs/api-reference/monitors/deliver-monitor-webhooks.md): `POST /monitors/{monitor_id}/webhooks/deliver`
 - [Monitor Runs](https://www.newscatcherapi.com/docs/api-reference/monitors/monitor-runs.md): `GET /monitors/{monitor_id}/runs`
 - [Get Monitor Run](https://www.newscatcherapi.com/docs/api-reference/monitors/get-monitor-run.md): `GET /monitors/runs/{run_id}`
 - [Monitor Stories](https://www.newscatcherapi.com/docs/api-reference/monitors/monitor-stories.md): `GET /monitors/{monitor_id}/stories`
