@@ -52,8 +52,11 @@ description: Read a run's table, and download it as CSV or Excel.
   `rows_before` and `created_at`. `null` when none is running.
 </ResponseField>
 <ResponseField name="continuations" type="object[]">
-  The continuations that ended, each with `continuation_id`, `status`,
-  `max_rows` and `rows_added`.
+  The continuations that ended, each with `continuation_id`, `status`
+  (`succeeded`, `failed` or `cancelled`), `max_rows` (the run's new total),
+  `rows_before`, `rows_added`, `found` (rows found before repeats of the
+  run's rows were left out), `finished_at` and `error` (the error code, when
+  it failed).
 </ResponseField>
 <ResponseField name="continue_of" type="string">
   On a continuation: the id of the run it adds rows to.
