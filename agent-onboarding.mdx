@@ -43,7 +43,9 @@ server:
 | All coverage of one story | `get_story`, with a story id from `search_news` | Seconds |
 | A table of events with sources: deals, layoffs, funding rounds, recalls, lawsuits | `start_research` with `query`, then `get_research` | Minutes |
 | The news of each company in a list | `start_research` with `companies` or `company_list_id`, then `get_research` | Minutes |
+| More rows for a table that found every row it asked for | `start_research(continue_run_id=…)`, then `get_research` | Minutes |
 | Any of these again on a schedule | `start_research(keep_updated=true)` or `create_monitor`, then `get_monitor_updates` | Scheduled |
+| Results sent to the person's webhooks | `webhook_ids` on `start_research` or `create_monitor` (ids from the Platform's **Webhooks** page; ask, never invent); `resend_results` sends them again | When the run ends |
 | Credits, plan and limits | `get_account` | Free |
 
 Use `search_news` when the top results are enough. Use `list_articles` when you
@@ -174,7 +176,7 @@ The server has four toolsets. All load by default.
 | Toolset | Tools |
 |---|---|
 | `news` | `search_news`, `list_articles`, `count_articles`, `get_story`, `get_account` |
-| `research` | `start_research`, `get_research`, `cancel_research` |
+| `research` | `start_research`, `get_research`, `cancel_research`, `resend_results` |
 | `lists` | `save_company_list`, `get_company_list`, `edit_company_list` |
 | `monitors` | `create_monitor`, `get_monitor`, `get_monitor_updates`, `update_monitor` |
 
@@ -202,7 +204,7 @@ charged, and a search that finds nothing is still a success.
 | `get_story` | 1 |
 | Agent events run | 1,000 (`fast`), 3,000 (`standard`) or 6,000 (`max`), 50 rows included; each extra 50 rows adds 500, 1,500 or 3,000 |
 | Agent company run | 500 per company searched (`found` or `no_news`) |
-| `get_account`, `get_research`, `cancel_research`, company lists, `get_monitor`, `get_monitor_updates`, `start_research(dry_run=true)` | Free |
+| `get_account`, `get_research`, `cancel_research`, `resend_results`, company lists, `get_monitor`, `get_monitor_updates`, `start_research(dry_run=true)` | Free |
 
 - **Check before big jobs.** `start_research(dry_run=true)` is free and shows
   the time, the cost and your balance. Confirm `standard` or `max` runs, many
@@ -212,8 +214,10 @@ charged, and a search that finds nothing is still a success.
 - **Check the balance** with `get_account` (MCP) or `GET /subscription` (REST),
   both free. The balance can lag usage by a minute or two.
 - **More rows cost only the extra blocks.** An events run that found every
-  row it asked for can be continued with `POST /runs/{run_id}/continue`
-  (REST) and `max_rows`, its new total (1,000 at most). It is charged only for
+  row it asked for can be continued with `start_research(continue_run_id=…,
+  add_rows=50)` (MCP, up to 100 rows at a time) or
+  `POST /runs/{run_id}/continue` (REST) and `max_rows`, its new total (1,000
+  at most). It is charged only for
   the 50-row blocks its new rows start, so 50 rows then 50 more cost the same
   as 100 at once.
 - **Your plan limits how many agent runs go at once.** One more gets
