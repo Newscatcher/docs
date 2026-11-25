@@ -211,6 +211,11 @@ charged, and a search that finds nothing is still a success.
   cover is refused with `402`.
 - **Check the balance** with `get_account` (MCP) or `GET /subscription` (REST),
   both free. The balance can lag usage by a minute or two.
+- **More rows cost only the extra blocks.** An events run that found every
+  row it asked for can be continued with `POST /runs/{run_id}/continue`
+  (REST) and `max_rows`, its new total (1,000 at most). It is charged only for
+  the 50-row blocks its new rows start, so 50 rows then 50 more cost the same
+  as 100 at once.
 - **Your plan limits how many agent runs go at once.** One more gets
   `429 too_many_runs`; wait for a run to finish.
 

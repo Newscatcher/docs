@@ -58,6 +58,8 @@ Two windows are refused instead:
 
 - `max_rows` can be 50 (default) or 100. More is refused with
   `too_many_rows`.
+- [Continuing a run](/agent/event-research#get-more-rows) adds up to that
+  many rows at a time. A run reaches 1,000 rows at most.
 - Monitors can run hourly only when your plan allows it. A shorter interval
   than your plan allows is refused with `invalid_schedule`.
 - A company run takes up to 50 companies on Free and pay-as-you-go plans. On

@@ -81,3 +81,49 @@ hospital breaches
 
 `window_from` and `window_to` are empty for events runs. The agent reads the
 window from your query, so check the rows' dates.
+
+## Get more rows
+
+When a run found every row it asked for, there may be more. Continue it
+instead of starting a new run: `POST /runs/{run_id}/continue` with
+`max_rows`, the run's new total of rows.
+
+```bash
+curl -X POST "https://api.newscatcherapi.com/agent/runs/RUN_ID/continue" \
+  -H "x-api-key: $NEWSCATCHER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"max_rows": 100}'
+```
+
+The answer is `202` with `run_id`, `continuation_id`, `status`, `rows` (the
+run's rows now) and `max_rows`. Follow the continuation with
+`GET /runs/{continuation_id}/progress`, and cancel it with
+`POST /runs/{continuation_id}/cancel`. When it succeeds, its new rows are added
+to the run: `GET /runs/{run_id}` and the exports have every row, and the run's
+[webhooks](/agent/runs#webhooks) get the whole table again.
+
+- The continuation first uses what the run already found but did not deliver,
+  then searches the news further. It keeps the run's mode and columns.
+- Rows the run already has (same link, same key columns or same event) are left
+  out, so a continuation can add fewer rows than you asked for.
+- You pay only for the 50-row blocks the new rows start beyond the blocks the
+  run already paid for: 50 rows, then 50 more, cost the same as 100 rows at
+  once. A continuation that adds nothing is free. See
+  [Credits and pricing](/get-started/credits-and-pricing#agent).
+- One continuation adds up to your plan's `max_rows` (more gets
+  `too_many_rows`). A run reaches 1,000 rows at most.
+
+`continuable` in `GET /runs/{run_id}` says whether the run can be continued
+now. Only its owner can continue it, and only a succeeded events run that
+found every row it asked for: a run that found 10 of 50 has nothing more to
+give, so start a new run instead (`standard` and `max` search more widely).
+After a continuation, the same holds for what it found. A run can be continued
+until it is archived, 30 days after it ended. Runs made before continuing
+became available cannot be continued.
+
+| Code | Status | Meaning |
+|---|---|---|
+| `run_not_continuable` | `409` | Not a succeeded events run, it found fewer rows than it asked for, it is archived, or it is itself a continuation (the message names the run to continue). |
+| `run_busy` | `409` | The run is already being continued. Wait for that continuation to end. |
+| `max_rows_too_low` | `422` | `max_rows` is not more than the rows the run has. |
+| `max_rows_too_high` | `422` | `max_rows` is over 1,000, or adds more than one continuation can. |

@@ -42,6 +42,7 @@ first 50. Company research and company monitors are charged per company.
 | Event research, `standard` | 3,000 NCC per run, 50 rows included |
 | Event research, `max` | 6,000 NCC per run, 50 rows included |
 | Each extra 50 rows (`fast` / `standard` / `max`) | +500 / +1,500 / +3,000 NCC |
+| [Continuing a run](/agent/event-research#get-more-rows) | Only the extra 50-row blocks its new rows start: +500 / +1,500 / +3,000 NCC each |
 | Company research | 500 NCC per company |
 | Event monitor, daily | Half a run of its mode |
 | Event monitor, every few hours | Half a run of its mode, for each run |
@@ -51,6 +52,10 @@ first 50. Company research and company monitors are charged per company.
 Failed runs are free. A run whose news searches all failed, so nothing was
 researched, fails with `search_failed` and is free too: try it again in a few
 minutes. A run whose searches worked but found nothing is still charged.
+
+A continuation has no run price: 50 rows, then 50 more, cost the same as 100
+rows at once. The blocks for the rows you ask for are held when it starts,
+and a continuation that adds no rows is free.
 
 ### Company monitors
 
@@ -76,7 +81,9 @@ is either:
   (10 on Free, 50 on pay as you go), or
 - a `fast` event monitor that runs daily or weekly.
 
-Its runs and its company updates cost nothing. It pauses itself
+Its runs and its company updates cost nothing, and it has `"free": true` in
+`GET /monitors` and `GET /monitors/{monitor_id}`. When it is paused, your
+next oldest such monitor becomes the free one. It pauses itself
 (`paused_reason: "idle"`) when its results are not opened for 14 days; resume
 it to go on.
 

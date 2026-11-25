@@ -3,7 +3,7 @@
   "info": {
     "title": "NewsCatcher Agent API",
     "description": "Agent runs (events from a query, or news about companies), company lists and monitors. Authenticate with your API key in the x-api-key header.",
-    "version": "1.18.1"
+    "version": "1.19.2"
   },
   "servers": [
     {
@@ -864,6 +864,145 @@
                 }
               }
             }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/runs/{run_id}/continue": {
+      "post": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Continue Run",
+        "description": "Continue a succeeded events run with more rows (like CatchAll's continue_job): `max_rows` is the run's new\ntotal. The continuation works through what the run already found first (candidate events it did not pick,\narticles it fetched but did not read) and searches the News API only when that runs out. Rows it adds that the run\nalready has (same link, same key fields, same event) are left out. Follow it with\n`/runs/{continuation_id}/progress`; once it succeeds, `GET /runs/{run_id}` has every row, and the run's\nwebhooks get it again. Charged per started block of rows it adds beyond the run's paid blocks (no second job).",
+        "operationId": "continue_run_runs__run_id__continue_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContinueRunRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContinueRunResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Payment Required"
           },
           "400": {
             "content": {
@@ -6578,6 +6717,59 @@
         "title": "CompanyStatus",
         "description": "What the user sees per company."
       },
+      "ContinueRunRequest": {
+        "properties": {
+          "max_rows": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Max Rows",
+            "description": "The run's new total of rows, more than it has now (like CatchAll's new_limit). One continuation adds up to your plan's rows per run; a run reaches 1,000 rows at most. Only a run that found every row it asked for (GET /runs/{id}: continuable) can be continued."
+          }
+        },
+        "type": "object",
+        "required": [
+          "max_rows"
+        ],
+        "title": "ContinueRunRequest",
+        "description": "Continue a succeeded events run with more rows (1.19.0)."
+      },
+      "ContinueRunResponse": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Run Id"
+          },
+          "continuation_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Continuation Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "rows": {
+            "type": "integer",
+            "title": "Rows"
+          },
+          "max_rows": {
+            "type": "integer",
+            "title": "Max Rows"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "continuation_id",
+          "status",
+          "rows",
+          "max_rows"
+        ],
+        "title": "ContinueRunResponse",
+        "description": "A continuation started (1.19.0): follow it with `/runs/{continuation_id}/progress`; its rows are added to\n`run_id` when it succeeds."
+      },
       "CorrectCompanyRequest": {
         "properties": {
           "domain": {
@@ -7537,6 +7729,12 @@
               }
             ],
             "description": "Set when someone shared it with the caller (null on their own): their permission and who shared it."
+          },
+          "free": {
+            "type": "boolean",
+            "title": "Free",
+            "description": "The organization's free monitor (its oldest enabled company monitor or Fast daily/weekly dataset monitor; the next one when it is paused): its runs and updates cost nothing. False for a monitor of another workspace.",
+            "default": false
           }
         },
         "type": "object",
@@ -8183,6 +8381,56 @@
               }
             ],
             "title": "Evidence"
+          },
+          "continuable": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continuable"
+          },
+          "continuation": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continuation"
+          },
+          "continuations": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continuations"
+          },
+          "continue_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continue Of"
           }
         },
         "type": "object",
