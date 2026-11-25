@@ -10,8 +10,9 @@ tools, and answers with headlines, summaries, sources and links.
 - **News**: ranked search in every language, every article that matches a
   query over 12 months, article counts over time, and the coverage of one
   story.
-- **Agent**: verified tables of events, news about a list of companies, saved
-  company lists and monitors that bring only what is new.
+- **Agent**: verified tables of events (and more rows for a table that filled
+  up), news about a list of companies, saved company lists, monitors that
+  bring only what is new, and results sent to your webhooks.
 
 The server is hosted at `https://mcp.newscatcherapi.com/mcp` and is open
 source under the MIT license:
@@ -336,7 +337,7 @@ matching skill.
 
 ## Tools
 
-The server has 15 tools in four toolsets.
+The server has 16 tools in four toolsets.
 
 | Toolset | Tool | What it does | Learn more |
 |---|---|---|---|
@@ -345,11 +346,12 @@ The server has 15 tools in four toolsets.
 | `news` | `count_articles` | Article counts per day, week or month for up to five queries, for trends and share of voice | [Every matching article](/news/articles) |
 | `news` | `get_story` | All coverage of one story: newsrooms, languages and the earliest articles | [Stories](/news/stories) |
 | `news` | `get_account` | Plan, credit balance and limits | [Rate limits](/get-started/rate-limits) |
-| `research` | `start_research` | Starts an agent run for events or companies. `dry_run` estimates time and cost for free | [Event research](/agent/event-research), [company research](/agent/company-research) |
-| `research` | `get_research` | Waits for a run and shows its table, or lists your runs | [Results and exports](/agent/results-and-exports) |
+| `research` | `start_research` | Starts an agent run for events or companies, or adds rows to a finished events run (`continue_run_id`). `dry_run` estimates time and cost for free | [Event research](/agent/event-research), [get more rows](/agent/event-research#get-more-rows), [company research](/agent/company-research) |
+| `research` | `get_research` | Waits for a run and shows its table, or lists your runs. Says when a run can get more rows | [Results and exports](/agent/results-and-exports) |
 | `research` | `cancel_research` | Stops a run | [Runs](/agent/runs) |
-| `lists` | `save_company_list`, `get_company_list`, `edit_company_list` | Reusable lists of companies | [Company lists](/agent/company-lists) |
-| `monitors` | `create_monitor`, `get_monitor`, `get_monitor_updates`, `update_monitor` | Repeat research on a schedule and read only what is new | [Monitors](/agent/monitors) |
+| `research` | `resend_results` | Sends a run's or a monitor run's results to its webhooks again | [Webhooks](/agent/runs#webhooks) |
+| `lists` | `save_company_list`, `get_company_list`, `edit_company_list` | Reusable lists of companies. `get_company_list` finds a list by name or by a company in it | [Company lists](/agent/company-lists) |
+| `monitors` | `create_monitor`, `get_monitor`, `get_monitor_updates`, `update_monitor` | Repeat research on a schedule and read only what is new. `get_monitor` finds a monitor by name or topic and marks your free monitor | [Monitors](/agent/monitors) |
 
 Defaults to know:
 
@@ -357,6 +359,16 @@ Defaults to know:
   `window` (up to 30 days) and `limit` for more.
 - `list_articles` covers the last 7 days unless `from` is set, so a count with
   no `from` is a 7-day count.
+- An events run asks for 50 rows, or 100 with `max_rows`. When a run found
+  every row it asked for, `get_research` says so, and `start_research` with
+  `continue_run_id` adds up to 100 more rows at a time, up to 1,000 rows per
+  run. See [Get more rows](/agent/event-research#get-more-rows).
+- To send results to your [webhooks](/agent/runs#webhooks), give the assistant
+  the webhook ids from the **Webhooks** page of the
+  [platform](https://platform.newscatcherapi.com). It passes them as
+  `webhook_ids` to `start_research` or `create_monitor`.
+- `get_monitor` and `get_company_list` take `search`, `limit` and `cursor`
+  for long lists.
 
 The server also has two guides the assistant can read
 (`newscatcher://guides/query-syntax` and
@@ -394,9 +406,12 @@ Tool calls cost the same as the API requests behind them. See
 - Agent runs and monitors are charged like runs started through the API. Ask
   for a dry run first ("how much would this cost?") to get the estimate for
   free.
-- `get_account`, `get_research`, `cancel_research`, `get_monitor`,
-  `get_monitor_updates`, `start_research` with `dry_run` and the company list
-  tools are free.
+- Adding rows to a run (`continue_run_id`) costs only the 50-row blocks the
+  new rows start beyond the blocks the run already paid for, and nothing if it
+  adds no rows.
+- `get_account`, `get_research`, `cancel_research`, `resend_results`,
+  `get_monitor`, `get_monitor_updates`, `start_research` with `dry_run` and
+  the company list tools are free.
 
 <Tip>
   The server tells the assistant to confirm large agent jobs with you before
@@ -425,6 +440,10 @@ Tool calls cost the same as the API requests behind them. See
 > Build a table of layoffs announced by US tech companies in the last 30
 > days, with company, number of jobs and source.
 
+**More rows**
+
+> That table filled up. Add 50 more rows to it.
+
 **Companies**
 
 > Get the last 90 days of funding and acquisition news for stripe.com,
@@ -438,8 +457,12 @@ Tool calls cost the same as the API requests behind them. See
   up to 200 rows at a time. Download the full table from the run in the
   [platform](https://platform.newscatcherapi.com) or through
   [exports](/agent/results-and-exports).
+- An events run asks for 100 rows at most. Adding rows to it brings up to 100
+  more at a time, and a run reaches 1,000 rows at most.
 - A tool call answers within about four minutes. If a run is still going,
-  `get_research` returns what it has; ask the assistant to check again.
+  `get_research` returns what it has; ask the assistant to check again. If
+  the API is slow to answer, the tool returns an error with a Correlation-ID
+  instead of waiting longer.
 
 ## Troubleshooting
 
@@ -480,6 +503,14 @@ Tool calls cost the same as the API requests behind them. See
     `fast` runs take a few minutes; `standard` and `max` runs can take 10 to 30
     minutes or more. Ask the assistant to check the run again later, or follow
     it in the [platform](https://platform.newscatcherapi.com).
+  </Accordion>
+
+  <Accordion title="The assistant cannot add rows to a run">
+    Only a succeeded events run that found every row it asked for can get more
+    rows, until it is archived 30 days after it ended. A run that found fewer
+    rows has nothing more to give: ask for a new run instead (`standard` and
+    `max` search more widely). A run that is already getting more rows has to
+    finish that first. See [Get more rows](/agent/event-research#get-more-rows).
   </Accordion>
 
   <Accordion title="The assistant mentions export_research or save_as">

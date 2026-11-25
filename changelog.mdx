@@ -3,6 +3,21 @@ title: Changelog
 description: New features and changes to the News API and the agent.
 ---
 
+<Update label="November 25, 2026" description="MCP server 0.4.0">
+  ## More rows for a research run in the MCP server
+
+  - **More rows**: when an events run found every row it asked for, the
+    [MCP server](/integrations/mcp) says so, and the assistant can add rows to
+    it: up to 100 at a time, up to 1,000 per run. You pay only for the extra
+    50-row blocks; a dry run shows the cost for free. See
+    [Get more rows](/agent/event-research#get-more-rows).
+  - **Run size**: an events run asks for 50 or 100 rows. Larger numbers are
+    lowered to 100; add rows to the run for more.
+  - **Free monitor**: monitor lists mark your organization's free monitor.
+  - **Fixed**: when the API is slow to answer, a tool now returns an error
+    with a Correlation-ID instead of no answer.
+</Update>
+
 <Update label="November 25, 2026" description="Agent 1.19.2">
   ## Continue a run with more rows, and the free monitor flag
 
@@ -52,6 +67,19 @@ description: New features and changes to the News API and the agent.
     `model_unavailable` instead of `internal_error`. Company runs and monitor
     runs no longer replace a finished company's result with `internal_error`
     or fail as a whole because of it.
+</Update>
+
+<Update label="November 23, 2026" description="MCP server 0.3.0">
+  ## Webhooks and search in the MCP server
+
+  - **Webhooks**: ask the assistant to send a run's or a monitor's results to
+    your webhooks. Give it the webhook ids from the Platform's **Webhooks**
+    page. The new `resend_results` tool sends results again, for free. See
+    [MCP server](/integrations/mcp#tools).
+  - **Search and paging**: find a monitor by name or topic, or a company list
+    by name or by a company in it ("which list has Stripe?").
+  - **Company runs**: results start with how many companies were done, had no
+    news or failed, and say that failed companies are not charged.
 </Update>
 
 <Update label="November 20, 2026" description="News API 1.3.12">
