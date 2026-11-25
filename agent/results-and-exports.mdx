@@ -43,6 +43,21 @@ description: Read a run's table, and download it as CSV or Excel.
   `rows`. Each item has `outlets`, the number of outlets that reported the
   event, and `sources`, each with `url`, `source`, `published` and `quote`.
 </ResponseField>
+<ResponseField name="continuable" type="boolean">
+  Events runs: whether you can [get more rows](/agent/event-research#get-more-rows)
+  with `POST /runs/{run_id}/continue` now. `null` for companies runs.
+</ResponseField>
+<ResponseField name="continuation" type="object">
+  The continuation in progress, with `continuation_id`, `max_rows`,
+  `rows_before` and `created_at`. `null` when none is running.
+</ResponseField>
+<ResponseField name="continuations" type="object[]">
+  The continuations that ended, each with `continuation_id`, `status`,
+  `max_rows` and `rows_added`.
+</ResponseField>
+<ResponseField name="continue_of" type="string">
+  On a continuation: the id of the run it adds rows to.
+</ResponseField>
 
 ## Downloads
 

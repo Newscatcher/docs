@@ -138,6 +138,7 @@
                       "POST /runs/{run_id}/cancel",
                       "PATCH /runs/{run_id}",
                       "DELETE /runs/{run_id}",
+                      "POST /runs/{run_id}/continue",
                       "POST /runs/{run_id}/copy",
                       "POST /runs/{run_id}/webhooks/deliver",
                       "GET /runs/{run_id}/export.csv",

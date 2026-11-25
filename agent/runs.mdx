@@ -63,7 +63,8 @@ Platform. A request with an API key sees only your own items.
 |---|---|---|
 | Cancel | `POST /runs/{run_id}/cancel` | A queued run stops at once; a running one within seconds. |
 | Rename | `PATCH /runs/{run_id}` | Send `title`, 1 to 200 characters. |
-| Delete | `DELETE /runs/{run_id}` | Finished runs only. The run leaves your history and its results are erased. |
+| Delete | `DELETE /runs/{run_id}` | Finished runs only. The run leaves your history and its results are erased. A run being continued gets `409` `run_in_progress`: cancel its continuation first. |
+| Continue | `POST /runs/{run_id}/continue` | A succeeded events run that found every row it asked for: add rows to it. See [Get more rows](/agent/event-research#get-more-rows). |
 | Copy | `POST /runs/{run_id}/copy` | Signed in to the Platform: a finished run someone shared publicly. You get your own copy with its results; nothing runs again and nothing is charged. A batch is copied whole. |
 
 ## Webhooks

@@ -59,6 +59,7 @@ Parameters and response schema of every endpoint, as Markdown.
 - [Cancel Run](https://www.newscatcherapi.com/docs/api-reference/runs/cancel-run.md): `POST /runs/{run_id}/cancel`
 - [Rename Run](https://www.newscatcherapi.com/docs/api-reference/runs/rename-run.md): `PATCH /runs/{run_id}`
 - [Delete Run](https://www.newscatcherapi.com/docs/api-reference/runs/delete-run.md): `DELETE /runs/{run_id}`
+- [Continue Run](https://www.newscatcherapi.com/docs/api-reference/runs/continue-run.md): `POST /runs/{run_id}/continue`
 - [Copy Run](https://www.newscatcherapi.com/docs/api-reference/runs/copy-run.md): `POST /runs/{run_id}/copy`
 - [Deliver Run Webhooks](https://www.newscatcherapi.com/docs/api-reference/runs/deliver-run-webhooks.md): `POST /runs/{run_id}/webhooks/deliver`
 - [Export Run Csv](https://www.newscatcherapi.com/docs/api-reference/runs/export-run-csv.md): `GET /runs/{run_id}/export.csv`

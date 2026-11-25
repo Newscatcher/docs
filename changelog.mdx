@@ -3,6 +3,22 @@ title: Changelog
 description: New features and changes to the News API and the agent.
 ---
 
+<Update label="November 25, 2026" description="Agent 1.19.2">
+  ## Continue a run with more rows, and the free monitor flag
+
+  - **Continue a run**: add rows to a succeeded events run with
+    `POST /runs/{run_id}/continue` and `max_rows`, the run's new total, up to
+    1,000. The continuation uses what the run already found first, leaves out
+    rows the run has, and adds the new rows to the run. You pay only for the
+    extra 50-row blocks, so 50 rows then 50 more cost the same as 100 at
+    once. Only a run that found every row it asked for can be continued:
+    `GET /runs/{run_id}` returns `continuable`. See
+    [Get more rows](/agent/event-research#get-more-rows).
+  - **Free monitor flag**: every monitor has `free`, which is `true` on your
+    organization's free monitor. See
+    [Free monitor](/get-started/credits-and-pricing#free-monitor).
+</Update>
+
 <Update label="November 24, 2026" description="Agent 1.18.0">
   ## Webhooks, search and paging, and company run outcome
 
