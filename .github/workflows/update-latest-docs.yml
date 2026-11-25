@@ -1,9 +1,17 @@
-# Updates the docs after a merge into main of one of three services:
+# Updates the docs after a merge into main of one of four services:
 #
-#   Product              GitLab project                        Service folder                          Docs
-#   agent                newscatcher/ai-agent                  Kubernetes_Deployments/agent-service    Latest
+#   Product              Source project                        Service folder                          Docs
+#   agent                newscatcher/ai-agent (GitLab)         Kubernetes_Deployments/agent-service    Latest
 #   news-api             newscatcher/newscatcher-news-api-v4   Kubernetes_Deployments/v4-api           Latest
 #   enterprise-news-api  newscatcher/newscatcher-v3-apis       Kubernetes_Deployments/v3-api-optimized Enterprise
+#   mcp                  Newscatcher/newscatcher-mcp (GitHub)  (whole repo: src/, plugin/, ...)        Latest
+#
+# The MCP server is the exception: it lives on GitHub (public), has no OpenAPI
+# spec, and its own workflow sends a repository_dispatch (event_type:
+# mcp-main-push, client_payload: project, before, after) on every push to its
+# main. This workflow reads that push from the GitHub API, waits until
+# https://mcp.newscatcherapi.com/health reports the new version, and runs the
+# mcp-docs-update agent. Setup notes at the bottom of this file.
 #
 # Flow:
 #   1. GitLab MR merged into main → GitLab webhook → repository_dispatch
@@ -27,11 +35,11 @@ name: Update Latest Docs
 
 on:
   repository_dispatch:
-    types: [gitlab-mr-merge-main]
+    types: [gitlab-mr-merge-main, mcp-main-push]
   workflow_dispatch:
     inputs:
       mr_url:
-        description: "GitLab MR URL of the Agent, News API or v3 APIs repo (e.g. https://gitlab.com/newscatcher/ai-agent/-/merge_requests/57)"
+        description: "GitLab MR URL of the Agent, News API or v3 APIs repo (e.g. https://gitlab.com/newscatcher/ai-agent/-/merge_requests/57), or GitHub PR URL of the MCP server (e.g. https://github.com/Newscatcher/newscatcher-mcp/pull/18)"
         required: true
         type: string
       any_mr:
@@ -47,7 +55,7 @@ on:
 
 concurrency:
   # One run per product at a time, whether started by the webhook or by hand.
-  group: latest-docs-${{ (contains(inputs.mr_url, '/ai-agent/') || github.event.client_payload.project == 'newscatcher/ai-agent') && 'agent' || ((contains(inputs.mr_url, '/newscatcher-v3-apis/') || github.event.client_payload.project == 'newscatcher/newscatcher-v3-apis') && 'enterprise-news-api' || 'news-api') }}
+  group: latest-docs-${{ (contains(inputs.mr_url, '/ai-agent/') || github.event.client_payload.project == 'newscatcher/ai-agent') && 'agent' || ((contains(inputs.mr_url, '/newscatcher-v3-apis/') || github.event.client_payload.project == 'newscatcher/newscatcher-v3-apis') && 'enterprise-news-api' || ((contains(inputs.mr_url, '/newscatcher-mcp/') || github.event.client_payload.project == 'Newscatcher/newscatcher-mcp') && 'mcp' || 'news-api')) }}
   cancel-in-progress: false
 
 jobs:
@@ -84,32 +92,162 @@ jobs:
 
       # Resolve the product, read the MR and fetch the release material.
       # Payload values are passed through env, never interpolated into the script.
-      - name: Read the merged MR from GitLab
+      - name: Read the merged change (GitLab MR, or MCP push from GitHub)
         id: resolve
         env:
           # One project access token per source repo, so each is easy to tell apart and rotate.
           GITLAB_AGENT_PAT: ${{ secrets.GITLAB_AGENT_PAT }}
           GITLAB_NEWS_API_PAT: ${{ secrets.GITLAB_NEWS_API_PAT }}
           GITLAB_V3_APIS_PAT: ${{ secrets.GITLAB_V3_APIS_PAT }}
+          # The MCP repo is public: this run's own token reads it (and lifts the API rate limit).
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           EVENT_NAME: ${{ github.event_name }}
+          EVENT_TYPE: ${{ github.event.action }}
           PAYLOAD_PROJECT: ${{ github.event.client_payload.project }}
           PAYLOAD_MR_IID: ${{ github.event.client_payload.mr_iid }}
+          PAYLOAD_BEFORE: ${{ github.event.client_payload.before }}
+          PAYLOAD_AFTER: ${{ github.event.client_payload.after }}
           INPUT_MR_URL: ${{ inputs.mr_url }}
           ANY_MR: ${{ inputs.any_mr || false }}
         run: |
           set -euo pipefail
 
+          MCP_PROJECT="Newscatcher/newscatcher-mcp"
           if [ "$EVENT_NAME" = "repository_dispatch" ]; then
             PROJECT="$PAYLOAD_PROJECT"
             MR_IID="$PAYLOAD_MR_IID"
+            # Only the MCP repo sends mcp-main-push, and it never comes from GitLab.
+            if [ "$EVENT_TYPE" = "mcp-main-push" ] && [ "$PROJECT" != "$MCP_PROJECT" ]; then
+              echo "::error::mcp-main-push from unknown project '${PROJECT}'"; exit 1
+            fi
           else
             # https://gitlab.com/<namespace>/<project>/-/merge_requests/<iid>[/anything]
             if [[ "$INPUT_MR_URL" =~ ^https://gitlab\.com/([A-Za-z0-9_./-]+)/-/merge_requests/([0-9]+)([/?#].*)?$ ]]; then
               PROJECT="${BASH_REMATCH[1]}"
               MR_IID="${BASH_REMATCH[2]}"
+            # https://github.com/Newscatcher/newscatcher-mcp/pull/<number>[/anything]
+            elif [[ "$INPUT_MR_URL" =~ ^https://github\.com/Newscatcher/newscatcher-mcp/pull/([0-9]+)([/?#].*)?$ ]]; then
+              PROJECT="$MCP_PROJECT"
+              MR_IID="${BASH_REMATCH[1]}"
             else
-              echo "::error::Not a GitLab MR URL: '${INPUT_MR_URL}'"; exit 1
+              echo "::error::Not a GitLab MR URL or an MCP server PR URL: '${INPUT_MR_URL}'"; exit 1
             fi
+          fi
+
+          # ── MCP server (GitHub): read the change from the GitHub API, then stop. ──
+          if [ "$PROJECT" = "$MCP_PROJECT" ]; then
+            REPO_API="https://api.github.com/repos/${MCP_PROJECT}"
+            RAW="https://raw.githubusercontent.com/${MCP_PROJECT}"
+            gh_api() { curl -sSf --retry 3 -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" "$@"; }
+            SHA_RE='^[0-9a-f]{40}$'
+            mkdir -p "$RELEASE_DIR"
+            cd "$RELEASE_DIR"
+
+            if [ "$EVENT_NAME" = "repository_dispatch" ]; then
+              BEFORE="$PAYLOAD_BEFORE"; AFTER="$PAYLOAD_AFTER"
+              if ! [[ "$BEFORE" =~ $SHA_RE && "$AFTER" =~ $SHA_RE ]]; then
+                echo "::error::before and after must be commit SHAs, got '${BEFORE}' and '${AFTER}'"; exit 1
+              fi
+              if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+                echo "::notice::The push created main; nothing to compare. Skipping."
+                echo "skip=true" >> "$GITHUB_OUTPUT"; exit 0
+              fi
+              # The PR this push merged into main, if any (a direct push has none).
+              gh_api "${REPO_API}/commits/${AFTER}/pulls" \
+                | jq '[.[] | select(.merged_at != null and .base.ref == "main")][0] // empty' > pr.json
+              if [ -s pr.json ]; then
+                SOURCE_URL=$(jq -r '.html_url' pr.json)
+                REF_ID="pr$(jq -r '.number' pr.json)"
+              else
+                rm -f pr.json
+                SOURCE_URL="https://github.com/${MCP_PROJECT}/compare/${BEFORE}...${AFTER}"
+                REF_ID="${AFTER:0:7}"
+              fi
+              MERGED_AT=$(gh_api "${REPO_API}/commits/${AFTER}" | jq -r '.commit.committer.date')
+            else
+              gh_api "${REPO_API}/pulls/${MR_IID}" > pr.json
+              STATE=$(jq -r 'if .merged_at then "merged" else .state end' pr.json)
+              TARGET=$(jq -r '.base.ref' pr.json)
+              if [ "$STATE" != "merged" ] || [ "$TARGET" != "main" ]; then
+                if [ "$ANY_MR" != "true" ]; then
+                  echo "::notice::PR #${MR_IID} is '${STATE}' into '${TARGET}', not merged into main. Skipping (set any_mr to run anyway)."
+                  echo "skip=true" >> "$GITHUB_OUTPUT"; exit 0
+                fi
+                echo "::warning::PR #${MR_IID} is '${STATE}' into '${TARGET}'; running anyway (any_mr)."
+              fi
+              BEFORE=$(jq -r '.base.sha' pr.json)
+              # Merged: the merge commit. Not merged (any_mr): the PR's latest commit.
+              AFTER=$(jq -r 'if .merged_at then .merge_commit_sha else .head.sha end' pr.json)
+              SOURCE_URL=$(jq -r '.html_url' pr.json)
+              REF_ID="pr${MR_IID}"
+              MERGED_AT=$(jq -r '.merged_at // empty' pr.json)
+            fi
+            MERGED_AT="${MERGED_AT:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
+
+            gh_api "${REPO_API}/compare/${BEFORE}...${AFTER}" > compare.json
+            jq '[.commits[] | {title: (.commit.message | split("\n")[0]), message: .commit.message}]' compare.json > commits.json
+
+            # Only what users can see: the server code, the plugin and skills, and the docs files.
+            # Tests, CI, scripts and deployment files are left out.
+            jq '[.files[] | select(.filename | test("^(src/|plugin/|server\\.py$|README\\.md$|CHANGELOG\\.md$|llms-install\\.md$)"))]' \
+              compare.json > files.json
+            CHANGED_FILES=$(jq 'length' files.json)
+            if [ "$CHANGED_FILES" -eq 0 ]; then
+              echo "::notice::The push changed nothing users see (src/, plugin/, server.py, README.md, CHANGELOG.md, llms-install.md). Skipping."
+              echo "skip=true" >> "$GITHUB_OUTPUT"; exit 0
+            fi
+            MAX_DIFF_BYTES=400000
+            jq -r '.[] | "diff --git a/\(.previous_filename // .filename) b/\(.filename)\n\(.patch // "(diff too large, not shown by GitHub)")\n"' \
+              files.json > changes.full.diff
+            if [ "$(wc -c < changes.full.diff)" -gt "$MAX_DIFF_BYTES" ]; then
+              head -c "$MAX_DIFF_BYTES" changes.full.diff > changes.diff
+              printf '\n\n[TRUNCATED: diff is %s bytes, first %s shown. Files changed: %s]\n' \
+                "$(wc -c < changes.full.diff)" "$MAX_DIFF_BYTES" "$CHANGED_FILES" >> changes.diff
+            else
+              mv changes.full.diff changes.diff
+            fi
+            rm -f changes.full.diff files.json compare.json
+
+            # Repo files at the new commit. Only the version file is required.
+            for f in src/__init__.py CHANGELOG.md README.md CLAUDE.md AGENTS.md; do
+              out=$(basename "$f")
+              code=$(curl -sS -o "$out" -w '%{http_code}' "${RAW}/${AFTER}/${f}")
+              if [ "$code" = "200" ]; then echo "Fetched ${f}"; else rm -f "$out"; echo "No ${f} (HTTP ${code})"; fi
+            done
+            version_of() { grep -oP '^VERSION\s*=\s*"\K[^"]+' "$1" | head -1 || true; }
+            RELEASE_VERSION=$(version_of __init__.py)
+            if [ -z "$RELEASE_VERSION" ]; then
+              echo "::error::Could not read VERSION from src/__init__.py at ${AFTER}"; exit 1
+            fi
+            curl -sSf -o before_init.py "${RAW}/${BEFORE}/src/__init__.py" || true
+            PREVIOUS_VERSION=$(version_of before_init.py 2>/dev/null)
+            PREVIOUS_VERSION="${PREVIOUS_VERSION:-unknown}"
+            rm -f __init__.py before_init.py
+
+            {
+              echo "PRODUCT=mcp"
+              echo "PRODUCT_NAME=MCP server"
+              # No OpenAPI spec: production is "live" when /health reports the new version.
+              echo "LIVE_SPEC_URL=https://mcp.newscatcherapi.com/health"
+              echo "LIVE_VERSION_JQ=.version"
+              echo "SPEC_MODE=none"
+              echo "SPEC_PATH="
+              echo "AGENT_NAME=mcp-docs-update"
+              echo "AGENT_DIR=/tmp/agents/mcp-docs-update"
+              echo "DOCS_SET=Latest"
+              # Vercel deploys main within a few minutes.
+              echo "WAIT_DEFAULT=15"
+              echo "MR_IID=${REF_ID}"
+              echo "MR_URL=${SOURCE_URL}"
+              echo "RELEASE_VERSION=${RELEASE_VERSION}"
+              echo "PREVIOUS_VERSION=${PREVIOUS_VERSION}"
+              echo "RELEASE_DATE=${MERGED_AT:0:10}"
+              echo "BRANCH=docs/mcp-v${RELEASE_VERSION}-${REF_ID}"
+            } >> "$GITHUB_ENV"
+
+            echo "MCP server ${PREVIOUS_VERSION} -> ${RELEASE_VERSION} (${SOURCE_URL}, ${CHANGED_FILES} files)"
+            ls -la "$RELEASE_DIR"
+            exit 0
           fi
 
           # Per product:
@@ -255,6 +393,7 @@ jobs:
             echo "PRODUCT=${PRODUCT}"
             echo "PRODUCT_NAME=${PRODUCT_NAME}"
             echo "LIVE_SPEC_URL=${LIVE_SPEC_URL}"
+            echo "LIVE_VERSION_JQ=.info.version"
             echo "SPEC_MODE=${SPEC_MODE}"
             echo "AGENT_NAME=${AGENT_NAME}"
             echo "AGENT_DIR=/tmp/agents/${AGENT_NAME}"
@@ -285,12 +424,15 @@ jobs:
           echo "Waiting up to ${WAIT_MINUTES} minutes for ${RELEASE_VERSION}."
           deadline=$(( $(date +%s) + WAIT_MINUTES * 60 ))
           while :; do
-            live=$(curl -sSf -m 30 "$LIVE_SPEC_URL" | jq -r '.info.version' 2>/dev/null || echo "unreachable")
+            # LIVE_SPEC_URL is the spec (.info.version), or the MCP server's /health (.version).
+            live=$(curl -sSf -m 30 "$LIVE_SPEC_URL" | jq -r "$LIVE_VERSION_JQ" 2>/dev/null || echo "unreachable")
             if [ "$live" = "$RELEASE_VERSION" ]; then
               echo "Production serves ${PRODUCT} ${live}"
               echo "SPEC_LIVE=true" >> "$GITHUB_ENV"
-              curl -sSf -m 30 "$LIVE_SPEC_URL" -o "${RELEASE_DIR}/live-spec-after.json" \
-                || echo "::warning::Could not save the live spec after the deploy."
+              if [ "$SPEC_MODE" != "none" ]; then
+                curl -sSf -m 30 "$LIVE_SPEC_URL" -o "${RELEASE_DIR}/live-spec-after.json" \
+                  || echo "::warning::Could not save the live spec after the deploy."
+              fi
               break
             fi
             if [ "$(date +%s)" -ge "$deadline" ]; then
@@ -313,6 +455,10 @@ jobs:
           git config user.name "docs-update-bot"
           git config user.email "bot@newscatcherapi.com"
           git checkout -B "$BRANCH" origin/main
+          if [ "$SPEC_MODE" = "none" ]; then
+            echo "${PRODUCT_NAME} has no OpenAPI spec; no sync."
+            exit 0
+          fi
           if [ "$SPEC_MODE" != "sync" ]; then
             echo "${SPEC_PATH} is edited by the agent; no sync."
             exit 0
@@ -486,9 +632,20 @@ jobs:
 #   GITLAB_V3_APIS_PAT   — NEW. Project access token on
 #                          newscatcher/newscatcher-v3-apis: role Reporter,
 #                          scope read_api.
+#   (The MCP server needs no secret here: its repo is public and GITHUB_TOKEN
+#   reads it.)
 #
 # ai-configs needs agents/enterprise-news-api-docs-update/{AGENT.md,LESSONS.md}
-# next to agents/platform-products-docs-update.
+# and agents/mcp-docs-update/{AGENT.md,LESSONS.md} next to
+# agents/platform-products-docs-update.
+#
+# MCP server (GitHub): .github/workflows/docs.yml in Newscatcher/newscatcher-mcp
+# sends the dispatch on every push to main. It needs the repository secret
+#   DOCS_DISPATCH_TOKEN — fine-grained PAT, repository Newscatcher/docs only,
+#                         permission "Contents: Read and write" (what
+#                         repository_dispatch requires).
+# Without the secret that workflow skips with a notice. A push that changes
+# nothing users see (tests, CI, scripts) starts a run that skips at once.
 #
 # GitLab webhook, once in EACH source project (all three)
 # (Settings → Webhooks → Add new webhook):
@@ -508,7 +665,8 @@ jobs:
 # request events" in GitLab and look for HTTP 204.
 #
 # Manual run (tests, small changes, rerun after a slow deploy): Actions →
-# Update Latest Docs → Run workflow, with the MR URL of either repo. Tick
+# Update Latest Docs → Run workflow, with the MR URL of a GitLab repo or the PR
+# URL of the MCP server. Tick
 # any_mr for an MR that is not merged into main, and set wait_minutes to 0
 # when production will not serve that version.
 #
