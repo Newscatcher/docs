@@ -3,6 +3,16 @@ title: Changelog
 description: New features and changes to the News API and the agent.
 ---
 
+<Update label="November 25, 2026" description="Agent 1.19.3">
+  ## Continuation fields
+
+  - **Fixed**: each entry in `continuations` on `GET /runs/{run_id}` now
+    returns only `continuation_id`, `status`, `max_rows`, `rows_before`,
+    `rows_added`, `found`, `finished_at` and `error`. It no longer includes
+    `cost_usd` or other internal fields, and the API Reference now lists its
+    fields. See [Results and exports](/agent/results-and-exports).
+</Update>
+
 <Update label="November 25, 2026" description="Agent 1.19.2">
   ## Continue a run with more rows, and the free monitor flag
 

@@ -3,7 +3,7 @@
   "info": {
     "title": "NewsCatcher Agent API",
     "description": "Agent runs (events from a query, or news about companies), company lists and monitors. Authenticate with your API key in the x-api-key header.",
-    "version": "1.19.2"
+    "version": "1.19.3"
   },
   "servers": [
     {
@@ -6717,6 +6717,99 @@
         "title": "CompanyStatus",
         "description": "What the user sees per company."
       },
+      "ContinuationOut": {
+        "properties": {
+          "continuation_id": {
+            "type": "string",
+            "title": "Continuation Id",
+            "description": "The continuation's run id (GET /runs/{continuation_id})."
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "succeeded, failed or cancelled."
+          },
+          "max_rows": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Rows",
+            "description": "The run's total of rows it asked for."
+          },
+          "rows_before": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows Before",
+            "description": "The run's rows when it started."
+          },
+          "rows_added": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows Added",
+            "description": "Rows it added to the run."
+          },
+          "found": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Found",
+            "description": "Rows it found, before repeats of the run's rows were left out."
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At",
+            "description": "When it ended (ISO 8601)."
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error",
+            "description": "Its error code, when it failed."
+          }
+        },
+        "type": "object",
+        "required": [
+          "continuation_id",
+          "status"
+        ],
+        "title": "ContinuationOut",
+        "description": "One ended continuation of a run (1.19.0; typed in 1.19.3)."
+      },
       "ContinueRunRequest": {
         "properties": {
           "max_rows": {
@@ -8409,8 +8502,7 @@
             "anyOf": [
               {
                 "items": {
-                  "additionalProperties": true,
-                  "type": "object"
+                  "$ref": "#/components/schemas/ContinuationOut"
                 },
                 "type": "array"
               },
