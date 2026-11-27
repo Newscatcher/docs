@@ -129,6 +129,12 @@ The answer has `monitors`, `next_cursor` (`null` on the last page) and
 Each delivered row has a `change`: `new`, or `update` for a story that grew
 materially since it was last delivered (its `version` rises).
 
+A company monitor made from a companies run also shows that run's stories in
+its story feed, even before its first scheduled run. They follow the feed's
+usual filters: only companies the monitor still follows, and market activity
+only when the monitor keeps it. A story the monitor also delivered is shown
+once.
+
 A new company monitor's first delivery covers only the last 7 days; older
 stories count as already delivered. Each run delivers at most 100 stories; the
 rest come in the next run.
