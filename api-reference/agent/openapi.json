@@ -3,7 +3,7 @@
   "info": {
     "title": "NewsCatcher Agent API",
     "description": "Agent runs (events from a query, or news about companies), company lists and monitors. Authenticate with your API key in the x-api-key header.",
-    "version": "1.19.3"
+    "version": "1.21.0"
   },
   "servers": [
     {
@@ -5573,7 +5573,7 @@
           "monitors"
         ],
         "summary": "Monitor Stories",
-        "description": "The monitor's story feed: its companies' stories, most recent first, as its settings filter them.",
+        "description": "The monitor's story feed: its companies' stories, most recent first, as its settings filter them, one page\nat a time (`total` says how many there are; ask again with `offset` for the next page).",
         "operationId": "monitor_stories_monitors__monitor_id__stories_get",
         "parameters": [
           {
@@ -5609,6 +5609,20 @@
               "default": 100,
               "title": "Limit"
             }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 5000,
+              "minimum": 0,
+              "description": "Stories to skip, to page through `total`.",
+              "default": 0,
+              "title": "Offset"
+            },
+            "description": "Stories to skip, to page through `total`."
           }
         ],
         "responses": {
@@ -8826,6 +8840,24 @@
             },
             "type": "array",
             "title": "Stories"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "description": "Stories in the whole feed (at most 5000); page with `offset`.",
+            "default": 0
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset",
+            "description": "Stories skipped before this page.",
+            "default": 0
+          },
+          "truncated": {
+            "type": "boolean",
+            "title": "Truncated",
+            "description": "True when the feed holds more than 5000 stories: `total` counts the 5000 most recent and the older ones are left out.",
+            "default": false
           }
         },
         "type": "object",
@@ -8833,7 +8865,7 @@
           "stories"
         ],
         "title": "StoryListResponse",
-        "description": "A monitor's story feed, most recent first."
+        "description": "A monitor's story feed, most recent first: one page of it."
       },
       "StoryOut": {
         "properties": {

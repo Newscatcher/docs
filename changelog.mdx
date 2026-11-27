@@ -3,6 +3,20 @@ title: Changelog
 description: New features and changes to the News API and the agent.
 ---
 
+<Update label="November 27, 2026" description="Agent 1.21.0">
+  ## Page through a monitor's story feed
+
+  - **Paging**: `GET /monitors/{monitor_id}/stories` takes `offset` next to
+    `limit` and returns `total` and `offset`, so you can read the whole feed
+    page by page. The feed now holds up to 5,000 stories instead of 500.
+    Without `offset`, you get the same first page as before. See
+    [Page through the story feed](/agent/monitors#page-through-the-story-feed).
+  - **Truncated feed**: the answer returns `truncated: true` when the feed has
+    more than 5,000 stories and the older ones are left out.
+  - **Fixed**: a monitor made from a run now shows that run's stories in its
+    feed before its first scheduled run.
+</Update>
+
 <Update label="November 25, 2026" description="MCP server 0.4.0">
   ## More rows for a research run in the MCP server
 

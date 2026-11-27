@@ -133,6 +133,29 @@ A new company monitor's first delivery covers only the last 7 days; older
 stories count as already delivered. Each run delivers at most 100 stories; the
 rest come in the next run.
 
+### Page through the story feed
+
+`GET /monitors/{monitor_id}/stories` returns one page of the feed at a time.
+A monitor made from a run includes that run's stories in its feed from the
+start, before its first scheduled run.
+
+| Parameter | What it does |
+|---|---|
+| `days` | How many days back the feed goes, 1 to 90. Default `30`. |
+| `limit` | Page size, 1 to 500. Default `100`. |
+| `offset` | Stories to skip, 0 to 5,000. Default `0`. |
+
+The answer has `stories`, `total`, the number of stories in the whole feed,
+and `offset`. To read the next page, ask again with `offset` plus the number
+of stories on this page, until you reach `total`. Without `offset`, you get
+the first page.
+
+<Warning>
+  The feed holds at most the 5,000 most recent stories. When there are more,
+  `truncated` is `true`, `total` counts only those 5,000, and older stories are
+  left out.
+</Warning>
+
 ## Pause, resume and change
 
 `PATCH /monitors/{monitor_id}` changes its name, companies, query, schedule or
