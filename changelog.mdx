@@ -17,6 +17,16 @@ description: New features and changes to the News API and the agent.
     feed before its first scheduled run.
 </Update>
 
+<Update label="November 26, 2026" description="Agent 1.19.4">
+  ## Stories from the source run in a monitor's feed
+
+  - **Fixed**: a company monitor made from a companies run now shows that
+    run's stories in `GET /monitors/{monitor_id}/stories` before its first
+    scheduled run, including to people it is shared with. Before, the feed
+    stayed empty until the monitor ran. See
+    [Monitors](/agent/monitors#get-what-a-monitor-delivered).
+</Update>
+
 <Update label="November 25, 2026" description="MCP server 0.4.0">
   ## More rows for a research run in the MCP server
 
